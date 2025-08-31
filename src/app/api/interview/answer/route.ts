@@ -93,6 +93,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
       }
     } else if (nextAction === 'follow-up') {
       const currentQ = sessionData.questions[sessionData.currentQuestionIndex]
+      // Keep current question context for UI display
+      currentQuestion = {
+        id: currentQ.id,
+        question: currentQ.question,
+        category: currentQ.category,
+        difficulty: currentQ.difficulty,
+        expectedDuration: currentQ.expectedDuration
+      }
       followUpQuestion = currentQ.followUp
       // Progress doesn't change for follow-up
       progress.current = sessionData.currentQuestionIndex + 1
