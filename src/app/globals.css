@@ -67,7 +67,7 @@ body {
 
 /* Animation utilities */
 .animate-gradient {
-  animation: gradient 8s ease infinite;
+  animation: gradient 12s ease infinite;
 }
 
 @keyframes gradient {

@@ -343,10 +343,10 @@ export default function ProblemSolutionSection() {
                 <motion.div
                   className="absolute -top-4 -right-4 bg-gradient-to-r from-secondary-500 to-secondary-600 text-white px-4 py-2 rounded-xl shadow-elevation-3"
                   animate={{ 
-                    y: [-5, 5, -5],
-                    rotate: [2, -2, 2]
+                    y: [-2, 2, -2],
+                    rotate: [0.5, -0.5, 0.5]
                   }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <div className="text-sm font-bold">+47% This Week! 🎉</div>
                 </motion.div>

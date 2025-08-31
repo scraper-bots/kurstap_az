@@ -61,10 +61,10 @@ export default function PremiumHeroSection() {
   }
 
   const floatingAnimation = {
-    y: [-10, 10, -10],
-    rotate: [0, 2, -2, 0],
+    y: [-2, 2, -2],
+    rotate: [0, 0.5, -0.5, 0],
     transition: {
-      duration: 6,
+      duration: 12,
       repeat: Infinity,
       ease: "easeInOut" as const
     }
@@ -79,28 +79,28 @@ export default function PremiumHeroSection() {
         
         {/* Floating Orbs */}
         <motion.div
-          className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-primary-400/20 to-brand-400/20 rounded-full blur-3xl"
+          className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-primary-400/15 to-brand-400/15 rounded-full blur-3xl"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.05, 1],
+            opacity: [0.2, 0.3, 0.2],
           }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute top-40 right-32 w-96 h-96 bg-gradient-to-r from-secondary-400/15 to-accent-400/15 rounded-full blur-3xl"
+          className="absolute top-40 right-32 w-96 h-96 bg-gradient-to-r from-secondary-400/10 to-accent-400/10 rounded-full blur-3xl"
           animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.2, 0.4, 0.2],
+            scale: [1.05, 1, 1.05],
+            opacity: [0.15, 0.25, 0.15],
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 4 }}
         />
         <motion.div
-          className="absolute bottom-20 left-1/4 w-80 h-80 bg-gradient-to-r from-accent-300/20 to-primary-300/20 rounded-full blur-3xl"
+          className="absolute bottom-20 left-1/4 w-80 h-80 bg-gradient-to-r from-accent-300/12 to-primary-300/12 rounded-full blur-3xl"
           animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.25, 0.45, 0.25],
+            scale: [1, 1.08, 1],
+            opacity: [0.18, 0.28, 0.18],
           }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
         />
 
         {/* Grid Pattern */}
@@ -462,10 +462,10 @@ export default function PremiumHeroSection() {
               <motion.div
                 className="absolute -top-4 -right-8 bg-secondary-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-elevation-3"
                 animate={{
-                  y: [-5, 5, -5],
-                  rotate: [2, -2, 2],
+                  y: [-2, 2, -2],
+                  rotate: [0.5, -0.5, 0.5],
                 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               >
                 Great structure! 💡
               </motion.div>
@@ -473,10 +473,10 @@ export default function PremiumHeroSection() {
               <motion.div
                 className="absolute -bottom-6 -left-8 bg-accent-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-elevation-3"
                 animate={{
-                  y: [5, -5, 5],
-                  rotate: [-2, 2, -2],
+                  y: [2, -2, 2],
+                  rotate: [-0.5, 0.5, -0.5],
                 }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 4 }}
               >
                 Consider scalability 📈
               </motion.div>
@@ -484,10 +484,10 @@ export default function PremiumHeroSection() {
               <motion.div
                 className="absolute top-1/2 -left-12 bg-primary-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-elevation-3"
                 animate={{
-                  y: [-3, 3, -3],
-                  rotate: [1, -1, 1],
+                  y: [-1, 1, -1],
+                  rotate: [0.3, -0.3, 0.3],
                 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 6 }}
               >
                 Speak slower ⏱️
               </motion.div>
