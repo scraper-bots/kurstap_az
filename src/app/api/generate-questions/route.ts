@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { OpenAIService } from '@/lib/openai'
-import { PineconeService } from '@/lib/pinecone'
+// Pinecone removed - using in-memory question generation only
 import { db } from '@/lib/db'
 
 export interface GenerateQuestionsRequest {
@@ -161,27 +161,42 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // Get existing questions from Pinecone
-    const questions = await PineconeService.getQuestionsByJobTitle(
-      jobTitle,
-      category || undefined,
-      limit
-    )
-
-    // Group by category
-    const grouped = {
-      behavioral: questions.filter(q => q.category === 'behavioral'),
-      technical: questions.filter(q => q.category === 'technical'),
-      situational: questions.filter(q => q.category === 'situational'),
+    // No persistent storage - generate fresh questions
+    console.log(`Generating fresh questions for ${jobTitle} (no storage)`)
+    
+    // Generate new questions
+    let questionSet
+    try {
+      questionSet = await OpenAIService.generateQuestions(jobTitle)
+    } catch (error) {
+      console.warn('Using mock questions due to OpenAI error:', error)
+      questionSet = OpenAIService.generateMockQuestions(jobTitle)
     }
+
+    // Filter by category if specified
+    let questions = {
+      behavioral: questionSet.behavioral,
+      technical: questionSet.technical,
+      situational: questionSet.situational,
+    }
+
+    if (category) {
+      questions = {
+        behavioral: category === 'behavioral' ? questionSet.behavioral : [],
+        technical: category === 'technical' ? questionSet.technical : [],
+        situational: category === 'situational' ? questionSet.situational : [],
+      }
+    }
+
+    const totalQuestions = questions.behavioral.length + questions.technical.length + questions.situational.length
 
     return NextResponse.json({
       success: true,
       data: {
         jobTitle,
-        questions: grouped,
-        totalQuestions: questions.length,
-        stored: true,
+        questions,
+        totalQuestions,
+        stored: false, // No persistent storage
       }
     })
 

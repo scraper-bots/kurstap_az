@@ -3,19 +3,19 @@
 ## Tech Stack (Minimal Viable Product)
 
 ### Core Stack
-- **Frontend**: Next.js 14 + TypeScript + Tailwind CSS
+- **Frontend**: Next.js 15 + TypeScript + Tailwind CSS
 - **Deployment**: Vercel (frontend) + Railway/Render (backend services)
-- **Database**: PostgreSQL (Supabase or Neon)
+- **Database**: PostgreSQL (Neon)
 - **Auth**: Clerk (easiest integration)
 - **Real-time Audio**: Daily.co (most reliable, good free tier)
 - **LLM**: OpenAI GPT-4 (reliable, good for interviews)
 - **Speech**: OpenAI Whisper (STT) + ElevenLabs (TTS)
-- **Vector DB**: Pinecone (managed, simple setup)
+- **Storage**: No vector database needed - questions generated on-demand
 
 ### Why This Stack?
 - **Daily.co**: Better than WebRTC hell, handles NAT traversal
 - **ElevenLabs**: Actually sounds human (vs robotic cloud TTS)  
-- **Pinecone**: Zero ops, just works
+- **On-demand Questions**: No storage overhead, always fresh
 - **Clerk**: Auth solved in 10 minutes
 
 ## Environment Variables You Need
@@ -32,10 +32,7 @@ ELEVENLABS_API_KEY=...
 DAILY_API_KEY=...
 DAILY_DOMAIN=your-domain.daily.co
 
-# Pinecone (Vector DB)
-PINECONE_API_KEY=...
-PINECONE_ENVIRONMENT=us-west1-gcp-free
-PINECONE_INDEX_NAME=interview-questions
+# No vector database needed - questions generated on-demand
 
 # Database
 DATABASE_URL=postgresql://...
@@ -69,10 +66,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - Dashboard → Developers → API Keys
 - **Cost**: Free tier covers ~500 interview minutes
 
-### 4. Pinecone (Free tier: 1M vectors)
-- Sign up at pinecone.io
-- Create index with dimension 1536 (OpenAI embeddings)
-- **Cost**: Free tier sufficient for MVP
+### 4. No Vector Database
+- Questions generated on-demand using OpenAI
+- **Cost**: $0/month (no storage needed)
 
 ### 5. Clerk (Free: 10k MAU)
 - Sign up at clerk.com
@@ -237,11 +233,11 @@ Return JSON: {"scores": {...}, "feedback": "..."}
 ## Real Limitations & Costs
 
 ### Monthly Costs (1000 interviews/month)
-- **OpenAI**: ~$200 (GPT-4 + Whisper)
+- **OpenAI**: ~$50-100 (GPT-4 for final evaluation only)
 - **ElevenLabs**: ~$99 (professional plan)
 - **Daily.co**: ~$50 (beyond free tier)
-- **Pinecone**: ~$70 (beyond free tier)
-- **Total**: ~$420/month
+- **Database**: ~$20 (Neon PostgreSQL)
+- **Total**: ~$170-270/month (60% cheaper without individual scoring)
 
 ### Technical Limitations
 - **Latency**: 800ms-2s response time realistic

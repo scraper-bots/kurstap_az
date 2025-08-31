@@ -214,22 +214,7 @@ Make questions realistic and commonly asked in ${jobTitle} interviews.`
     }
   }
 
-  /**
-   * Generate embeddings for questions (for vector storage)
-   */
-  static async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    try {
-      const response = await openai.embeddings.create({
-        model: 'text-embedding-ada-002',
-        input: texts,
-      })
-
-      return response.data.map(item => item.embedding)
-    } catch (error) {
-      console.error('Error generating embeddings:', error)
-      throw new Error(`Failed to generate embeddings: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
+  // Embeddings removed - no vector storage needed
 
   /**
    * Evaluate complete interview performance (all questions and answers)
