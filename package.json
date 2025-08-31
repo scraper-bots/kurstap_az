@@ -1,7 +1,7 @@
 {
-  "name": "coach",
+  "name": "birguru",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-powered interview coaching platform",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
@@ -14,14 +14,14 @@
     "type": "git",
     "url": "git+https://github.com/Ismat-Samadov/coach.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["AI", "interview", "coaching", "career", "practice"],
+  "author": "Bir Guru",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/Ismat-Samadov/coach/issues"
   },
-  "homepage": "https://github.com/Ismat-Samadov/coach#readme",
+  "homepage": "https://www.bir.guru",
   "dependencies": {
     "@clerk/nextjs": "^6.31.6",
     "@daily-co/daily-js": "^0.83.1",

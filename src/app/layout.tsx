@@ -20,13 +20,13 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://interviewai.com'),
-  title: 'InterviewAI | Master Every Interview With AI',
+  metadataBase: new URL('https://www.bir.guru'),
+  title: 'Bir Guru | Master Every Interview With AI',
   description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want. Join 15,000+ professionals improving their interview skills.',
   keywords: 'AI interview coach, interview practice, job interview preparation, AI feedback, career coaching, technical interviews, behavioral questions',
-  authors: [{ name: 'InterviewAI' }],
-  creator: 'InterviewAI',
-  publisher: 'InterviewAI',
+  authors: [{ name: 'Bir Guru' }],
+  creator: 'Bir Guru',
+  publisher: 'Bir Guru',
   viewport: {
     width: 'device-width',
     initialScale: 1,
@@ -52,24 +52,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://interviewai.com',
-    title: 'InterviewAI | Master Every Interview With AI',
+    url: 'https://www.bir.guru',
+    title: 'Bir Guru | Master Every Interview With AI',
     description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want.',
-    siteName: 'InterviewAI',
+    siteName: 'Bir Guru',
     images: [
       {
         url: '/icon-512.png',
         width: 512,
         height: 512,
-        alt: 'InterviewAI Logo',
+        alt: 'Bir Guru Logo',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'InterviewAI | Master Every Interview With AI',
+    title: 'Bir Guru | Master Every Interview With AI',
     description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want.',
-    creator: '@interviewai',
+    creator: '@birguru',
     images: ['/icon-512.png'],
   },
 }

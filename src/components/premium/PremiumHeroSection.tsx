@@ -126,7 +126,7 @@ export default function PremiumHeroSection() {
               <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
             <span className="text-xl sm:text-2xl font-display font-bold text-slate-800">
-              InterviewAI
+              Bir Guru
             </span>
           </motion.div>
           
@@ -446,7 +446,7 @@ export default function PremiumHeroSection() {
                       <Zap className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-neutral-900">AI Interview Coach</div>
+                      <div className="font-bold text-neutral-900">Bir Guru AI Coach</div>
                       <div className="text-sm text-neutral-500">Senior Software Engineer Mock</div>
                     </div>
                   </div>
