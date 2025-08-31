@@ -63,7 +63,7 @@ export async function testQuestionGeneration() {
     // Test 7: Get index stats
     console.log('\n📊 Test 7: Getting index statistics...')
     const stats = await PineconeService.getIndexStats()
-    console.log(`✅ Index contains ${stats.totalVectorCount} vectors`)
+    console.log(`✅ Index contains ${stats.totalRecordCount || 0} vectors`)
     
     console.log('\n🎉 All tests passed! Question generation system is working correctly.')
     
