@@ -1,0 +1,27 @@
+{
+  "name": "coach",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ismat-Samadov/coach.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Ismat-Samadov/coach/issues"
+  },
+  "homepage": "https://github.com/Ismat-Samadov/coach#readme",
+  "dependencies": {
+    "@clerk/nextjs": "^6.31.6",
+    "@daily-co/daily-js": "^0.83.1",
+    "@pinecone-database/pinecone": "^6.1.2",
+    "openai": "^5.16.0"
+  }
+}
