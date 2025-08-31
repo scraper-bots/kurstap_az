@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, Play, Users, Star, Zap, Target, TrendingUp, Award, X, Menu } from 'lucide-react'
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
 export default function PremiumHeroSection() {
+  const { isSignedIn, user } = useUser()
   const [currentStats, setCurrentStats] = useState({
     users: 0,
     interviews: 0,
@@ -145,20 +147,40 @@ export default function PremiumHeroSection() {
 
           {/* Desktop CTAs */}
           <div className="hidden sm:flex items-center space-x-3 lg:space-x-4">
-            <motion.button 
-              className="hidden md:block px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Sign In
-            </motion.button>
-            <motion.button 
-              className="px-4 sm:px-6 py-2 bg-gradient-brand text-white rounded-lg font-semibold shadow-elevation-2 hover:shadow-elevation-3 transition-all text-sm sm:text-base"
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)" }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Get Started
-            </motion.button>
+            {isSignedIn ? (
+              <div className="flex items-center space-x-3">
+                <motion.a
+                  href="/dashboard"
+                  className="hidden md:block px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Dashboard
+                </motion.a>
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            ) : (
+              <>
+                <SignInButton mode="modal">
+                  <motion.button 
+                    className="hidden md:block px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Sign In
+                  </motion.button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <motion.button 
+                    className="px-4 sm:px-6 py-2 bg-gradient-brand text-white rounded-lg font-semibold shadow-elevation-2 hover:shadow-elevation-3 transition-all text-sm sm:text-base"
+                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)" }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Get Started
+                  </motion.button>
+                </SignUpButton>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -226,18 +248,39 @@ export default function PremiumHeroSection() {
 
               {/* Mobile Actions */}
               <div className="pt-6 mt-6 border-t border-neutral-100 space-y-3">
-                <button 
-                  className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign In
-                </button>
-                <button 
-                  className="w-full py-3 px-4 bg-gradient-brand text-white font-semibold rounded-lg shadow-elevation-2 hover:shadow-elevation-3 transition-all"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Get Started
-                </button>
+                {isSignedIn ? (
+                  <div className="space-y-3">
+                    <a
+                      href="/dashboard"
+                      className="block w-full py-3 px-4 text-center text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </a>
+                    <div className="flex justify-center">
+                      <UserButton afterSignOutUrl="/" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <SignInButton mode="modal">
+                      <button 
+                        className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Sign In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button 
+                        className="w-full py-3 px-4 bg-gradient-brand text-white font-semibold rounded-lg shadow-elevation-2 hover:shadow-elevation-3 transition-all"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Get Started
+                      </button>
+                    </SignUpButton>
+                  </>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -328,17 +371,34 @@ export default function PremiumHeroSection() {
               className="flex flex-col sm:flex-row gap-3 sm:gap-4"
               variants={itemVariants}
             >
-              <motion.button
-                className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-brand text-white rounded-xl font-semibold text-base sm:text-lg shadow-elevation-3 overflow-hidden"
-                whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                <div className="relative flex items-center justify-center space-x-2">
-                  <span>Start Free Practice</span>
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.button>
+              {isSignedIn ? (
+                <motion.a
+                  href="/dashboard"
+                  className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-brand text-white rounded-xl font-semibold text-base sm:text-lg shadow-elevation-3 overflow-hidden block"
+                  whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <div className="relative flex items-center justify-center space-x-2">
+                    <span>Go to Dashboard</span>
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </motion.a>
+              ) : (
+                <SignUpButton mode="modal">
+                  <motion.button
+                    className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-brand text-white rounded-xl font-semibold text-base sm:text-lg shadow-elevation-3 overflow-hidden"
+                    whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="relative flex items-center justify-center space-x-2">
+                      <span>Start Free Practice</span>
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </motion.button>
+                </SignUpButton>
+              )}
 
               <motion.button
                 className="group flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/90 backdrop-blur-sm border border-white/20 text-slate-700 rounded-xl font-semibold text-base sm:text-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all"
