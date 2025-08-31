@@ -39,7 +39,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Parse request body
     const body: GenerateQuestionsRequest = await req.json()
-    const { jobTitle, regenerate = false, difficulty = 'mixed', categories } = body
+    const { jobTitle, difficulty = 'mixed', categories } = body
 
     // Validate input
     if (!jobTitle || jobTitle.trim().length === 0) {
@@ -51,33 +51,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const cleanJobTitle = jobTitle.trim()
 
-    // Check if questions already exist (unless regenerating)
-    if (!regenerate) {
-      try {
-        const existingQuestions = await PineconeService.getQuestionsByJobTitle(cleanJobTitle)
-        
-        if (existingQuestions.length > 0) {
-          // Group existing questions by category
-          const grouped = {
-            behavioral: existingQuestions.filter(q => q.category === 'behavioral'),
-            technical: existingQuestions.filter(q => q.category === 'technical'),
-            situational: existingQuestions.filter(q => q.category === 'situational'),
-          }
-
-          return NextResponse.json({
-            success: true,
-            data: {
-              jobTitle: cleanJobTitle,
-              questions: grouped,
-              totalQuestions: existingQuestions.length,
-              stored: true,
-            }
-          })
-        }
-      } catch (pineconeError) {
-        console.warn('Could not check existing questions, proceeding with generation:', pineconeError)
-      }
-    }
+    // Skip Pinecone check for now (index not set up)
+    console.log('Skipping Pinecone check - generating fresh questions')
 
     console.log(`Generating questions for: ${cleanJobTitle}`)
 
@@ -118,25 +93,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     let stored = false
     
-    // Store in Pinecone (disabled for testing)
-    try {
-      // TODO: Re-enable Pinecone storage after setting up index
-      console.log('Pinecone storage disabled for testing')
-      stored = false
-      
-      // if (regenerate) {
-      //   // Delete existing questions first
-      //   await PineconeService.deleteQuestionsByJobTitle(cleanJobTitle)
-      // }
-      
-      // await PineconeService.storeQuestionSet(filteredQuestionSet)
-      // stored = true
-      
-      // console.log(`Successfully stored questions for ${cleanJobTitle}`)
-    } catch (pineconeError) {
-      console.error('Failed to store questions in Pinecone:', pineconeError)
-      // Continue without storing - return generated questions anyway
-    }
+    // Skip Pinecone storage (not set up yet)
+    console.log('Pinecone storage disabled - questions generated in-memory only')
+    stored = false
 
     // Log generation activity
     try {

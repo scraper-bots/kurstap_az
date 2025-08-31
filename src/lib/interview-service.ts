@@ -53,6 +53,15 @@ export class InterviewService {
     difficulty: 'easy' | 'medium' | 'hard' | 'mixed' = 'mixed'
   ): Promise<InterviewSessionData> {
     try {
+      // Ensure user exists in database first
+      const existingUser = await db.user.findUnique({
+        where: { clerkId: userId }
+      })
+      
+      if (!existingUser) {
+        throw new Error('User not found. Please sign in again.')
+      }
+
       // Generate questions for the position
       let questionSet
       try {
@@ -81,7 +90,7 @@ export class InterviewService {
       // Create interview record
       const interview = await db.interview.create({
         data: {
-          userId,
+          userId: existingUser.id, // Use the actual user ID from database
           title: `${position} Interview`,
           position,
           difficulty: difficulty === 'mixed' ? 'MEDIUM' : difficulty.toUpperCase() as any,
@@ -94,7 +103,7 @@ export class InterviewService {
       // Create session record
       const session = await db.session.create({
         data: {
-          userId,
+          userId: existingUser.id, // Use the actual user ID from database
           interviewId: interview.id,
           type: 'PRACTICE',
           status: 'IN_PROGRESS',
@@ -130,7 +139,7 @@ export class InterviewService {
    */
   static async submitAnswer(
     sessionId: string,
-    userId: string,
+    clerkUserId: string,
     answer: string
   ): Promise<{
     success: boolean
@@ -139,8 +148,17 @@ export class InterviewService {
     score?: any
   }> {
     try {
+      // Get the user from database
+      const user = await db.user.findUnique({
+        where: { clerkId: clerkUserId }
+      })
+      
+      if (!user) {
+        throw new Error('User not found')
+      }
+
       const session = await db.session.findUnique({
-        where: { id: sessionId, userId },
+        where: { id: sessionId, userId: user.id },
         include: { interview: true }
       })
 
@@ -222,7 +240,7 @@ export class InterviewService {
       const updatedSessionData: InterviewSessionData = {
         id: sessionId,
         interviewId: session.interviewId!,
-        userId,
+        userId: clerkUserId,
         position: session.interview?.position || 'General',
         currentQuestionIndex: newQuestionIndex,
         currentStage: newStage,
@@ -279,10 +297,19 @@ export class InterviewService {
   /**
    * Get current session state
    */
-  static async getSession(sessionId: string, userId: string): Promise<InterviewSessionData | null> {
+  static async getSession(sessionId: string, clerkUserId: string): Promise<InterviewSessionData | null> {
     try {
+      // Get the user from database
+      const user = await db.user.findUnique({
+        where: { clerkId: clerkUserId }
+      })
+      
+      if (!user) {
+        return null
+      }
+
       const session = await db.session.findUnique({
-        where: { id: sessionId, userId },
+        where: { id: sessionId, userId: user.id },
         include: { interview: true }
       })
 
@@ -300,10 +327,19 @@ export class InterviewService {
   /**
    * Get user's interview history
    */
-  static async getUserInterviews(userId: string, limit: number = 10) {
+  static async getUserInterviews(clerkUserId: string, limit: number = 10) {
     try {
+      // Get the user from database
+      const user = await db.user.findUnique({
+        where: { clerkId: clerkUserId }
+      })
+      
+      if (!user) {
+        return []
+      }
+
       const interviews = await db.interview.findMany({
-        where: { userId },
+        where: { userId: user.id },
         orderBy: { createdAt: 'desc' },
         take: limit,
         include: {
