@@ -14,7 +14,13 @@
     "type": "git",
     "url": "git+https://github.com/Ismat-Samadov/coach.git"
   },
-  "keywords": ["AI", "interview", "coaching", "career", "practice"],
+  "keywords": [
+    "AI",
+    "interview",
+    "coaching",
+    "career",
+    "practice"
+  ],
   "author": "Bir Guru",
   "license": "ISC",
   "type": "commonjs",
@@ -29,6 +35,8 @@
     "@prisma/client": "^6.15.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
@@ -46,6 +54,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "svix": "^1.75.0",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2"
   }
