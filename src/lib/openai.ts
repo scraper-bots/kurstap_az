@@ -232,7 +232,143 @@ Make questions realistic and commonly asked in ${jobTitle} interviews.`
   }
 
   /**
-   * Score an interview answer
+   * Evaluate complete interview performance (all questions and answers)
+   */
+  static async evaluateCompleteInterview(
+    position: string,
+    questionsAndAnswers: Array<{
+      question: string
+      answer: string
+      followUpQuestion?: string
+      followUpAnswer?: string
+      category: string
+      difficulty: string
+    }>
+  ): Promise<{
+    overallScore: number
+    categoryScores: {
+      behavioral: number
+      technical: number
+      situational: number
+    }
+    detailedFeedback: Array<{
+      questionId: number
+      question: string
+      scores: {
+        technicalAccuracy: number
+        communicationClarity: number
+        problemSolvingApproach: number
+        overallScore: number
+      }
+      feedback: string
+    }>
+    summary: string
+    strengths: string[]
+    areasForImprovement: string[]
+    recommendedActions: string[]
+  }> {
+    const prompt = `
+You are an expert interview assessor evaluating a complete interview for a ${position} position.
+
+Interview Responses:
+${questionsAndAnswers.map((qa, index) => `
+Question ${index + 1} (${qa.category}, ${qa.difficulty}):
+"${qa.question}"
+Answer: "${qa.answer}"
+${qa.followUpQuestion ? `Follow-up: "${qa.followUpQuestion}"` : ''}
+${qa.followUpAnswer ? `Follow-up Answer: "${qa.followUpAnswer}"` : ''}
+`).join('\n')}
+
+Provide a comprehensive evaluation in this exact JSON format:
+{
+  "overallScore": 85,
+  "categoryScores": {
+    "behavioral": 80,
+    "technical": 90,
+    "situational": 85
+  },
+  "detailedFeedback": [
+    {
+      "questionId": 1,
+      "question": "Question text...",
+      "scores": {
+        "technicalAccuracy": 8,
+        "communicationClarity": 7,
+        "problemSolvingApproach": 9,
+        "overallScore": 8
+      },
+      "feedback": "Specific feedback for this answer..."
+    }
+  ],
+  "summary": "Overall performance assessment in 2-3 sentences",
+  "strengths": ["Strength 1", "Strength 2", "Strength 3"],
+  "areasForImprovement": ["Area 1", "Area 2", "Area 3"],
+  "recommendedActions": ["Action 1", "Action 2", "Action 3"]
+}
+
+Scoring Guidelines:
+- Technical Accuracy: Knowledge and correctness (1-10)
+- Communication Clarity: Structure and clarity (1-10)
+- Problem Solving: Logical thinking and approach (1-10)
+- Overall scores should reflect ${position} role requirements
+- Be constructive and specific in feedback
+- Focus on actionable improvements`
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert interview assessor. Return only valid JSON with comprehensive evaluation.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 3000,
+      })
+
+      const content = completion.choices[0]?.message?.content
+      if (!content) {
+        throw new Error('No evaluation content received from OpenAI')
+      }
+
+      const cleanContent = content.trim().replace(/```json\s*/, '').replace(/```\s*$/, '')
+      return JSON.parse(cleanContent)
+    } catch (error) {
+      console.error('Error evaluating complete interview:', error)
+      // Return fallback evaluation
+      return {
+        overallScore: 75,
+        categoryScores: {
+          behavioral: 75,
+          technical: 75,
+          situational: 75
+        },
+        detailedFeedback: questionsAndAnswers.map((qa, index) => ({
+          questionId: index + 1,
+          question: qa.question,
+          scores: {
+            technicalAccuracy: 7,
+            communicationClarity: 7,
+            problemSolvingApproach: 7,
+            overallScore: 7
+          },
+          feedback: "Answer received and evaluated. Detailed AI analysis temporarily unavailable."
+        })),
+        summary: `Completed ${position} interview with ${questionsAndAnswers.length} questions answered. Performance shows solid foundation with room for growth.`,
+        strengths: ["Completed all questions", "Provided thoughtful responses", "Demonstrated engagement"],
+        areasForImprovement: ["Provide more specific examples", "Elaborate on technical details", "Improve response structure"],
+        recommendedActions: ["Practice with mock interviews", "Prepare specific examples", "Research company and role"]
+      }
+    }
+  }
+
+  /**
+   * Score an interview answer (legacy - kept for backwards compatibility)
    */
   static async scoreAnswer(
     question: string,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,7 @@ interface InterviewState {
     overallScore: number
     feedback: string
   }
+  finalEvaluation?: any
 }
 
 export default function InterviewPage() {
@@ -101,16 +102,17 @@ export default function InterviewPage() {
       const data = await response.json()
 
       if (data.success) {
-        const { nextAction, currentQuestion, followUpQuestion, score, progress, overallScore } = data.data
+        const { nextAction, currentQuestion, followUpQuestion, progress, overallScore, finalEvaluation } = data.data
 
         setState(prev => ({
           ...prev,
           currentQuestion,
           followUpQuestion,
           progress,
-          lastScore: score,
+          lastScore: undefined, // No individual scoring
           overallScore,
-          stage: nextAction === 'completed' ? 'completed' : 'interview'
+          stage: nextAction === 'completed' ? 'completed' : 'interview',
+          finalEvaluation // Store final evaluation for completion page
         }))
 
         setCurrentAnswer('')
@@ -301,45 +303,14 @@ export default function InterviewPage() {
             </Card>
           )}
 
-          {/* Last Score Feedback */}
-          {state.lastScore && (
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-lg text-green-800 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Answer Scored
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {state.lastScore.technicalAccuracy}
-                    </div>
-                    <div className="text-xs text-gray-600">Technical</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {state.lastScore.communicationClarity}
-                    </div>
-                    <div className="text-xs text-gray-600">Communication</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {state.lastScore.problemSolvingApproach}
-                    </div>
-                    <div className="text-xs text-gray-600">Problem Solving</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {state.lastScore.overallScore}
-                    </div>
-                    <div className="text-xs text-gray-600">Overall</div>
-                  </div>
+          {/* Simple Answer Confirmation */}
+          {isSubmitting && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  <span className="text-blue-800">Processing your answer...</span>
                 </div>
-                <p className="text-sm text-green-700 bg-green-100 p-3 rounded">
-                  {state.lastScore.feedback}
-                </p>
               </CardContent>
             </Card>
           )}
@@ -365,6 +336,30 @@ export default function InterviewPage() {
               </div>
               <div className="text-sm text-gray-600">Overall Score</div>
               
+              {/* Category Scores */}
+              {state.finalEvaluation?.categoryScores && (
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {state.finalEvaluation.categoryScores.behavioral}
+                    </div>
+                    <div className="text-xs text-gray-600">Behavioral</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {state.finalEvaluation.categoryScores.technical}
+                    </div>
+                    <div className="text-xs text-gray-600">Technical</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {state.finalEvaluation.categoryScores.situational}
+                    </div>
+                    <div className="text-xs text-gray-600">Situational</div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4 mt-6">
                 <div className="text-center">
                   <div className="text-lg font-semibold">{state.progress?.total || 0}</div>
@@ -386,6 +381,122 @@ export default function InterviewPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Detailed Evaluation */}
+          {state.finalEvaluation && (
+            <>
+              {/* Summary */}
+              {state.finalEvaluation.summary && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Performance Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">{state.finalEvaluation.summary}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Strengths and Areas for Improvement */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {state.finalEvaluation.strengths && (
+                  <Card className="border-green-200">
+                    <CardHeader>
+                      <CardTitle className="text-green-800">Strengths</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {state.finalEvaluation.strengths.map((strength: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{strength}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {state.finalEvaluation.areasForImprovement && (
+                  <Card className="border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="text-orange-800">Areas for Improvement</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {state.finalEvaluation.areasForImprovement.map((area: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <Target className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{area}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Recommended Actions */}
+              {state.finalEvaluation.recommendedActions && (
+                <Card className="border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-blue-800">Recommended Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {state.finalEvaluation.recommendedActions.map((action: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <Play className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{action}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Individual Question Details */}
+              {state.finalEvaluation.detailedFeedback && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Question-by-Question Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {state.finalEvaluation.detailedFeedback.map((feedback: any, index: number) => (
+                        <div key={index} className="border-l-4 border-gray-200 pl-4">
+                          <div className="font-medium text-gray-900 mb-2">
+                            Question {feedback.questionId}: {feedback.question}
+                          </div>
+                          <div className="grid grid-cols-4 gap-4 mb-3">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold">{feedback.scores.technicalAccuracy}</div>
+                              <div className="text-xs text-gray-500">Technical</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold">{feedback.scores.communicationClarity}</div>
+                              <div className="text-xs text-gray-500">Communication</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold">{feedback.scores.problemSolvingApproach}</div>
+                              <div className="text-xs text-gray-500">Problem Solving</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg font-semibold">{feedback.scores.overallScore}</div>
+                              <div className="text-xs text-gray-500">Overall</div>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                            {feedback.feedback}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

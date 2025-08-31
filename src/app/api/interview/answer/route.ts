@@ -112,10 +112,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
         nextAction,
         currentQuestion,
         followUpQuestion,
-        score,
+        score: undefined, // No individual scoring during interview
         progress,
         overallScore: sessionData.overallScore,
-        sessionId: sessionData.id
+        sessionId: sessionData.id,
+        // Include evaluation data when completed
+        ...(nextAction === 'completed' && result.finalEvaluation && {
+          finalEvaluation: result.finalEvaluation
+        })
       }
     })
   } catch (error) {

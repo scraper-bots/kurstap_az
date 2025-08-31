@@ -146,6 +146,7 @@ export class InterviewService {
     sessionData: InterviewSessionData
     nextAction: 'next-question' | 'follow-up' | 'completed'
     score?: any
+    finalEvaluation?: any
   }> {
     try {
       // Get the user from database
@@ -173,25 +174,8 @@ export class InterviewService {
         throw new Error('No current question found')
       }
 
-      // Score the answer using GPT-4
-      let score
-      try {
-        score = await OpenAIService.scoreAnswer(
-          currentQuestion.question,
-          answer,
-          session.interview?.position || 'General',
-          currentQuestion.category
-        )
-      } catch (error) {
-        console.warn('Failed to score answer, using default:', error)
-        score = {
-          technicalAccuracy: 7,
-          communicationClarity: 7,
-          problemSolvingApproach: 7,
-          overallScore: 7,
-          feedback: "Answer received. Due to technical limitations, detailed scoring is not available at this time."
-        }
-      }
+      // Skip individual scoring - will be done at the end
+      console.log('Answer recorded - scoring deferred until interview completion')
 
       // Determine next action based on current stage
       let nextAction: 'next-question' | 'follow-up' | 'completed' = 'completed'
@@ -203,7 +187,6 @@ export class InterviewService {
           questionId: currentQuestion.id,
           question: currentQuestion.question,
           answer,
-          score,
           timestamp: new Date().toISOString()
         }
         updatedAnswers.push(answerRecord)
@@ -251,11 +234,51 @@ export class InterviewService {
         completedAt: nextAction === 'completed' ? new Date().toISOString() : undefined
       }
 
-      // Calculate overall score if completed
+      // Perform comprehensive evaluation if completed
+      let finalEvaluation = undefined
       if (nextAction === 'completed') {
-        const scores = updatedAnswers.map(a => a.score?.overallScore || 0)
-        const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
-        updatedSessionData.overallScore = Math.round(averageScore)
+        try {
+          console.log('Interview completed - performing comprehensive evaluation')
+          
+          // Prepare questions and answers for evaluation
+          const questionsAndAnswers = updatedAnswers.map((answer, index) => {
+            const question = sessionData.questions.find((q: any) => q.id === answer.questionId)
+            return {
+              question: answer.question,
+              answer: answer.answer,
+              followUpQuestion: answer.followUpQuestion,
+              followUpAnswer: answer.followUpAnswer,
+              category: question?.category || 'general',
+              difficulty: question?.difficulty || 'medium'
+            }
+          })
+
+          finalEvaluation = await OpenAIService.evaluateCompleteInterview(
+            session.interview?.position || 'General',
+            questionsAndAnswers
+          )
+          
+          updatedSessionData.overallScore = finalEvaluation.overallScore
+          
+          // Store detailed evaluation in answers
+          finalEvaluation.detailedFeedback.forEach((feedback, index) => {
+            if (updatedAnswers[index]) {
+              updatedAnswers[index].score = {
+                technicalAccuracy: feedback.scores.technicalAccuracy,
+                communicationClarity: feedback.scores.communicationClarity,
+                problemSolvingApproach: feedback.scores.problemSolvingApproach,
+                overallScore: feedback.scores.overallScore,
+                feedback: feedback.feedback
+              }
+            }
+          })
+          
+          console.log(`Evaluation completed - Overall Score: ${finalEvaluation.overallScore}`)
+        } catch (error) {
+          console.error('Failed to evaluate interview:', error)
+          // Use fallback score
+          updatedSessionData.overallScore = 75
+        }
       }
 
       // Update database
@@ -286,7 +309,8 @@ export class InterviewService {
         success: true,
         sessionData: updatedSessionData,
         nextAction,
-        score
+        score: undefined, // No individual scoring
+        finalEvaluation // Include final evaluation when completed
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
