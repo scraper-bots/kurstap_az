@@ -11,20 +11,24 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
-  // Get or create user in database
-  const dbUser = await UserService.getOrCreateUser({
-    clerkId: clerkUser.id,
-    email: clerkUser.emailAddresses[0]?.emailAddress || '',
-    firstName: clerkUser.firstName,
-    lastName: clerkUser.lastName,
-    imageUrl: clerkUser.imageUrl,
-  }).catch((error) => {
-    console.error('Error syncing user:', error)
-    return null
-  })
-
-  // Get user stats
-  const userStats = await UserService.getUserStats(clerkUser.id).catch(() => null)
+  // Get or create user in database (gracefully handle errors)
+  let dbUser = null
+  let userStats = null
+  
+  try {
+    dbUser = await UserService.getOrCreateUser({
+      clerkId: clerkUser.id,
+      email: clerkUser.emailAddresses[0]?.emailAddress || '',
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      imageUrl: clerkUser.imageUrl,
+    })
+    
+    userStats = await UserService.getUserStats(clerkUser.id)
+  } catch (error) {
+    console.error('Database error:', error)
+    // Continue without database data
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

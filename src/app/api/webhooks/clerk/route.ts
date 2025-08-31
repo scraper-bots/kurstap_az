@@ -5,6 +5,11 @@ import { UserService } from '@/lib/user-service'
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 
+// Handle build-time or missing webhook secret gracefully
+if (!webhookSecret && process.env.NODE_ENV !== 'production') {
+  console.warn('CLERK_WEBHOOK_SECRET not set - webhooks will not work')
+}
+
 export async function POST(req: NextRequest) {
   if (!webhookSecret) {
     console.error('Missing CLERK_WEBHOOK_SECRET environment variable')
