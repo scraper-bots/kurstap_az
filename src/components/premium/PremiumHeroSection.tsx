@@ -69,7 +69,7 @@ export default function PremiumHeroSection() {
   }
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/30 to-brand-50/50 overflow-hidden">
+    <section className="relative min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {/* Mesh Gradient Background */}
@@ -107,31 +107,32 @@ export default function PremiumHeroSection() {
 
       {/* Navigation */}
       <motion.nav 
-        className="relative z-50 px-6 py-6"
+        className="relative z-50 px-4 sm:px-6 py-4 sm:py-6"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div 
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-2 sm:space-x-3"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="w-10 h-10 bg-gradient-brand rounded-xl flex items-center justify-center shadow-glow">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-brand rounded-lg sm:rounded-xl flex items-center justify-center shadow-glow">
+              <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <span className="text-2xl font-display font-bold bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+            <span className="text-xl sm:text-2xl font-display font-bold text-slate-800">
               InterviewAI
             </span>
           </motion.div>
           
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            {['Features', 'Pricing', 'Success Stories', 'Company'].map((item, index) => (
+            {['Features', 'Pricing', 'Success Stories', 'Company'].map((item) => (
               <motion.a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
@@ -140,44 +141,57 @@ export default function PremiumHeroSection() {
             ))}
           </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Desktop CTAs */}
+          <div className="hidden sm:flex items-center space-x-3 lg:space-x-4">
             <motion.button 
-              className="px-4 py-2 text-neutral-700 font-medium hover:text-neutral-900 transition-colors"
+              className="hidden md:block px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               Sign In
             </motion.button>
             <motion.button 
-              className="px-6 py-2 bg-gradient-brand text-white rounded-lg font-semibold shadow-elevation-2 hover:shadow-elevation-3 transition-all"
+              className="px-4 sm:px-6 py-2 bg-gradient-brand text-white rounded-lg font-semibold shadow-elevation-2 hover:shadow-elevation-3 transition-all text-sm sm:text-base"
               whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)" }}
               whileTap={{ scale: 0.95 }}
             >
               Get Started
             </motion.button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <motion.button 
+            className="sm:hidden w-10 h-10 bg-white/80 backdrop-blur-sm rounded-lg shadow-elevation-1 flex items-center justify-center"
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className="w-5 h-5 flex flex-col justify-center space-y-1">
+              <div className="w-full h-0.5 bg-slate-700"></div>
+              <div className="w-full h-0.5 bg-slate-700"></div>
+              <div className="w-full h-0.5 bg-slate-700"></div>
+            </div>
+          </motion.button>
         </div>
       </motion.nav>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <motion.div
-          className="grid lg:grid-cols-2 gap-16 items-center"
+          className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[calc(100vh-8rem)] sm:min-h-[80vh]"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Left Column - Content */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
             {/* Trust Badge */}
             <motion.div 
-              className="inline-flex items-center bg-white/80 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 shadow-elevation-1"
+              className="inline-flex items-center bg-white/90 backdrop-blur-sm border border-white/20 rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-elevation-1"
               variants={itemVariants}
             >
-              <div className="flex items-center space-x-3">
-                <div className="flex -space-x-2">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="flex -space-x-1 sm:-space-x-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className={`w-6 h-6 rounded-full border-2 border-white ${
+                    <div key={i} className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 border-white ${
                       i === 1 ? 'bg-gradient-to-r from-primary-500 to-primary-600' :
                       i === 2 ? 'bg-gradient-to-r from-secondary-500 to-secondary-600' :
                       i === 3 ? 'bg-gradient-to-r from-accent-500 to-accent-600' :
@@ -185,10 +199,10 @@ export default function PremiumHeroSection() {
                     }`} />
                   ))}
                 </div>
-                <div className="h-4 w-px bg-neutral-300" />
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-neutral-600" />
-                  <span className="text-sm font-medium text-neutral-700">
+                <div className="h-3 sm:h-4 w-px bg-neutral-300" />
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
+                  <span className="text-xs sm:text-sm font-medium text-slate-700">
                     {currentStats.users.toLocaleString()}+ professionals practicing
                   </span>
                 </div>
@@ -196,19 +210,19 @@ export default function PremiumHeroSection() {
             </motion.div>
 
             {/* Main Headline */}
-            <motion.div className="space-y-6" variants={itemVariants}>
-              <h1 className="text-5xl lg:text-7xl font-display font-bold leading-[0.9]">
-                <span className="block text-neutral-900">Master Every</span>
+            <motion.div className="space-y-4 sm:space-y-6" variants={itemVariants}>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-bold leading-[0.9]">
+                <span className="block text-slate-900">Master Every</span>
                 <span className="block bg-gradient-brand bg-clip-text text-transparent animate-gradient bg-300% inline-block">
                   Interview
                 </span>
-                <span className="block text-neutral-900">With AI</span>
+                <span className="block text-slate-900">With AI</span>
               </h1>
               
-              <p className="text-xl lg:text-2xl text-neutral-600 max-w-2xl leading-relaxed">
+              <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 max-w-2xl leading-relaxed mx-auto lg:mx-0">
                 Practice with our AI interviewer that adapts to your industry, provides real-time feedback, 
                 and helps you land your{' '}
-                <span className="font-semibold text-primary-600">dream job</span>
+                <span className="font-semibold text-blue-600">dream job</span>
               </p>
             </motion.div>
 
@@ -240,28 +254,28 @@ export default function PremiumHeroSection() {
 
             {/* CTA Buttons */}
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4"
               variants={itemVariants}
             >
               <motion.button
-                className="group relative px-8 py-4 bg-gradient-brand text-white rounded-xl font-semibold text-lg shadow-elevation-3 overflow-hidden"
+                className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-brand text-white rounded-xl font-semibold text-base sm:text-lg shadow-elevation-3 overflow-hidden"
                 whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 <div className="relative flex items-center justify-center space-x-2">
                   <span>Start Free Practice</span>
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </motion.button>
 
               <motion.button
-                className="group flex items-center justify-center space-x-3 px-8 py-4 bg-white/80 backdrop-blur-sm border border-white/20 text-neutral-700 rounded-xl font-semibold text-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all"
-                whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+                className="group flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/90 backdrop-blur-sm border border-white/20 text-slate-700 rounded-xl font-semibold text-base sm:text-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all"
+                whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.95)" }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-brand-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Play className="w-5 h-5 text-white ml-0.5" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
                 </div>
                 <span>Watch Demo</span>
               </motion.button>
@@ -269,17 +283,17 @@ export default function PremiumHeroSection() {
 
             {/* Security Badge */}
             <motion.div 
-              className="flex items-center space-x-4 pt-4"
+              className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 pt-4"
               variants={itemVariants}
             >
-              <div className="flex items-center space-x-2 text-sm text-neutral-500">
+              <div className="flex items-center space-x-2 text-sm text-slate-500">
                 <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-white rounded-full" />
                 </div>
                 <span>No credit card required</span>
               </div>
-              <div className="h-4 w-px bg-neutral-300" />
-              <div className="text-sm text-neutral-500">Enterprise-grade security</div>
+              <div className="hidden sm:block h-4 w-px bg-slate-300" />
+              <div className="text-sm text-slate-500">Enterprise-grade security</div>
             </motion.div>
           </div>
 
