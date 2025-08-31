@@ -140,7 +140,7 @@ export default function InteractiveFeaturesSection() {
           
           <h2 className="text-5xl lg:text-7xl font-display font-bold text-neutral-900 mb-8">
             Experience Our{' '}
-            <span className="bg-gradient-brand bg-clip-text text-transparent">
+            <span className="text-transparent bg-gradient-brand bg-clip-text">
               AI Technology
             </span>
           </h2>

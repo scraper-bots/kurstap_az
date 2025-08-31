@@ -167,7 +167,7 @@ export default function PremiumTestimonialsSection() {
           
           <h2 className="text-5xl lg:text-7xl font-display font-bold text-neutral-900 mb-8">
             Real People,{' '}
-            <span className="bg-gradient-to-r from-secondary-600 to-primary-600 bg-clip-text text-transparent">
+            <span className="text-transparent bg-gradient-to-r from-secondary-600 to-primary-600 bg-clip-text">
               Real Results
             </span>
           </h2>

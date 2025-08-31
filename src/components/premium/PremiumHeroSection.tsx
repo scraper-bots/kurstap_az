@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronRight, Play, Users, Star, Zap, Target, TrendingUp, Award } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronRight, Play, Users, Star, Zap, Target, TrendingUp, Award, X, Menu } from 'lucide-react'
 
 export default function PremiumHeroSection() {
   const [currentStats, setCurrentStats] = useState({
@@ -11,6 +11,8 @@ export default function PremiumHeroSection() {
     success: 0,
     rating: 0
   })
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Animate counters
   useEffect(() => {
@@ -163,15 +165,84 @@ export default function PremiumHeroSection() {
           <motion.button 
             className="sm:hidden w-10 h-10 bg-white/80 backdrop-blur-sm rounded-lg shadow-elevation-1 flex items-center justify-center"
             whileTap={{ scale: 0.95 }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <div className="w-5 h-5 flex flex-col justify-center space-y-1">
-              <div className="w-full h-0.5 bg-slate-700"></div>
-              <div className="w-full h-0.5 bg-slate-700"></div>
-              <div className="w-full h-0.5 bg-slate-700"></div>
-            </div>
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5 text-slate-700" />
+            ) : (
+              <Menu className="w-5 h-5 text-slate-700" />
+            )}
           </motion.button>
         </div>
       </motion.nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 sm:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Menu Content */}
+            <motion.div
+              className="absolute right-4 top-4 bg-white rounded-2xl shadow-elevation-4 p-6 min-w-[280px]"
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors"
+              >
+                <X className="w-4 h-4 text-slate-600" />
+              </button>
+
+              {/* Navigation Links */}
+              <div className="space-y-6 pt-8">
+                {['Features', 'Pricing', 'About', 'Contact'].map((item) => (
+                  <motion.a
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    className="block text-lg font-semibold text-slate-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {item}
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Mobile Actions */}
+              <div className="pt-6 mt-6 border-t border-neutral-100 space-y-3">
+                <button 
+                  className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </button>
+                <button 
+                  className="w-full py-3 px-4 bg-gradient-brand text-white font-semibold rounded-lg shadow-elevation-2 hover:shadow-elevation-3 transition-all"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Get Started
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
@@ -213,7 +284,7 @@ export default function PremiumHeroSection() {
             <motion.div className="space-y-4 sm:space-y-6" variants={itemVariants}>
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-bold leading-[0.9]">
                 <span className="block text-slate-900">Master Every</span>
-                <span className="block bg-gradient-brand bg-clip-text text-transparent animate-gradient bg-300% inline-block">
+                <span className="block text-transparent bg-gradient-brand bg-clip-text animate-gradient bg-300% inline-block">
                   Interview
                 </span>
                 <span className="block text-slate-900">With AI</span>

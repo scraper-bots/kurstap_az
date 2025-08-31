@@ -46,18 +46,19 @@ body {
 
 /* Fix gradient text visibility */
 .bg-gradient-brand {
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
+  background: var(--gradient-brand);
 }
 
 .text-transparent {
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: transparent !important;
   background-clip: text;
   -webkit-background-clip: text;
 }
 
-/* Custom utility classes */
-.bg-gradient-brand {
-  background: var(--gradient-brand);
+/* Ensure gradient text works properly */
+.bg-clip-text {
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 
 .bg-300\% {

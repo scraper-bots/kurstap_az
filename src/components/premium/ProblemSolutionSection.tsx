@@ -182,7 +182,7 @@ export default function ProblemSolutionSection() {
             </div>
             <h2 className="text-4xl lg:text-6xl font-display font-bold text-neutral-900 mb-6">
               AI-Powered{' '}
-              <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              <span className="text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text">
                 Interview Mastery
               </span>
             </h2>
