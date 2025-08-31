@@ -26,6 +26,13 @@ export const metadata: Metadata = {
   authors: [{ name: 'InterviewAI' }],
   creator: 'InterviewAI',
   publisher: 'InterviewAI',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover'
+  },
   robots: {
     index: true,
     follow: true,

@@ -130,6 +130,27 @@ body {
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
+  /* Prevent scroll bounce on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix mobile viewport issues */
+html {
+  /* Prevent zoom on double tap */
+  touch-action: manipulation;
+  /* Prevent elastic scrolling */
+  overscroll-behavior-y: none;
+}
+
+/* Prevent page bounce on mobile */
+body {
+  /* Disable overscroll bounce */
+  overscroll-behavior: none;
+  /* Prevent pull-to-refresh */
+  overscroll-behavior-y: none;
+  /* Ensure stable scrolling */
+  -webkit-overflow-scrolling: auto;
 }
 
 /* Better touch interactions */
@@ -144,6 +165,53 @@ html, body {
   button:active, .interactive:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
+  }
+
+  /* Fix mobile scroll issues */
+  html, body {
+    /* Disable elastic scrolling completely */
+    overscroll-behavior: none;
+    /* Prevent bounce at bottom */
+    overscroll-behavior-y: none;
+    /* Fixed positioning for mobile */
+    position: relative;
+    min-height: 100vh;
+  }
+
+  /* Prevent viewport bouncing */
+  * {
+    /* Disable overscroll for all elements */
+    overscroll-behavior: none;
+  }
+
+  /* Fix for iOS Safari */
+  body {
+    /* Prevent rubber band effect */
+    -webkit-overflow-scrolling: auto;
+    /* Lock viewport height */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Disable problematic animations on mobile scroll */
+  .framer-motion-element {
+    will-change: auto;
+  }
+
+  /* Prevent transforms during scroll on mobile */
+  *[data-framer-name] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Optimize for mobile performance */
+  * {
+    /* Prevent repaints during scroll */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Optimize transforms */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 }
 
