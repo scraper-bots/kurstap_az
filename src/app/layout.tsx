@@ -19,29 +19,50 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'AI Interview Coach | Ace Your Next Interview With AI',
-  description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want. Join 10,000+ job seekers improving their interview skills.',
-  keywords: 'AI interview coach, interview practice, job interview preparation, AI feedback, career coaching',
-  authors: [{ name: 'AI Interview Coach' }],
-  creator: 'AI Interview Coach',
-  publisher: 'AI Interview Coach',
+  metadataBase: new URL('https://interviewai.com'),
+  title: 'InterviewAI | Master Every Interview With AI',
+  description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want. Join 15,000+ professionals improving their interview skills.',
+  keywords: 'AI interview coach, interview practice, job interview preparation, AI feedback, career coaching, technical interviews, behavioral questions',
+  authors: [{ name: 'InterviewAI' }],
+  creator: 'InterviewAI',
+  publisher: 'InterviewAI',
   robots: {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://aiinterviewcoach.com',
-    title: 'AI Interview Coach | Ace Your Next Interview With AI',
+    url: 'https://interviewai.com',
+    title: 'InterviewAI | Master Every Interview With AI',
     description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want.',
-    siteName: 'AI Interview Coach',
+    siteName: 'InterviewAI',
+    images: [
+      {
+        url: '/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'InterviewAI Logo',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Interview Coach | Ace Your Next Interview With AI',
+    title: 'InterviewAI | Master Every Interview With AI',
     description: 'Practice with realistic interview scenarios, get instant feedback, and land the job you want.',
-    creator: '@aiinterviewcoach',
+    creator: '@interviewai',
+    images: ['/icon-512.png'],
   },
 }
 

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, TrendingDown, Users, MessageCircle, Target, BarChart3, Brain, Zap } from 'lucide-react'
+import { AlertTriangle, TrendingDown, MessageCircle, Target, BarChart3, Brain, Zap } from 'lucide-react'
 
 export default function ProblemSolutionSection() {
   const problems = [
