@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 
+export async function GET(): Promise<NextResponse> {
+  return NextResponse.json({
+    success: false,
+    error: 'Method not allowed. Use POST to generate speech.'
+  }, { status: 405 })
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Check authentication

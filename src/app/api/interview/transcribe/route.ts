@@ -6,6 +6,30 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+export async function GET(): Promise<NextResponse> {
+  return NextResponse.json({
+    success: false,
+    error: 'Method not allowed. Use POST to transcribe audio.',
+    allowedMethods: ['POST', 'OPTIONS']
+  }, { 
+    status: 405,
+    headers: {
+      'Allow': 'POST, OPTIONS'
+    }
+  })
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Check authentication
