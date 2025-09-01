@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { OpenAIService } from '@/lib/openai'
-// Pinecone removed - using in-memory question generation only
 import { db } from '@/lib/db'
 
 export interface GenerateQuestionsRequest {
@@ -51,8 +50,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const cleanJobTitle = jobTitle.trim()
 
-    // Skip Pinecone check for now (index not set up)
-    console.log('Skipping Pinecone check - generating fresh questions')
+    // Generate questions fresh for each request
 
     console.log(`Generating questions for: ${cleanJobTitle}`)
 
@@ -93,8 +91,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     let stored = false
     
-    // Skip Pinecone storage (not set up yet)
-    console.log('Pinecone storage disabled - questions generated in-memory only')
+    // Questions generated on-demand, no storage needed
     stored = false
 
     // Log generation activity

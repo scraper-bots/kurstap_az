@@ -126,7 +126,7 @@ export default function TestQuestionsPage() {
                   Generated {result.data?.totalQuestions} questions for "{result.data?.jobTitle}"
                 </p>
                 <p className="text-sm text-green-600">
-                  Stored in Pinecone: {result.data?.stored ? 'Yes' : 'No'}
+                  Questions generated on-demand
                 </p>
               </div>
 

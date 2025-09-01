@@ -1,6 +1,5 @@
 import { db } from './db'
 import { OpenAIService } from './openai'
-// Pinecone removed - no vector storage needed
 import { Interview, Session, SessionStatus, InterviewStatus } from '@prisma/client'
 
 export interface InterviewQuestion {

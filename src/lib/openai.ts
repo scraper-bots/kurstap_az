@@ -38,27 +38,6 @@ export class OpenAIService {
           difficulty: "medium" as const,
           category: "behavioral" as const,
           expectedDuration: 4
-        },
-        {
-          question: `Describe a situation where you had to work with a difficult team member on a ${jobTitle} project.`,
-          followUp: "How did you ensure the project's success despite the interpersonal challenges?",
-          difficulty: "medium" as const,
-          category: "behavioral" as const,
-          expectedDuration: 3
-        },
-        {
-          question: `Give me an example of when you had to learn something new quickly for your ${jobTitle} position.`,
-          followUp: "What resources did you use to accelerate your learning process?",
-          difficulty: "easy" as const,
-          category: "behavioral" as const,
-          expectedDuration: 3
-        },
-        {
-          question: `Tell me about a time when you took initiative beyond your regular ${jobTitle} responsibilities.`,
-          followUp: "What was the impact of your initiative on the team or project?",
-          difficulty: "hard" as const,
-          category: "behavioral" as const,
-          expectedDuration: 4
         }
       ],
       technical: [
@@ -68,59 +47,9 @@ export class OpenAIService {
           difficulty: "medium" as const,
           category: "technical" as const,
           expectedDuration: 5
-        },
-        {
-          question: `Walk me through your approach to problem-solving as a ${jobTitle}.`,
-          followUp: "What tools or methodologies do you typically use in this process?",
-          difficulty: "medium" as const,
-          category: "technical" as const,
-          expectedDuration: 6
-        },
-        {
-          question: `Describe a complex project you worked on as a ${jobTitle}. What made it challenging?`,
-          followUp: "How did you break down the complexity to make it manageable?",
-          difficulty: "hard" as const,
-          category: "technical" as const,
-          expectedDuration: 7
-        },
-        {
-          question: `What development/work practices do you follow as a ${jobTitle}?`,
-          followUp: "How do these practices improve your productivity and code/work quality?",
-          difficulty: "easy" as const,
-          category: "technical" as const,
-          expectedDuration: 4
-        },
-        {
-          question: `How do you ensure quality in your work as a ${jobTitle}?`,
-          followUp: "What metrics or indicators do you use to measure quality?",
-          difficulty: "hard" as const,
-          category: "technical" as const,
-          expectedDuration: 5
         }
       ],
-      situational: [
-        {
-          question: `If you were assigned a ${jobTitle} project with an unrealistic deadline, how would you handle it?`,
-          followUp: "How would you communicate the timeline concerns to stakeholders?",
-          difficulty: "medium" as const,
-          category: "situational" as const,
-          expectedDuration: 4
-        },
-        {
-          question: `How would you handle a situation where a client/stakeholder keeps changing requirements for your ${jobTitle} work?`,
-          followUp: "What processes would you put in place to manage scope creep?",
-          difficulty: "hard" as const,
-          category: "situational" as const,
-          expectedDuration: 5
-        },
-        {
-          question: `If you discovered a critical bug/issue in production as a ${jobTitle}, what would be your immediate steps?`,
-          followUp: "How would you prevent similar issues from occurring in the future?",
-          difficulty: "medium" as const,
-          category: "situational" as const,
-          expectedDuration: 4
-        }
-      ]
+      situational: []
     }
   }
 
@@ -165,12 +94,12 @@ Return ONLY a valid JSON object with this exact structure:
 }
 
 Requirements:
-- 4 behavioral questions (focus on leadership, teamwork, problem-solving, communication)
-- 5 technical questions (relevant to ${jobTitle} - tools, processes, best practices)
-- 3 situational questions (realistic workplace scenarios for ${jobTitle})
-- Mix difficulty levels: 30% easy, 50% medium, 20% hard
+- 1 behavioral question (focus on leadership, teamwork, problem-solving, communication)
+- 1 technical question (relevant to ${jobTitle} - tools, processes, best practices)
+- 0 situational questions (for faster testing)
+- Mix difficulty levels: medium preferred for testing
 - Each question should have a meaningful follow-up
-- Expected duration should be realistic (2-8 minutes per question)
+- Expected duration should be realistic (3-5 minutes per question)
 - Questions should be specific to ${jobTitle} responsibilities
 
 Make questions realistic and commonly asked in ${jobTitle} interviews.`
