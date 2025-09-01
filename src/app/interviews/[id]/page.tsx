@@ -181,7 +181,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Object.entries(interview.categoryScores).map(([category, score]) => (
               <div key={category} className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className={`text-2xl font-bold mb-1 ${getScoreColor(score).split(' ')[0]}`}>
+                <div className={`text-2xl font-bold mb-1 ${getScoreColor(Number(score)).split(' ')[0]}`}>
                   {score}%
                 </div>
                 <div className="text-sm text-gray-600">{category}</div>
