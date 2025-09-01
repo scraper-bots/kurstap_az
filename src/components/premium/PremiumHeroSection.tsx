@@ -16,6 +16,20 @@ export default function PremiumHeroSection() {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
   // Animate counters
   useEffect(() => {
     const animateCounter = (target: number, key: keyof typeof currentStats, duration: number = 2000) => {
@@ -162,7 +176,7 @@ export default function PremiumHeroSection() {
                 >
                   Dashboard
                 </motion.a>
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
               </div>
             ) : (
               <>
@@ -190,9 +204,15 @@ export default function PremiumHeroSection() {
 
           {/* Mobile Menu Button */}
           <motion.button 
-            className="sm:hidden w-10 h-10 bg-white/80 backdrop-blur-sm rounded-lg shadow-elevation-1 flex items-center justify-center"
+            type="button"
+            className="sm:hidden w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-elevation-1 flex items-center justify-center touch-manipulation relative z-50"
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsMobileMenuOpen(!isMobileMenuOpen)
+            }}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMobileMenuOpen ? (
               <X className="w-5 h-5 text-slate-700" />
@@ -207,7 +227,7 @@ export default function PremiumHeroSection() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-50 sm:hidden"
+            className="fixed inset-0 z-[9999] sm:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -215,22 +235,34 @@ export default function PremiumHeroSection() {
           >
             {/* Backdrop */}
             <div 
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm touch-manipulation"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setIsMobileMenuOpen(false)
+              }}
+              onTouchStart={() => setIsMobileMenuOpen(false)}
             />
             
             {/* Menu Content */}
             <motion.div
-              className="absolute right-4 top-4 bg-white rounded-2xl shadow-elevation-4 p-6 min-w-[280px]"
+              className="absolute right-4 top-4 bg-white rounded-2xl shadow-2xl p-6 min-w-[280px] max-w-[90vw]"
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
               <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setIsMobileMenuOpen(false)
+                }}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors touch-manipulation"
+                aria-label="Close menu"
               >
                 <X className="w-4 h-4 text-slate-600" />
               </button>
@@ -246,8 +278,10 @@ export default function PremiumHeroSection() {
                   <motion.a
                     key={item.name}
                     href={item.href}
-                    className="block text-lg font-semibold text-slate-700 hover:text-primary-600 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-lg font-semibold text-slate-700 hover:text-primary-600 transition-colors touch-manipulation py-2"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                    }}
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -262,13 +296,13 @@ export default function PremiumHeroSection() {
                   <div className="space-y-3">
                     <a
                       href="/dashboard"
-                      className="block w-full py-3 px-4 text-center text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors"
+                      className="block w-full py-3 px-4 text-center text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors touch-manipulation"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Dashboard
                     </a>
                     <div className="flex justify-center">
-                      <UserButton afterSignOutUrl="/" />
+                      <UserButton />
                     </div>
                   </div>
                 ) : (
