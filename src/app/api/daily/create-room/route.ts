@@ -65,6 +65,38 @@ export async function POST(): Promise<NextResponse> {
     const room = await response.json()
     console.log('Created Daily.co room:', room.name)
     
+    // Create meeting token for secure access to private room
+    const tokenResponse = await fetch('https://api.daily.co/v1/meeting-tokens', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DAILY_API_KEY}`
+      },
+      body: JSON.stringify({
+        properties: {
+          room_name: room.name,
+          user_name: `User-${userId.substring(0, 8)}`, // Short user identifier
+          exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+          is_owner: true, // Give user owner permissions
+          enable_screenshare: false,
+          start_audio_off: false,
+          start_video_off: true
+        }
+      })
+    })
+
+    if (!tokenResponse.ok) {
+      const tokenErrorText = await tokenResponse.text()
+      console.error('Daily.co token creation error:', tokenResponse.status, tokenErrorText)
+      return NextResponse.json(
+        { success: false, error: `Failed to create meeting token: ${tokenResponse.status}` },
+        { status: 500 }
+      )
+    }
+
+    const tokenData = await tokenResponse.json()
+    console.log('Created meeting token for room:', room.name)
+    
     // Return the room URL using the new domain format
     const roomUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${room.name}`
     
@@ -73,7 +105,8 @@ export async function POST(): Promise<NextResponse> {
       data: {
         roomUrl,
         roomName: room.name,
-        domain: process.env.DAILY_DOMAIN
+        domain: process.env.DAILY_DOMAIN,
+        token: tokenData.token
       }
     })
 

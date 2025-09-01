@@ -11,6 +11,7 @@ export class DailyAudioService {
   private isRecording: boolean = false
   private audioChunks: Blob[] = []
   private mediaRecorder: MediaRecorder | null = null
+  private meetingToken: string | null = null
   
   /**
    * Initialize Daily.co call object for audio-only interview
@@ -60,6 +61,10 @@ export class DailyAudioService {
       }
 
       console.log('Created Daily.co room:', data.data.roomName)
+      
+      // Store the meeting token for joining
+      this.meetingToken = data.data.token
+      
       return data.data.roomUrl
     } catch (error) {
       console.error('Error creating Daily.co room:', error)
@@ -76,12 +81,20 @@ export class DailyAudioService {
     }
 
     try {
-      await this.callObject.join({
+      const joinConfig: any = {
         url: roomUrl,
         userName,
         startAudioOff: false,
         startVideoOff: true,
-      })
+      }
+
+      // Add meeting token if available for private room access
+      if (this.meetingToken) {
+        joinConfig.token = this.meetingToken
+        console.log('Using meeting token for private room access')
+      }
+
+      await this.callObject.join(joinConfig)
       
       console.log('Joined Daily.co room:', roomUrl)
     } catch (error) {
