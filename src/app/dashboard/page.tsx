@@ -2,7 +2,6 @@ import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { UserService } from '@/lib/user-service'
-import { Users, Target, TrendingUp, Award } from 'lucide-react'
 
 export default async function DashboardPage() {
   const clerkUser = await currentUser()
@@ -13,7 +12,6 @@ export default async function DashboardPage() {
 
   // Get or create user in database (gracefully handle errors)
   let dbUser = null
-  let userStats = null
   
   try {
     dbUser = await UserService.getOrCreateUser({
@@ -23,8 +21,6 @@ export default async function DashboardPage() {
       lastName: clerkUser.lastName,
       imageUrl: clerkUser.imageUrl,
     })
-    
-    userStats = await UserService.getUserStats(clerkUser.id)
   } catch (error) {
     console.error('Database error:', error)
     // Continue without database data
@@ -66,50 +62,7 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Stats Cards */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { 
-                title: 'Total Interviews', 
-                value: userStats?.totalInterviews || 0, 
-                icon: Target,
-                color: 'bg-blue-500'
-              },
-              { 
-                title: 'Completed', 
-                value: userStats?.completedInterviews || 0, 
-                icon: TrendingUp,
-                color: 'bg-green-500'
-              },
-              { 
-                title: 'Practice Sessions', 
-                value: userStats?.totalSessions || 0, 
-                icon: Users,
-                color: 'bg-purple-500'
-              },
-              { 
-                title: 'Average Score', 
-                value: `${userStats?.averageScore || 0}%`, 
-                icon: Award,
-                color: 'bg-orange-500'
-              }
-            ].map((stat) => (
-              <div key={stat.title} className="bg-white rounded-xl shadow-sm border p-6">
-                <div className="flex items-center">
-                  <div className={`p-3 rounded-lg ${stat.color}`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Profile Card */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile</h3>
@@ -141,6 +94,28 @@ export default async function DashboardPage() {
                 <p className="text-sm text-gray-900">
                   {dbUser?.createdAt ? new Date(dbUser.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Interview History Card */}
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Interview History</h3>
+            <div className="space-y-4">
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Track Your Progress</h4>
+                <p className="text-gray-600 mb-4">View detailed analysis of your interviews, including strengths, weaknesses, and improvement plans.</p>
+                <a
+                  href="/interviews"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  View Interview History
+                </a>
               </div>
             </div>
           </div>
