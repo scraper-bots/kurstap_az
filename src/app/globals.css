@@ -2,112 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS Variables */
-:root {
-  --gradient-brand: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
-}
-
 /* Base styles */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   background: #ffffff;
   color: #0f172a;
   overflow-x: hidden;
-}
-
-/* Mobile menu scroll prevention */
-body.overflow-hidden,
-html.overflow-hidden {
-  overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Ensure proper text contrast */
-.text-white {
-  color: #ffffff !important;
-}
-
-.text-neutral-900 {
-  color: #0f172a !important;
-}
-
-.text-neutral-800 {
-  color: #1e293b !important;
-}
-
-.text-neutral-700 {
-  color: #334155 !important;
-}
-
-.text-neutral-600 {
-  color: #475569 !important;
-}
-
-.text-neutral-500 {
-  color: #64748b !important;
-}
-
-/* Fix gradient text visibility */
-.bg-gradient-brand {
-  background: var(--gradient-brand);
-}
-
-.text-transparent {
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text;
-  -webkit-background-clip: text;
-}
-
-/* Ensure gradient text works properly */
-.bg-clip-text {
-  background-clip: text;
-  -webkit-background-clip: text;
-}
-
-.bg-300\% {
-  background-size: 300% 300%;
-}
-
-/* Animation utilities */
-.animate-gradient {
-  animation: gradient 12s ease infinite;
-}
-
-@keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Line clamp utility */
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
 }
 
 /* Focus styles */
@@ -123,143 +27,27 @@ html.overflow-hidden {
     min-height: 44px;
     min-width: 44px;
   }
-  
-  /* Better mobile animations */
-  .animate-float {
-    animation-duration: 4s;
-  }
-  
-  /* Optimize spacing for mobile */
-  .mobile-tight {
-    padding: 1rem;
-  }
 }
 
 /* Prevent horizontal scroll on mobile */
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
-  /* Prevent scroll bounce on iOS */
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Fix mobile viewport issues */
-html {
-  /* Prevent zoom on double tap */
-  touch-action: manipulation;
-  /* Prevent elastic scrolling */
-  overscroll-behavior-y: none;
-}
-
-/* Prevent page bounce on mobile */
-body {
-  /* Disable overscroll bounce */
-  overscroll-behavior: none;
-  /* Prevent pull-to-refresh */
-  overscroll-behavior-y: none;
-  /* Ensure stable scrolling */
-  -webkit-overflow-scrolling: auto;
 }
 
 /* Better touch interactions */
 @media (hover: none) and (pointer: coarse) {
-  /* Remove hover effects on touch devices */
-  *:hover {
-    transform: none !important;
-    scale: 1 !important;
-  }
-  
   /* Enhance touch feedback */
   button:active, .interactive:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
   }
-
-  /* Fix mobile scroll issues */
-  html, body {
-    /* Disable elastic scrolling completely */
-    overscroll-behavior: none;
-    /* Prevent bounce at bottom */
-    overscroll-behavior-y: none;
-    /* Fixed positioning for mobile */
-    position: relative;
-    min-height: 100vh;
-  }
-
-  /* Prevent viewport bouncing */
-  * {
-    /* Disable overscroll for all elements */
-    overscroll-behavior: none;
-  }
-
-  /* Fix for iOS Safari */
-  body {
-    /* Prevent rubber band effect */
-    -webkit-overflow-scrolling: auto;
-    /* Lock viewport height */
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-
-  /* Disable problematic animations on mobile scroll */
-  .framer-motion-element {
-    will-change: auto;
-  }
-
-  /* Prevent transforms during scroll on mobile */
-  *[data-framer-name] {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
-  /* Optimize for mobile performance */
-  * {
-    /* Prevent repaints during scroll */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    /* Optimize transforms */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
 }
 
-/* Advanced desktop enhancements */
+/* Cursor enhancements for desktop */
 @media (min-width: 1024px) {
-  /* Enhanced shadows on desktop */
-  .desktop-enhanced {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  /* Cursor enhancements */
   button:not(:disabled) {
     cursor: pointer;
-  }
-  
-  .interactive-element:hover {
-    cursor: pointer;
-    filter: brightness(1.05);
-  }
-  
-  /* Advanced animations for desktop */
-  .parallax-element {
-    transform: translateZ(0);
-    will-change: transform;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  * {
-    border-color: currentColor;
-  }
-  
-  .text-slate-600 {
-    color: #000000 !important;
-  }
-  
-  .text-slate-700 {
-    color: #000000 !important;
   }
 }
 
@@ -269,10 +57,5 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  
-  .animate-gradient {
-    animation: none !important;
-    background: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
   }
 }
