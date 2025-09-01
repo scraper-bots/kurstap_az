@@ -1,0 +1,38 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "ELEVENLABS_API_KEY": "@elevenlabs_api_key",
+    "DAILY_API_KEY": "@daily_api_key",
+    "DAILY_DOMAIN": "@daily_domain",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@clerk_publishable_key",
+    "CLERK_SECRET_KEY": "@clerk_secret_key",
+    "CLERK_WEBHOOK_SECRET": "@clerk_webhook_secret",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "NEXT_PUBLIC_APP_URL": "https://www.bir.guru"
+  },
+  "regions": ["iad1"],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}
