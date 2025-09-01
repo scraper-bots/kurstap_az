@@ -80,17 +80,18 @@ const mockInterviewDetails = {
 }
 
 interface InterviewDetailProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function InterviewDetailPage({ params }: InterviewDetailProps) {
+  const { id } = await params
   const clerkUser = await currentUser()
   
   if (!clerkUser) {
     redirect('/sign-in')
   }
 
-  const interview = mockInterviewDetails[params.id as keyof typeof mockInterviewDetails]
+  const interview = mockInterviewDetails[id as keyof typeof mockInterviewDetails]
   
   if (!interview) {
     return (

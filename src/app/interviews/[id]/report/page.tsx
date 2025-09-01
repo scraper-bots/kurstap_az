@@ -179,17 +179,18 @@ const mockDetailedReport = {
 }
 
 interface ReportProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function DetailedReportPage({ params }: ReportProps) {
+  const { id } = await params
   const clerkUser = await currentUser()
   
   if (!clerkUser) {
     redirect('/sign-in')
   }
 
-  const report = mockDetailedReport[params.id as keyof typeof mockDetailedReport]
+  const report = mockDetailedReport[id as keyof typeof mockDetailedReport]
   
   if (!report) {
     return (
@@ -211,7 +212,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href={`/interviews/${params.id}`} className="text-blue-600 hover:text-blue-800">
+              <Link href={`/interviews/${id}`} className="text-blue-600 hover:text-blue-800">
                 ← Back to Interview
               </Link>
               <div>
