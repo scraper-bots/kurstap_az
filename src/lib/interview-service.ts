@@ -63,11 +63,21 @@ export class InterviewService {
 
       // Generate questions for the position
       let questionSet
+      let usingMockQuestions = false
       try {
         questionSet = await OpenAIService.generateQuestions(position)
-      } catch (error) {
-        console.warn('Using mock questions due to OpenAI error:', error)
+        console.log('✅ Successfully generated questions with OpenAI')
+      } catch (error: any) {
+        usingMockQuestions = true
+        
+        if (error.status === 429) {
+          console.warn('⚠️ OpenAI quota exceeded, using mock questions as fallback')
+        } else {
+          console.warn('⚠️ OpenAI error, using mock questions as fallback:', error.message)
+        }
+        
         questionSet = OpenAIService.generateMockQuestions(position)
+        console.log('📝 Using mock question set for', position)
       }
 
       // Flatten and shuffle questions
@@ -80,17 +90,23 @@ export class InterviewService {
       console.log(`Generated ${allQuestions.length} total questions for ${position}`)
       console.log('Questions:', allQuestions.map(q => ({ id: q.id, category: q.category, question: q.question.slice(0, 50) + '...' })))
 
-      // Filter by difficulty if specified
+      // Filter by difficulty if specified, but fall back to all questions if none match
       let filteredQuestions = allQuestions
       if (difficulty !== 'mixed') {
-        filteredQuestions = allQuestions.filter(q => q.difficulty === difficulty)
+        const difficultyFiltered = allQuestions.filter(q => q.difficulty === difficulty)
+        // Use filtered questions if available, otherwise use all questions as fallback
+        filteredQuestions = difficultyFiltered.length > 0 ? difficultyFiltered : allQuestions
+        
+        if (difficultyFiltered.length === 0) {
+          console.warn(`No questions found with difficulty '${difficulty}' for ${position}, using all available questions as fallback`)
+        }
       }
 
       // Use all available questions (should be 2 for testing)
       const selectedQuestions = this.shuffleArray(filteredQuestions)
       
       if (selectedQuestions.length === 0) {
-        throw new Error(`No questions available for ${position} with difficulty ${difficulty}`)
+        throw new Error(`No questions available for ${position}`)
       }
       
       console.log(`Selected ${selectedQuestions.length} questions for interview`)
