@@ -414,7 +414,8 @@ export default function PremiumHeroSection() {
                 </SignUpButton>
               )}
 
-              <motion.button
+              <motion.a
+                href="#features"
                 className="group flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/90 backdrop-blur-sm border border-white/20 text-slate-700 rounded-xl font-semibold text-base sm:text-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all"
                 whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.95)" }}
                 whileTap={{ scale: 0.98 }}
@@ -423,7 +424,7 @@ export default function PremiumHeroSection() {
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
                 </div>
                 <span>Watch Demo</span>
-              </motion.button>
+              </motion.a>
             </motion.div>
 
             {/* Security Badge */}

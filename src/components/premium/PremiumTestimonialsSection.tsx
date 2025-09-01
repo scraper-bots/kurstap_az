@@ -474,14 +474,15 @@ export default function PremiumTestimonialsSection() {
               Join thousands of professionals who've transformed their careers with AI-powered interview coaching
             </p>
             
-            <motion.button
+            <motion.a
+              href="/interview"
               className="group inline-flex items-center px-10 py-4 bg-gradient-to-r from-secondary-600 to-primary-600 text-white rounded-2xl font-bold text-lg shadow-elevation-3 hover:shadow-elevation-4 transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span>Start Your Journey</span>
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
+            </motion.a>
             
             <p className="text-neutral-500 mt-4">No credit card required • 7-day free trial</p>
           </div>
