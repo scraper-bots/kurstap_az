@@ -19,14 +19,18 @@ export default function PremiumHeroSection() {
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
+      // More specific approach that preserves touch events
+      document.body.classList.add('overflow-hidden')
+      document.documentElement.classList.add('overflow-hidden')
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.classList.remove('overflow-hidden')
+      document.documentElement.classList.remove('overflow-hidden')
     }
     
     // Cleanup on unmount
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.classList.remove('overflow-hidden')
+      document.documentElement.classList.remove('overflow-hidden')
     }
   }, [isMobileMenuOpen])
 

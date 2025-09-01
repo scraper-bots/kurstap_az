@@ -19,6 +19,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Mobile menu scroll prevention */
+body.overflow-hidden,
+html.overflow-hidden {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Ensure proper text contrast */
 .text-white {
   color: #ffffff !important;
