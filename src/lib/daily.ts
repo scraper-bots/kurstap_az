@@ -190,6 +190,11 @@ export class DailyAudioService {
    */
   private async transcribeAudio(audioBlob: Blob): Promise<string | null> {
     try {
+      console.log('Sending audio blob to transcribe API:', {
+        size: audioBlob.size,
+        type: audioBlob.type
+      })
+      
       const formData = new FormData()
       formData.append('audio', audioBlob, 'audio.webm')
 
@@ -215,6 +220,8 @@ export class DailyAudioService {
    */
   async playAIResponse(text: string): Promise<void> {
     try {
+      console.log('Sending text to speak API:', { text: text.slice(0, 100) + '...' })
+      
       const response = await fetch('/api/interview/speak', {
         method: 'POST',
         headers: {

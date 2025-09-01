@@ -17,11 +17,22 @@ export async function OPTIONS(): Promise<NextResponse> {
   })
 }
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  console.warn('GET request received for transcribe API:', {
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries()),
+    method: req.method
+  })
+  
   return NextResponse.json({
     success: false,
     error: 'Method not allowed. Use POST to transcribe audio.',
-    allowedMethods: ['POST', 'OPTIONS']
+    allowedMethods: ['POST', 'OPTIONS'],
+    debug: {
+      receivedMethod: 'GET',
+      expectedMethod: 'POST',
+      url: req.url
+    }
   }, { 
     status: 405,
     headers: {

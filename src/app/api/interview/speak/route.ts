@@ -1,11 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 
-export async function GET(): Promise<NextResponse> {
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  console.warn('GET request received for speak API:', {
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries()),
+    method: req.method
+  })
+  
   return NextResponse.json({
     success: false,
-    error: 'Method not allowed. Use POST to generate speech.'
-  }, { status: 405 })
+    error: 'Method not allowed. Use POST to generate speech.',
+    allowedMethods: ['POST', 'OPTIONS'],
+    debug: {
+      receivedMethod: 'GET',
+      expectedMethod: 'POST',
+      url: req.url
+    }
+  }, { 
+    status: 405,
+    headers: {
+      'Allow': 'POST, OPTIONS'
+    }
+  })
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
