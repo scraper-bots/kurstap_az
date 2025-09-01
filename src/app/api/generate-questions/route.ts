@@ -54,16 +54,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`Generating questions for: ${cleanJobTitle}`)
 
-    // Generate new questions with OpenAI (with fallback to mock data)
-    let questionSet: any
-    try {
-      questionSet = await OpenAIService.generateQuestions(cleanJobTitle)
-      console.log('✅ Questions generated with OpenAI')
-    } catch (openaiError: any) {
-      console.warn('OpenAI failed, using mock questions:', openaiError.message)
-      questionSet = OpenAIService.generateMockQuestions(cleanJobTitle)
-      console.log('✅ Questions generated with mock data')
-    }
+    // Generate new questions with OpenAI
+    const questionSet = await OpenAIService.generateQuestions(cleanJobTitle)
+    console.log('✅ Questions generated with OpenAI')
 
     // Filter by categories if specified
     let filteredQuestionSet = questionSet
@@ -161,14 +154,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // No persistent storage - generate fresh questions
     console.log(`Generating fresh questions for ${jobTitle} (no storage)`)
     
-    // Generate new questions
-    let questionSet
-    try {
-      questionSet = await OpenAIService.generateQuestions(jobTitle)
-    } catch (error) {
-      console.warn('Using mock questions due to OpenAI error:', error)
-      questionSet = OpenAIService.generateMockQuestions(jobTitle)
-    }
+    // Generate new questions using OpenAI
+    const questionSet = await OpenAIService.generateQuestions(jobTitle)
 
     // Filter by category if specified
     let questions = {

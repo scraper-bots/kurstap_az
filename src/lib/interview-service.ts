@@ -1,6 +1,6 @@
 import { db } from './db'
 import { OpenAIService } from './openai'
-import { Interview, Session, SessionStatus, InterviewStatus } from '@prisma/client'
+import { SessionStatus } from '@prisma/client'
 
 export interface InterviewQuestion {
   id: string
@@ -61,24 +61,9 @@ export class InterviewService {
         throw new Error('User not found. Please sign in again.')
       }
 
-      // Generate questions for the position
-      let questionSet
-      let usingMockQuestions = false
-      try {
-        questionSet = await OpenAIService.generateQuestions(position)
-        console.log('✅ Successfully generated questions with OpenAI')
-      } catch (error: any) {
-        usingMockQuestions = true
-        
-        if (error.status === 429) {
-          console.warn('⚠️ OpenAI quota exceeded, using mock questions as fallback')
-        } else {
-          console.warn('⚠️ OpenAI error, using mock questions as fallback:', error.message)
-        }
-        
-        questionSet = OpenAIService.generateMockQuestions(position)
-        console.log('📝 Using mock question set for', position)
-      }
+      // Generate questions for the position using OpenAI
+      const questionSet = await OpenAIService.generateQuestions(position)
+      console.log('✅ Successfully generated questions with OpenAI')
 
       // Flatten and shuffle questions
       const allQuestions: InterviewQuestion[] = [
@@ -265,7 +250,7 @@ export class InterviewService {
           console.log('Interview completed - performing comprehensive evaluation')
           
           // Prepare questions and answers for evaluation
-          const questionsAndAnswers = updatedAnswers.map((answer, index) => {
+          const questionsAndAnswers = updatedAnswers.map((answer) => {
             const question = sessionData.questions.find((q: any) => q.id === answer.questionId)
             return {
               question: answer.question,

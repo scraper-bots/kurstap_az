@@ -83,15 +83,7 @@ export default function InterviewPage() {
       }
     } catch (error) {
       console.error('Error starting interview:', error)
-      
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      let userMessage = 'Failed to start interview. Please try again.'
-      
-      if (errorMessage.includes('quota') || errorMessage.includes('429')) {
-        userMessage = 'Interview started with demo questions (AI quota temporarily exceeded). Your interview experience will work normally!'
-      }
-      
-      alert(userMessage)
+      alert('Failed to start interview. Please try again.')
       setState(prev => ({ ...prev, stage: 'setup' }))
     }
   }

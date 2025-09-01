@@ -26,63 +26,7 @@ export interface QuestionSet {
 
 export class OpenAIService {
   /**
-   * Generate mock questions for testing
-   */
-  static generateMockQuestions(jobTitle: string): QuestionSet {
-    return {
-      jobTitle,
-      behavioral: [
-        {
-          question: `Tell me about yourself and your experience as a ${jobTitle}.`,
-          followUp: "What motivated you to pursue this career path?",
-          difficulty: "easy" as const,
-          category: "behavioral" as const,
-          expectedDuration: 3
-        },
-        {
-          question: `Tell me about a time when you overcame a significant challenge in your role as a ${jobTitle}.`,
-          followUp: "What would you do differently if you faced a similar situation again?",
-          difficulty: "medium" as const,
-          category: "behavioral" as const,
-          expectedDuration: 4
-        },
-        {
-          question: `Describe a situation where you had to lead a team through a complex ${jobTitle} project with tight deadlines and conflicting requirements.`,
-          followUp: "How did you handle stakeholder expectations while maintaining team morale?",
-          difficulty: "hard" as const,
-          category: "behavioral" as const,
-          expectedDuration: 5
-        }
-      ],
-      technical: [
-        {
-          question: `What are the key technical skills required for a ${jobTitle}?`,
-          followUp: "Which of these skills do you consider your strongest?",
-          difficulty: "easy" as const,
-          category: "technical" as const,
-          expectedDuration: 3
-        },
-        {
-          question: `Walk me through your approach to problem-solving as a ${jobTitle}.`,
-          followUp: "Can you give me an example of how you applied this approach recently?",
-          difficulty: "medium" as const,
-          category: "technical" as const,
-          expectedDuration: 4
-        },
-        {
-          question: `Design a system architecture for a high-traffic ${jobTitle} application that needs to scale to millions of users.`,
-          followUp: "How would you handle data consistency and system reliability at that scale?",
-          difficulty: "hard" as const,
-          category: "technical" as const,
-          expectedDuration: 6
-        }
-      ],
-      situational: []
-    }
-  }
-
-  /**
-   * Generate job-specific interview questions
+   * Generate job-specific interview questions using OpenAI
    */
   static async generateQuestions(jobTitle: string): Promise<QuestionSet> {
     const prompt = `
@@ -122,15 +66,15 @@ Return ONLY a valid JSON object with this exact structure:
 }
 
 Requirements:
-- 1 behavioral question (focus on leadership, teamwork, problem-solving, communication)
-- 1 technical question (relevant to ${jobTitle} - tools, processes, best practices)
-- 0 situational questions (for faster testing)
-- Mix difficulty levels: medium preferred for testing
-- Each question should have a meaningful follow-up
-- Expected duration should be realistic (3-5 minutes per question)
-- Questions should be specific to ${jobTitle} responsibilities
+- EXACTLY 1 behavioral question (focus on leadership, teamwork, problem-solving, communication)
+- EXACTLY 1 technical question (relevant to ${jobTitle} - tools, processes, best practices)  
+- EXACTLY 0 situational questions (empty array)
+- Use appropriate difficulty levels based on the ${jobTitle} role
+- Each question MUST have a meaningful follow-up question
+- Expected duration should be realistic (3-6 minutes per question)
+- Questions should be highly specific to ${jobTitle} responsibilities and real interview scenarios
 
-Make questions realistic and commonly asked in ${jobTitle} interviews.`
+Generate professional, realistic questions that would be asked in actual ${jobTitle} interviews.`
 
     try {
       const completion = await openai.chat.completions.create({
