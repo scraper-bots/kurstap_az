@@ -82,6 +82,20 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className={`${inter.variable} ${poppins.variable} ${spaceGrotesk.variable}`}>
+        <head>
+          {/* Google Analytics */}
+          <script async src="https://www.googletagmanager.com/gtag/js?id=G-GHTP21ZVDV"></script>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-GHTP21ZVDV');
+              `,
+            }}
+          />
+        </head>
         <body className={inter.className}>{children}</body>
       </html>
     </ClerkProvider>
