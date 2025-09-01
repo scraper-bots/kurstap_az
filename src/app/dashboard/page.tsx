@@ -42,7 +42,7 @@ export default async function DashboardPage() {
               </h1>
               <p className="text-gray-600">Ready to practice your interview skills?</p>
             </div>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </div>
         </div>
       </div>
@@ -133,18 +133,18 @@ export default async function DashboardPage() {
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <a href="/interview" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
               <h3 className="font-semibold text-lg mb-2">Start Practice</h3>
               <p className="text-blue-100">Begin a new interview practice session</p>
-            </button>
-            <button className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            </a>
+            <a href="/interview" className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
               <h3 className="font-semibold text-lg mb-2">Mock Interview</h3>
               <p className="text-green-100">Take a full mock interview</p>
-            </button>
-            <button className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            </a>
+            <div className="bg-gradient-to-r from-gray-400 to-gray-500 text-white p-6 rounded-xl shadow-sm opacity-50 cursor-not-allowed">
               <h3 className="font-semibold text-lg mb-2">View History</h3>
-              <p className="text-purple-100">Review past interviews and feedback</p>
-            </button>
+              <p className="text-gray-200">Coming soon - Review past interviews</p>
+            </div>
           </div>
         </div>
 

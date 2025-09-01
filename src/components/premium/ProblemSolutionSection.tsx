@@ -80,7 +80,7 @@ export default function ProblemSolutionSection() {
   }
 
   return (
-    <section className="py-24 bg-gradient-to-b from-neutral-50 to-white overflow-hidden">
+    <section id="about" className="py-24 bg-gradient-to-b from-neutral-50 to-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         {/* Problem Section */}
         <motion.div

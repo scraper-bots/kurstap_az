@@ -132,15 +132,20 @@ export default function PremiumHeroSection() {
           
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            {['Features', 'Pricing', 'Success Stories', 'Company'].map((item) => (
+            {[
+              { name: 'Features', href: '#features' },
+              { name: 'Pricing', href: '/interview' },
+              { name: 'Success Stories', href: '#testimonials' },
+              { name: 'Company', href: '#about' }
+            ].map((item) => (
               <motion.a
-                key={item}
-                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                key={item.name}
+                href={item.href}
                 className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                {item}
+                {item.name}
               </motion.a>
             ))}
           </div>
@@ -232,16 +237,21 @@ export default function PremiumHeroSection() {
 
               {/* Navigation Links */}
               <div className="space-y-6 pt-8">
-                {['Features', 'Pricing', 'About', 'Contact'].map((item) => (
+                {[
+                  { name: 'Features', href: '#features' },
+                  { name: 'Pricing', href: '/interview' },
+                  { name: 'About', href: '#about' },
+                  { name: 'Contact', href: '#testimonials' }
+                ].map((item) => (
                   <motion.a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
+                    key={item.name}
+                    href={item.href}
                     className="block text-lg font-semibold text-slate-700 hover:text-primary-600 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {item}
+                    {item.name}
                   </motion.a>
                 ))}
               </div>

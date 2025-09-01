@@ -150,7 +150,7 @@ export default function PremiumTestimonialsSection() {
   ]
 
   return (
-    <section className="py-32 bg-gradient-to-b from-white via-neutral-50/30 to-white overflow-hidden">
+    <section id="testimonials" className="py-32 bg-gradient-to-b from-white via-neutral-50/30 to-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <motion.div 
