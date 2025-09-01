@@ -12,26 +12,31 @@ export async function OPTIONS(): Promise<NextResponse> {
   })
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  console.warn('GET request received for speak API:', {
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries()),
-    method: req.method
-  })
-  
+export async function GET(): Promise<NextResponse> {
+  // This is likely a browser navigation, provide helpful info
   return NextResponse.json({
-    success: false,
-    error: 'Method not allowed. Use POST to generate speech.',
-    allowedMethods: ['POST', 'OPTIONS'],
-    debug: {
-      receivedMethod: 'GET',
-      expectedMethod: 'POST',
-      url: req.url
-    }
+    service: 'Bir Guru Text-to-Speech API',
+    description: 'Converts text to natural speech using ElevenLabs for audio interviews',
+    usage: {
+      method: 'POST',
+      endpoint: '/api/interview/speak',
+      contentType: 'application/json',
+      body: {
+        text: 'The text you want to convert to speech'
+      }
+    },
+    features: [
+      'Natural voice synthesis',
+      'Optimized for interview conversations',
+      'Real-time audio generation'
+    ],
+    authentication: 'Requires valid user session',
+    note: 'This API is used by the audio interview feature. Visit /interview to try it out!'
   }, { 
-    status: 405,
+    status: 200,
     headers: {
-      'Allow': 'POST, OPTIONS'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600'
     }
   })
 }

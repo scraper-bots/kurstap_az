@@ -17,26 +17,32 @@ export async function OPTIONS(): Promise<NextResponse> {
   })
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  console.warn('GET request received for transcribe API:', {
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries()),
-    method: req.method
-  })
-  
+export async function GET(): Promise<NextResponse> {
+  // This is likely a browser navigation, provide helpful info
   return NextResponse.json({
-    success: false,
-    error: 'Method not allowed. Use POST to transcribe audio.',
-    allowedMethods: ['POST', 'OPTIONS'],
-    debug: {
-      receivedMethod: 'GET',
-      expectedMethod: 'POST',
-      url: req.url
-    }
+    service: 'Bir Guru Speech-to-Text API',
+    description: 'Transcribes audio to text using OpenAI Whisper for audio interviews',
+    usage: {
+      method: 'POST',
+      endpoint: '/api/interview/transcribe',
+      contentType: 'multipart/form-data',
+      body: {
+        audio: 'Audio file (webm, mp3, wav, etc.) - max 25MB'
+      }
+    },
+    features: [
+      'High-accuracy speech recognition',
+      'Real-time transcription for interviews',
+      'Supports multiple audio formats',
+      'Optimized for conversational speech'
+    ],
+    authentication: 'Requires valid user session',
+    note: 'This API is used by the audio interview feature. Visit /interview to try it out!'
   }, { 
-    status: 405,
+    status: 200,
     headers: {
-      'Allow': 'POST, OPTIONS'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600'
     }
   })
 }
