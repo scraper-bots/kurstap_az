@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { useSearchParams } from 'next/navigation'
 import { AudioInterview } from '@/components/audio-interview'
 
 interface InterviewState {
@@ -27,34 +28,59 @@ export default function InterviewPage() {
   const [position, setPosition] = useState('')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
 
+  const searchParams = useSearchParams()
+  
   const difficultyOptions = [
     {
       value: 'easy',
       label: 'Easy',
       description: 'Basic questions suitable for entry-level positions',
       color: 'bg-green-500',
-      questions: '5-7 questions'
+      questions: '5 questions',
+      count: 5
     },
     {
       value: 'medium',
       label: 'Medium', 
       description: 'Intermediate questions for experienced professionals',
       color: 'bg-yellow-500',
-      questions: '7-10 questions'
+      questions: '8 questions',
+      count: 8
     },
     {
       value: 'hard',
       label: 'Hard',
       description: 'Advanced questions for senior-level positions',
       color: 'bg-red-500',
-      questions: '10-12 questions'
+      questions: '12 questions',
+      count: 12
     }
   ]
+
+  // Handle URL parameters for quick start
+  useEffect(() => {
+    const mode = searchParams.get('mode')
+    const urlDifficulty = searchParams.get('difficulty')
+    
+    if (mode === 'quick' && urlDifficulty) {
+      setDifficulty(urlDifficulty as any)
+      setPosition('Software Engineer') // Default position for quick start
+      // Auto-start interview in 1 second
+      setTimeout(() => {
+        if (position) {
+          startInterview()
+        }
+      }, 1000)
+    }
+  }, [searchParams])
 
   const startInterview = async () => {
     if (!position.trim()) return
     
     setState(prev => ({ ...prev, stage: 'loading' }))
+    
+    const selectedDifficultyOption = difficultyOptions.find(opt => opt.value === difficulty)
+    const expectedQuestions = selectedDifficultyOption?.count || 8
     
     try {
       const response = await fetch('/api/interview/start', {
@@ -62,7 +88,8 @@ export default function InterviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           position: position.trim(),
-          difficulty: difficulty
+          difficulty: difficulty,
+          totalQuestions: expectedQuestions
         })
       })
       
@@ -74,7 +101,7 @@ export default function InterviewPage() {
           stage: 'interview',
           currentQuestion: data.data.currentQuestion,
           sessionId: data.data.sessionId,
-          totalQuestions: data.data.totalQuestions,
+          totalQuestions: expectedQuestions, // Use our expected count
           position: position.trim(),
           difficulty: difficulty
         }))

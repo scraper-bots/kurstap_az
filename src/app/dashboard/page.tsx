@@ -133,11 +133,11 @@ export default async function DashboardPage() {
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="/interview" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
-              <h3 className="font-semibold text-lg mb-2">🎤 Voice Interview</h3>
-              <p className="text-blue-100">Start AI-powered voice interview with difficulty selection</p>
+            <a href="/interview?mode=quick&difficulty=medium" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
+              <h3 className="font-semibold text-lg mb-2">🚀 Quick Interview</h3>
+              <p className="text-blue-100">Start medium-level interview immediately (7-10 questions)</p>
             </a>
-            <a href="/interview" className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
+            <a href="/interview?mode=custom" className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow block">
               <h3 className="font-semibold text-lg mb-2">🎯 Custom Interview</h3>
               <p className="text-green-100">Choose your difficulty: Easy, Medium, or Hard</p>
             </a>

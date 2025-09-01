@@ -180,7 +180,7 @@ export default function PremiumHeroSection() {
               </div>
             ) : (
               <>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <motion.button 
                     className="hidden md:block px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
                     whileHover={{ scale: 1.05 }}
@@ -189,9 +189,9 @@ export default function PremiumHeroSection() {
                     Sign In
                   </motion.button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <motion.button 
-                    className="px-4 sm:px-6 py-2 bg-gradient-brand text-white rounded-lg font-semibold shadow-elevation-2 hover:shadow-elevation-3 transition-all text-sm sm:text-base"
+                    className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all text-sm sm:text-base"
                     whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)" }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -308,20 +308,22 @@ export default function PremiumHeroSection() {
                 ) : (
                   <>
                     <div className="w-full">
-                      <SignInButton mode="modal">
+                      <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                         <button 
                           type="button"
-                          className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors touch-manipulation"
+                          className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors touch-manipulation active:bg-neutral-100"
+                          onClick={() => console.log('Mobile Sign In clicked')}
                         >
                           Sign In
                         </button>
                       </SignInButton>
                     </div>
                     <div className="w-full">
-                      <SignUpButton mode="modal">
+                      <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                         <button 
                           type="button"
-                          className="w-full py-3 px-4 bg-gradient-brand text-white font-semibold rounded-lg shadow-elevation-2 hover:shadow-elevation-3 transition-all touch-manipulation"
+                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all touch-manipulation active:scale-95"
+                          onClick={() => console.log('Mobile Get Started clicked')}
                         >
                           Get Started
                         </button>
