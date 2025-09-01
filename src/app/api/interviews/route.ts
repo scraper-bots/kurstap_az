@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         difficulty: interview.difficulty,
         status: interview.status,
         overallScore: interview.score,
-        questionsCount: interview._count?.answers || interview.questions.length,
+        questionsCount: (interview as any)._count?.answers || interview.questions.length,
         category: 'Technical' // Could be derived from answers
       })),
       stats
