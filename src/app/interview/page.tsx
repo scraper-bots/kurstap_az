@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
 import { AudioInterview } from '@/components/audio-interview'
+import { useInterviewCompletion } from '@/hooks/useInterviewCompletion'
 
 interface InterviewState {
   stage: 'setup' | 'interview' | 'completed' | 'loading'
@@ -18,10 +19,19 @@ interface InterviewState {
   }
   sessionId?: string
   totalQuestions?: number
+  answers?: Array<{
+    questionId: number
+    question: string
+    userAnswer: string
+    category: string
+    responseTime?: number
+  }>
+  startTime?: number
 }
 
 function InterviewContent() {
   const { user } = useUser()
+  const { completeInterview, isSubmitting, error: completionError } = useInterviewCompletion()
   const [state, setState] = useState<InterviewState>({
     stage: 'setup'
   })
@@ -103,7 +113,9 @@ function InterviewContent() {
           sessionId: data.data.sessionId,
           totalQuestions: expectedQuestions, // Use our expected count
           position: position.trim(),
-          difficulty: difficulty
+          difficulty: difficulty,
+          answers: [],
+          startTime: Date.now()
         }))
       } else {
         console.error('Failed to start interview:', data.error)
@@ -126,15 +138,56 @@ function InterviewContent() {
         })
       })
       
-      return await response.json()
+      const result = await response.json()
+      
+      // Store the answer locally
+      if (state.currentQuestion) {
+        const newAnswer = {
+          questionId: state.answers?.length ? state.answers.length + 1 : 1,
+          question: state.currentQuestion.question,
+          userAnswer: answer.trim(),
+          category: state.currentQuestion.category,
+          responseTime: 30 // Could track actual response time
+        }
+        
+        setState(prev => ({
+          ...prev,
+          answers: [...(prev.answers || []), newAnswer]
+        }))
+      }
+      
+      return result
     } catch (error) {
       console.error('Error submitting answer:', error)
       return { success: false, error: 'Failed to submit answer' }
     }
   }
 
-  const handleComplete = () => {
-    setState(prev => ({ ...prev, stage: 'completed' }))
+  const handleComplete = async () => {
+    if (!state.answers || !state.position || !state.startTime) {
+      console.error('Missing interview data for completion')
+      return
+    }
+
+    setState(prev => ({ ...prev, stage: 'loading' }))
+
+    try {
+      const duration = Math.round((Date.now() - state.startTime) / 1000 / 60) // Convert to minutes
+      
+      await completeInterview({
+        title: `${state.position} Interview`,
+        company: 'Practice Session',
+        position: state.position,
+        difficulty: state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD',
+        duration,
+        answers: state.answers
+      })
+      
+      // The useInterviewCompletion hook will handle navigation
+    } catch (error) {
+      console.error('Error completing interview:', error)
+      setState(prev => ({ ...prev, stage: 'completed' }))
+    }
   }
 
   if (!user) {
@@ -241,11 +294,21 @@ function InterviewContent() {
           <div className="bg-white rounded-xl shadow-sm border p-8 max-w-2xl mx-auto mt-8 text-center">
             <div className="flex items-center justify-center space-x-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="text-lg">Setting up your AI interview...</span>
+              <span className="text-lg">
+                {isSubmitting ? 'Saving Interview Data...' : 'Setting up your AI interview...'}
+              </span>
             </div>
             <p className="text-gray-600 mt-4">
-              Preparing {state.difficulty} level questions for {position}
+              {isSubmitting 
+                ? 'Analyzing your responses and generating detailed feedback...'
+                : `Preparing ${state.difficulty} level questions for ${position}`
+              }
             </p>
+            {completionError && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{completionError}</p>
+              </div>
+            )}
           </div>
         )}
 

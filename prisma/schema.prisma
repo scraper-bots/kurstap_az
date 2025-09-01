@@ -52,6 +52,13 @@ model Interview {
   feedback    String?       // AI feedback
   score       Float?        // Overall score (0-100)
   
+  // Detailed analysis data
+  categoryScores    Json?     // Scores by category (Behavioral, Technical, etc.)
+  overallAnalysis   Json?     // Strengths, weaknesses, recommendations
+  responseMetrics   Json?     // Response time, confidence levels
+  benchmarkData     Json?     // Industry comparison data
+  improvementPlan   Json?     // Roadmap and resources
+  
   // Scheduling
   scheduledAt DateTime?
   completedAt DateTime?
@@ -63,8 +70,33 @@ model Interview {
   // Relations
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions  Session[]
+  answers   InterviewAnswer[]
   
   @@map("interviews")
+}
+
+model InterviewAnswer {
+  id          String    @id @default(cuid())
+  interviewId String
+  questionId  Int       // Question number/index
+  question    String    // The actual question
+  userAnswer  String    // User's response
+  idealAnswer String?   // Ideal answer for comparison
+  score       Float?    // Individual question score (0-100)
+  strengths   String[]  // Array of strengths identified
+  weaknesses  String[]  // Array of areas for improvement
+  category    String    // Question category (Behavioral, Technical, etc.)
+  responseTime Int?     // Time taken to respond in seconds
+  confidence  Float?    // AI-assessed confidence level
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  
+  @@map("interview_answers")
 }
 
 model Session {

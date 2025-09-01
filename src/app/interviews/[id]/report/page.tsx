@@ -17,7 +17,25 @@ import {
   Lightbulb
 } from 'lucide-react'
 
-// Extended mock data for detailed report
+async function getInterviewReport(interviewId: string) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/interviews/${interviewId}/report`, {
+      cache: 'no-store'
+    })
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching interview report:', error)
+    return null
+  }
+}
+
+// Extended mock data for detailed report (fallback)
 const mockDetailedReport = {
   '1': {
     basicInfo: {
@@ -190,7 +208,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
     redirect('/sign-in')
   }
 
-  const report = mockDetailedReport[id as keyof typeof mockDetailedReport]
+  const report = await getInterviewReport(id) || mockDetailedReport[id as keyof typeof mockDetailedReport]
   
   if (!report) {
     return (

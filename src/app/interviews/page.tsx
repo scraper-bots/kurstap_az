@@ -4,45 +4,37 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, Target } from 'lucide-react'
 
-// Mock interview data - in production, this would come from database
-const mockInterviews = [
-  {
-    id: '1',
-    title: 'Senior Software Engineer Interview',
-    company: 'Tech Corp',
-    date: '2024-01-15T10:00:00Z',
-    duration: 45,
-    difficulty: 'Hard',
-    status: 'completed',
-    overallScore: 78,
-    questionsCount: 12,
-    category: 'Technical'
-  },
-  {
-    id: '2', 
-    title: 'Product Manager Interview',
-    company: 'StartupXYZ',
-    date: '2024-01-10T14:30:00Z',
-    duration: 35,
-    difficulty: 'Medium',
-    status: 'completed',
-    overallScore: 85,
-    questionsCount: 8,
-    category: 'Behavioral'
-  },
-  {
-    id: '3',
-    title: 'Frontend Developer Practice',
-    company: 'Practice Session',
-    date: '2024-01-05T09:00:00Z',
-    duration: 25,
-    difficulty: 'Easy',
-    status: 'completed',
-    overallScore: 92,
-    questionsCount: 5,
-    category: 'Technical'
+async function getInterviewsData(userId: string) {
+  try {
+    // In production, this would be a direct database call
+    // For now, we'll simulate the API call
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/interviews`, {
+      headers: {
+        'Authorization': `Bearer ${userId}` // In real implementation, this would be handled by Clerk
+      },
+      cache: 'no-store' // Always fetch fresh data
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch interviews')
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching interviews:', error)
+    // Return empty state if API fails
+    return {
+      interviews: [],
+      stats: {
+        totalInterviews: 0,
+        averageScore: 0,
+        totalTime: 0,
+        improvement: 0
+      }
+    }
   }
-]
+}
 
 export default async function InterviewsPage() {
   const clerkUser = await currentUser()
@@ -50,6 +42,8 @@ export default async function InterviewsPage() {
   if (!clerkUser) {
     redirect('/sign-in')
   }
+
+  const { interviews, stats } = await getInterviewsData(clerkUser.id)
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600 bg-green-100'
@@ -94,7 +88,7 @@ export default async function InterviewsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Total Interviews</p>
-                <p className="text-2xl font-bold text-gray-900">{mockInterviews.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalInterviews}</p>
               </div>
             </div>
           </div>
@@ -107,7 +101,7 @@ export default async function InterviewsPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Average Score</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {Math.round(mockInterviews.reduce((sum, i) => sum + i.overallScore, 0) / mockInterviews.length)}%
+                  {stats.averageScore}%
                 </p>
               </div>
             </div>
@@ -121,7 +115,7 @@ export default async function InterviewsPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Total Time</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {Math.round(mockInterviews.reduce((sum, i) => sum + i.duration, 0) / 60)}h
+                  {stats.totalTime}h
                 </p>
               </div>
             </div>
@@ -134,7 +128,9 @@ export default async function InterviewsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Improvement</p>
-                <p className="text-2xl font-bold text-green-600">+12%</p>
+                <p className={`text-2xl font-bold ${stats.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {stats.improvement > 0 ? '+' : ''}{stats.improvement}%
+                </p>
               </div>
             </div>
           </div>
@@ -142,7 +138,7 @@ export default async function InterviewsPage() {
 
         {/* Interview Cards */}
         <div className="space-y-6">
-          {mockInterviews.map((interview) => (
+          {interviews.map((interview: any) => (
             <div key={interview.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
               <div className="p-6">
                 <div className="flex items-start justify-between">
@@ -199,7 +195,7 @@ export default async function InterviewsPage() {
         </div>
 
         {/* Empty State */}
-        {mockInterviews.length === 0 && (
+        {interviews.length === 0 && (
           <div className="text-center py-12">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No interviews yet</h3>

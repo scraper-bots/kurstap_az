@@ -4,7 +4,25 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, Target, TrendingUp, AlertTriangle, CheckCircle, Award, ArrowRight } from 'lucide-react'
 
-// Mock detailed interview data
+async function getInterviewDetail(interviewId: string) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/interviews/${interviewId}`, {
+      cache: 'no-store'
+    })
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching interview detail:', error)
+    return null
+  }
+}
+
+// Mock detailed interview data (fallback)
 const mockInterviewDetails = {
   '1': {
     id: '1',
@@ -91,7 +109,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
     redirect('/sign-in')
   }
 
-  const interview = mockInterviewDetails[id as keyof typeof mockInterviewDetails]
+  const interview = await getInterviewDetail(id) || mockInterviewDetails[id as keyof typeof mockInterviewDetails]
   
   if (!interview) {
     return (
