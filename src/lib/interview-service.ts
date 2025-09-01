@@ -76,6 +76,9 @@ export class InterviewService {
         ...questionSet.technical.map((q, i) => ({ id: `technical-${i}`, ...q })),
         ...questionSet.situational.map((q, i) => ({ id: `situational-${i}`, ...q }))
       ]
+      
+      console.log(`Generated ${allQuestions.length} total questions for ${position}`)
+      console.log('Questions:', allQuestions.map(q => ({ id: q.id, category: q.category, question: q.question.slice(0, 50) + '...' })))
 
       // Filter by difficulty if specified
       let filteredQuestions = allQuestions
@@ -83,8 +86,14 @@ export class InterviewService {
         filteredQuestions = allQuestions.filter(q => q.difficulty === difficulty)
       }
 
-      // Shuffle and take first 8 questions for a reasonable interview length
-      const selectedQuestions = this.shuffleArray(filteredQuestions).slice(0, 8)
+      // Use all available questions (should be 2 for testing)
+      const selectedQuestions = this.shuffleArray(filteredQuestions)
+      
+      if (selectedQuestions.length === 0) {
+        throw new Error(`No questions available for ${position} with difficulty ${difficulty}`)
+      }
+      
+      console.log(`Selected ${selectedQuestions.length} questions for interview`)
 
       // Create interview record
       const interview = await db.interview.create({
