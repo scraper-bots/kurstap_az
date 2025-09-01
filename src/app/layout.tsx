@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Poppins, Space_Grotesk } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
@@ -19,6 +19,14 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk'
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover'
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.bir.guru'),
   title: 'Bir Guru | Master Every Interview With AI',
@@ -27,13 +35,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'Bir Guru' }],
   creator: 'Bir Guru',
   publisher: 'Bir Guru',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover'
-  },
   robots: {
     index: true,
     follow: true,
