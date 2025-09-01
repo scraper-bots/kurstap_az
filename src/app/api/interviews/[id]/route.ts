@@ -48,7 +48,7 @@ export async function GET(
         weaknesses: ['Need more implementation details', 'Could improve system design depth'],
         recommendations: ['Practice coding problems', 'Study system design patterns']
       },
-      categoryScores: interview.categoryScores || {
+      categoryScores: (interview.categoryScores as any) || {
         'Behavioral': 80,
         'Technical': 75,
         'System Design': 70,

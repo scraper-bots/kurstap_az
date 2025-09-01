@@ -39,7 +39,7 @@ export async function GET(
         },
         confidence: {
           overall: 75,
-          byCategory: interview.categoryScores || {}
+          byCategory: (interview.categoryScores as any) || {}
         },
         communicationSkills: {
           clarity: 85,
@@ -51,7 +51,7 @@ export async function GET(
       strengthsAnalysis: [
         {
           area: 'Technical Knowledge',
-          score: interview.categoryScores?.['Technical'] || 80,
+          score: (interview.categoryScores as any)?.['Technical'] || 80,
           description: 'Demonstrates strong understanding of technical concepts',
           evidence: (interview.overallAnalysis as any)?.strengths || ['Strong technical knowledge', 'Good problem-solving approach']
         }
@@ -59,7 +59,7 @@ export async function GET(
       weaknessesAnalysis: [
         {
           area: 'System Design Depth',
-          score: interview.categoryScores?.['System Design'] || 65,
+          score: (interview.categoryScores as any)?.['System Design'] || 65,
           description: 'Needs to provide more comprehensive solutions',
           impact: 'May struggle with senior-level discussions',
           improvementActions: (interview.overallAnalysis as any)?.recommendations || [
