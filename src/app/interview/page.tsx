@@ -8,13 +8,15 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Loader2, Play, Send, CheckCircle, Clock, User, Target } from 'lucide-react'
+import { Loader2, Play, Send, CheckCircle, Clock, User, Target, Mic, MessageSquare } from 'lucide-react'
+import { AudioInterview } from '@/components/audio-interview'
 
 interface InterviewState {
   sessionId?: string
   interviewId?: string
   position?: string
-  stage: 'setup' | 'interview' | 'completed' | 'loading'
+  stage: 'setup' | 'interview' | 'audio-interview' | 'completed' | 'loading'
+  interviewMode?: 'text' | 'audio'
   currentQuestion?: {
     id: string
     question: string
@@ -47,6 +49,7 @@ export default function InterviewPage() {
   })
   const [position, setPosition] = useState('')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard' | 'mixed'>('mixed')
+  const [interviewMode, setInterviewMode] = useState<'text' | 'audio'>('text')
   const [currentAnswer, setCurrentAnswer] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -67,7 +70,8 @@ export default function InterviewPage() {
       if (data.success) {
         setState(prev => ({
           ...prev,
-          stage: 'interview',
+          stage: interviewMode === 'audio' ? 'audio-interview' : 'interview',
+          interviewMode,
           sessionId: data.data.sessionId,
           interviewId: data.data.interviewId,
           position: data.data.position,
@@ -191,6 +195,34 @@ export default function InterviewPage() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Interview Mode</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant={interviewMode === 'text' ? 'default' : 'outline'}
+                  onClick={() => setInterviewMode('text')}
+                  className="h-20 flex flex-col gap-2"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  <div>
+                    <div className="font-medium">Text-based</div>
+                    <div className="text-xs opacity-70">Type your answers</div>
+                  </div>
+                </Button>
+                <Button
+                  variant={interviewMode === 'audio' ? 'default' : 'outline'}
+                  onClick={() => setInterviewMode('audio')}
+                  className="h-20 flex flex-col gap-2"
+                >
+                  <Mic className="h-5 w-5" />
+                  <div>
+                    <div className="font-medium">Voice-based</div>
+                    <div className="text-xs opacity-70">Speak your answers</div>
+                  </div>
+                </Button>
+              </div>
+            </div>
+
             <Button
               onClick={startInterview}
               disabled={!position.trim()}
@@ -198,7 +230,7 @@ export default function InterviewPage() {
               size="lg"
             >
               <Play className="h-4 w-4 mr-2" />
-              Start Interview
+              Start {interviewMode === 'audio' ? 'Audio' : 'Text'} Interview
             </Button>
           </CardContent>
         </Card>
@@ -315,6 +347,36 @@ export default function InterviewPage() {
             </Card>
           )}
         </div>
+      )}
+
+      {/* Audio Interview Stage */}
+      {state.stage === 'audio-interview' && state.currentQuestion && (
+        <AudioInterview
+          sessionId={state.sessionId!}
+          initialQuestion={state.currentQuestion}
+          totalQuestions={state.progress?.total || 1}
+          onAnswer={async (answer: string) => {
+            try {
+              const response = await fetch('/api/interview/answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId: state.sessionId,
+                  answer: answer.trim()
+                })
+              })
+
+              const data = await response.json()
+              return data
+            } catch (error) {
+              console.error('Error submitting audio answer:', error)
+              return { success: false, error: 'Failed to submit answer' }
+            }
+          }}
+          onComplete={() => {
+            setState(prev => ({ ...prev, stage: 'completed' }))
+          }}
+        />
       )}
 
       {/* Completion Stage */}
