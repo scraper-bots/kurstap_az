@@ -264,10 +264,7 @@ export default function PremiumHeroSection() {
                 ) : (
                   <>
                     <div className="w-full">
-                      <SignInButton 
-                        mode="modal"
-                        afterSignInUrl="/dashboard"
-                      >
+                      <SignInButton mode="modal">
                         <button 
                           type="button"
                           className="w-full py-3 px-4 text-slate-700 font-semibold rounded-lg hover:bg-neutral-50 transition-colors touch-manipulation"
@@ -277,10 +274,7 @@ export default function PremiumHeroSection() {
                       </SignInButton>
                     </div>
                     <div className="w-full">
-                      <SignUpButton 
-                        mode="modal"
-                        afterSignUpUrl="/dashboard"
-                      >
+                      <SignUpButton mode="modal">
                         <button 
                           type="button"
                           className="w-full py-3 px-4 bg-gradient-brand text-white font-semibold rounded-lg shadow-elevation-2 hover:shadow-elevation-3 transition-all touch-manipulation"
