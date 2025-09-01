@@ -35,7 +35,7 @@ export class DailyAudioService {
   }
 
   /**
-   * Create or join a Daily.co room for the interview
+   * Create or join a Daily.co room for the interview with Pipecat
    */
   async createRoom(): Promise<string> {
     if (!process.env.DAILY_API_KEY || !process.env.DAILY_DOMAIN) {
@@ -43,6 +43,7 @@ export class DailyAudioService {
     }
 
     try {
+      // Create room using Daily.co API
       const response = await fetch('https://api.daily.co/v1/rooms', {
         method: 'POST',
         headers: {
@@ -53,21 +54,36 @@ export class DailyAudioService {
           name: `interview-${Date.now()}`,
           privacy: 'private',
           properties: {
-            max_participants: 1, // Only the interviewer (AI)
-            audio_only: true,
-            enable_recording: true,
-            enable_transcription: false, // We'll use Whisper
-            exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour expiry
+            max_participants: 2, // User + Pipecat AI bot
+            enable_recording: 'cloud',
+            enable_transcription: false, // Using Whisper instead
+            exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+            // Pipecat-specific configurations for audio-only interviews
+            enable_screenshare: false,
+            enable_chat: false,
+            enable_knocking: false,
+            enable_prejoin_ui: false,
+            start_audio_off: false,
+            start_video_off: true,
+            // Enhanced audio settings for better voice quality
+            enable_network_ui: false,
+            enable_noise_cancellation_ui: false
           }
         })
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to create room: ${response.statusText}`)
+        const errorText = await response.text()
+        console.error('Daily.co API error:', response.status, errorText)
+        throw new Error(`Failed to create room: ${response.status} ${response.statusText}`)
       }
 
       const room = await response.json()
-      return room.url
+      console.log('Created Daily.co room:', room.name)
+      
+      // Return the room URL using the new domain format
+      const roomUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${room.name}`
+      return roomUrl
     } catch (error) {
       console.error('Error creating Daily.co room:', error)
       throw new Error('Failed to create interview room')
