@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       currency: 'AZN',
       language: 'en',
       order_id: orderId,
-      description: payment.description,
+      description: payment.description || undefined,
       success_redirect_url: `${successUrl}?session_id=${orderId}`,
       error_redirect_url: `${errorUrl}?error=payment_failed&session_id=${orderId}`,
       other_attr: [
