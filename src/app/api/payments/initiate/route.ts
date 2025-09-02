@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare Epoint payment request
     const epointRequest: EpointPaymentRequest = {
-      public_key: process.env.EPOINT_PUBLIC_KEY!,
+      public_key: process.env.EPOINT_OPEN_KEY!,
       amount: EpointService.formatAmount(amount),
       currency: 'AZN',
       language: 'en',

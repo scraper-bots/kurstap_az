@@ -37,8 +37,8 @@ export interface EpointPaymentResult {
 
 export class EpointService {
   private static readonly API_BASE_URL = 'https://epoint.az/api/1'
-  private static readonly PUBLIC_KEY = process.env.EPOINT_PUBLIC_KEY!
-  private static readonly PRIVATE_KEY = process.env.EPOINT_PRIVATE_KEY!
+  private static readonly PUBLIC_KEY = process.env.EPOINT_OPEN_KEY!
+  private static readonly PRIVATE_KEY = process.env.EPOINT_PERSONAL_TOKEN!
 
   private static generateSignature(data: string): string {
     const signatureString = this.PRIVATE_KEY + data + this.PRIVATE_KEY
