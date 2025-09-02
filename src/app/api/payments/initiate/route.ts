@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { generateId } from '@/lib/utils'
 
 interface PaymentRequest {
-  planType: 'BASIC' | 'PREMIUM' | 'ENTERPRISE'
+  planType: 'FREE' | 'PREMIUM' | 'ENTERPRISE'
   amount: number
   description?: string
   successUrl: string
@@ -13,8 +13,8 @@ interface PaymentRequest {
 }
 
 const PLAN_CONFIGS = {
-  BASIC: {
-    name: 'Basic Plan',
+  FREE: {
+    name: 'Free Plan',
     price: 9.99,
     features: ['5 AI Interviews per month', 'Basic feedback', 'Email support']
   },
