@@ -495,7 +495,9 @@ export function AudioInterview({
           <li>• Listen to the AI interviewer's questions</li>
           <li>• Click the microphone to start recording your answer</li>
           <li>• Speak naturally - the system will detect when you're done</li>
-          <li>• The AI will provide follow-up questions or move to the next question</li>
+          <li>• Use "Pause" to take a break and "Resume" to continue</li>
+          <li>• Click "Next Question" to skip the current question if needed</li>
+          <li>• Use "Finish Early" to end the interview before completing all questions</li>
           <li>• Your responses are transcribed and evaluated in real-time</li>
         </ul>
       </Card>

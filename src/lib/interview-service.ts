@@ -187,11 +187,28 @@ export class InterviewService {
       // Skip individual scoring - will be done at the end
       console.log('Answer recorded - scoring deferred until interview completion')
 
-      // Determine next action based on current stage
+      // Determine next action based on current stage and skip status
       let nextAction: 'next-question' | 'follow-up' | 'completed' = 'completed'
       let updatedAnswers = [...sessionData.answers]
 
-      if (sessionData.currentStage === 'question') {
+      if (skipQuestion) {
+        // Skipping question - record it as skipped and move to next question
+        const answerRecord: InterviewAnswer = {
+          questionId: currentQuestion.id,
+          question: currentQuestion.question,
+          answer: 'SKIPPED',
+          timestamp: new Date().toISOString(),
+          followUpQuestion: currentQuestion.followUp,
+          followUpAnswer: 'SKIPPED'
+        }
+        updatedAnswers.push(answerRecord)
+
+        if (sessionData.currentQuestionIndex + 1 < sessionData.questions.length) {
+          nextAction = 'next-question'
+        } else {
+          nextAction = 'completed'
+        }
+      } else if (sessionData.currentStage === 'question') {
         // First answer to main question - ask follow-up
         const answerRecord: InterviewAnswer = {
           questionId: currentQuestion.id,
