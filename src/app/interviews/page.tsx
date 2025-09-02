@@ -5,24 +5,30 @@ import Link from 'next/link'
 import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, Target } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { DetailedInterviewService } from '@/lib/detailed-interview-service'
 
 async function getInterviewsData(userId: string) {
   try {
-    // In production, this would be a direct database call
-    // For now, we'll simulate the API call
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/interviews`, {
-      headers: {
-        'Authorization': `Bearer ${userId}` // In real implementation, this would be handled by Clerk
-      },
-      cache: 'no-store' // Always fetch fresh data
-    })
+    // Use direct database calls instead of API calls for server-side rendering
+    const interviews = await DetailedInterviewService.getUserInterviews(userId)
+    const stats = await DetailedInterviewService.getUserInterviewStats(userId)
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch interviews')
+    return {
+      interviews: interviews.map(interview => ({
+        id: interview.id,
+        title: interview.title,
+        company: interview.company,
+        position: interview.position,
+        date: interview.completedAt,
+        duration: interview.duration,
+        difficulty: interview.difficulty,
+        status: interview.status,
+        overallScore: interview.score,
+        questionsCount: (interview as any)._count?.answers || interview.questions.length,
+        category: 'Technical' // Could be derived from answers
+      })),
+      stats
     }
-    
-    return await response.json()
   } catch (error) {
     console.error('Error fetching interviews:', error)
     // Return empty state if API fails

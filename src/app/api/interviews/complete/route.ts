@@ -10,13 +10,39 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('📝 Completion API - Request body:', JSON.stringify(body, null, 2))
+    
     const { interviewData, answers }: { 
       interviewData: Omit<DetailedInterviewData, 'categoryScores' | 'overallAnalysis' | 'responseMetrics' | 'benchmarkData' | 'improvementPlan'>
       answers: InterviewAnswerData[] 
     } = body
 
+    console.log('📝 Completion API - Parsed data:', {
+      hasInterviewData: !!interviewData,
+      interviewDataKeys: interviewData ? Object.keys(interviewData) : [],
+      answersCount: answers ? answers.length : 0,
+      answersPreview: answers ? answers.slice(0, 2) : []
+    })
+
     if (!answers || answers.length === 0) {
+      console.log('❌ Completion API - No answers provided')
       return NextResponse.json({ error: 'No answers provided' }, { status: 400 })
+    }
+
+    if (!interviewData) {
+      console.log('❌ Completion API - No interview data provided')
+      return NextResponse.json({ error: 'No interview data provided' }, { status: 400 })
+    }
+
+    // Validate required fields in interviewData
+    const requiredFields = ['title', 'position', 'difficulty', 'duration', 'score']
+    const missingFields = requiredFields.filter(field => !(field in interviewData) || interviewData[field as keyof typeof interviewData] === undefined)
+    
+    if (missingFields.length > 0) {
+      console.log('❌ Completion API - Missing required fields:', missingFields)
+      return NextResponse.json({ 
+        error: `Missing required fields: ${missingFields.join(', ')}` 
+      }, { status: 400 })
     }
 
     // Generate detailed analysis from answers
