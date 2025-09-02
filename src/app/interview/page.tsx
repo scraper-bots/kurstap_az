@@ -130,12 +130,6 @@ function InterviewContent() {
   }
 
   const handleAnswer = async (answer: string) => {
-    console.log('handleAnswer called with:', answer)
-    console.log('Current state:', {
-      sessionId: state.sessionId,
-      currentQuestion: state.currentQuestion,
-      currentAnswersCount: state.answers?.length || 0
-    })
 
     try {
       const response = await fetch('/api/interview/answer', {
@@ -148,7 +142,6 @@ function InterviewContent() {
       })
       
       const result = await response.json()
-      console.log('API response:', result)
       
       // Store the answer locally
       if (state.currentQuestion) {
@@ -160,11 +153,8 @@ function InterviewContent() {
           responseTime: 30 // Could track actual response time
         }
         
-        console.log('Storing new answer locally:', newAnswer)
-        
         setState(prev => {
           const updatedAnswers = [...(prev.answers || []), newAnswer]
-          console.log('Updated local answers array:', updatedAnswers)
           return {
             ...prev,
             answers: updatedAnswers
@@ -180,12 +170,6 @@ function InterviewContent() {
   }
 
   const handleComplete = async () => {
-    console.log('handleComplete called with state:', {
-      answers: state.answers,
-      position: state.position,
-      startTime: state.startTime,
-      answersLength: state.answers?.length
-    })
 
     if (!state.answers || state.answers.length === 0 || !state.position || !state.startTime) {
       console.error('Missing interview data for completion', {
@@ -198,17 +182,12 @@ function InterviewContent() {
       // If we don't have answers but have sessionId, try to fetch them from the session
       if (state.sessionId && !state.answers?.length) {
         try {
-          console.log('Attempting to fetch session data for completion...')
           const sessionResponse = await fetch(`/api/interview/session?sessionId=${state.sessionId}`)
           const sessionData = await sessionResponse.json()
           
           if (sessionData.success && sessionData.data?.answers) {
-            console.log('Found session answers:', sessionData.data.answers)
-            console.log('Session data:', sessionData.data)
-            
             // Check if this session was already processed by the unified system
             if (sessionData.data.detailedInterviewId) {
-              console.log('✅ Session already processed by unified system, redirecting to detailed interview:', sessionData.data.detailedInterviewId)
               window.location.href = `/interviews/${sessionData.data.detailedInterviewId}`
               return
             }
@@ -227,7 +206,6 @@ function InterviewContent() {
               }
             })
             
-            console.log('Transformed answers for completion:', transformedAnswers)
             const duration = Math.round((Date.now() - (state.startTime || Date.now())) / 1000 / 60)
             
             await completeInterview({
@@ -255,14 +233,6 @@ function InterviewContent() {
     try {
       const duration = Math.round((Date.now() - state.startTime) / 1000 / 60) // Convert to minutes
       
-      console.log('Completing interview with data:', {
-        title: `${state.position} Interview`,
-        position: state.position,
-        difficulty: state.difficulty?.toUpperCase(),
-        duration,
-        answersCount: state.answers.length
-      })
-      
       // Transform local state answers to completion API format
       const transformedAnswers = state.answers.map((answer: any, index: number) => ({
         questionId: answer.questionId || (index + 1),
@@ -271,8 +241,6 @@ function InterviewContent() {
         category: answer.category || 'General',
         responseTime: answer.responseTime || 30
       }))
-      
-      console.log('Completing with transformed local answers:', transformedAnswers)
       
       await completeInterview({
         title: `${state.position} Interview`,

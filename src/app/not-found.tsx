@@ -42,8 +42,8 @@ export default function NotFound() {
               <Link href="/about" className="text-blue-600 hover:text-blue-700 transition-colors">
                 About Us
               </Link>
-              <Link href="/test-questions" className="text-blue-600 hover:text-blue-700 transition-colors">
-                Practice Questions
+              <Link href="/blog" className="text-blue-600 hover:text-blue-700 transition-colors">
+                Blog
               </Link>
               <Link href="/dashboard" className="text-blue-600 hover:text-blue-700 transition-colors">
                 Dashboard

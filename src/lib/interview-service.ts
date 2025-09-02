@@ -65,7 +65,6 @@ export class InterviewService {
 
       // Generate questions for the position using OpenAI
       const questionSet = await OpenAIService.generateQuestions(position)
-      console.log('✅ Successfully generated questions with OpenAI')
 
       // Flatten and shuffle questions
       const allQuestions: InterviewQuestion[] = [
@@ -73,9 +72,6 @@ export class InterviewService {
         ...questionSet.technical.map((q, i) => ({ id: `technical-${i}`, ...q })),
         ...questionSet.situational.map((q, i) => ({ id: `situational-${i}`, ...q }))
       ]
-      
-      console.log(`Generated ${allQuestions.length} total questions for ${position}`)
-      console.log('Questions:', allQuestions.map(q => ({ id: q.id, category: q.category, question: q.question.slice(0, 50) + '...' })))
 
       // Filter by difficulty if specified, but fall back to all questions if none match
       let filteredQuestions = allQuestions
@@ -89,14 +85,12 @@ export class InterviewService {
         }
       }
 
-      // Use all available questions (should be 2 for testing)
+      // Use all available questions
       const selectedQuestions = this.shuffleArray(filteredQuestions)
       
       if (selectedQuestions.length === 0) {
         throw new Error(`No questions available for ${position}`)
       }
-      
-      console.log(`Selected ${selectedQuestions.length} questions for interview`)
 
       // Create interview record
       const interview = await db.interview.create({
@@ -187,7 +181,6 @@ export class InterviewService {
       }
 
       // Skip individual scoring - will be done at the end
-      console.log('Answer recorded - scoring deferred until interview completion')
 
       // Determine next action based on current stage and skip status
       let nextAction: 'next-question' | 'follow-up' | 'completed' = 'completed'
@@ -267,7 +260,6 @@ export class InterviewService {
       let finalEvaluation = undefined
       if (nextAction === 'completed') {
         try {
-          console.log('Interview completed - performing comprehensive evaluation')
           
           // Prepare questions and answers for evaluation
           const questionsAndAnswers = updatedAnswers.map((answer) => {
@@ -301,8 +293,6 @@ export class InterviewService {
               }
             }
           })
-          
-          console.log(`Evaluation completed - Overall Score: ${finalEvaluation.overallScore}`)
         } catch (error) {
           console.error('Failed to evaluate interview:', error)
           // Use fallback score
@@ -335,7 +325,6 @@ export class InterviewService {
 
         // Create detailed interview analysis
         try {
-          console.log('Creating detailed interview analysis...')
           
           // Transform answers to DetailedInterviewService format
           const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
@@ -375,8 +364,6 @@ export class InterviewService {
             detailedInterviewData,
             detailedAnswers
           )
-          
-          console.log(`✅ Created detailed interview analysis: ${detailedInterview.id}`)
           
           // Store the detailed interview ID in the session for reference
           updatedSessionData.detailedInterviewId = detailedInterview.id
