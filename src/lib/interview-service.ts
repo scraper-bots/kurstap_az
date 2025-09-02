@@ -149,7 +149,8 @@ export class InterviewService {
   static async submitAnswer(
     sessionId: string,
     clerkUserId: string,
-    answer: string
+    answer: string,
+    skipQuestion: boolean = false
   ): Promise<{
     success: boolean
     sessionData: InterviewSessionData

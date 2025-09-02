@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
-import { Mic, MicOff, Volume2, VolumeX, Phone, PhoneOff } from 'lucide-react'
+import { Mic, MicOff, Volume2, VolumeX, Phone, PhoneOff, Pause, Play, SkipForward, Square } from 'lucide-react'
 import { dailyAudioService } from '@/lib/daily'
 
 interface AudioInterviewProps {
@@ -29,6 +29,7 @@ interface AudioState {
   pendingTranscript: string
   roomUrl: string | null
   error: string | null
+  isPaused: boolean
 }
 
 export function AudioInterview({
@@ -45,7 +46,8 @@ export function AudioInterview({
     currentTranscript: '',
     pendingTranscript: '',
     roomUrl: null,
-    error: null
+    error: null,
+    isPaused: false
   })
 
   const [currentQuestion, setCurrentQuestion] = useState(initialQuestion)
@@ -256,29 +258,140 @@ export function AudioInterview({
     onComplete()
   }
 
+  const pauseInterview = () => {
+    if (audioState.isRecording) {
+      stopRecording()
+    }
+    setAudioState(prev => ({ ...prev, isPaused: true }))
+  }
+
+  const resumeInterview = () => {
+    setAudioState(prev => ({ ...prev, isPaused: false }))
+  }
+
+  const skipToNextQuestion = async () => {
+    if (audioState.isRecording) {
+      stopRecording()
+    }
+    
+    // Clear any pending transcripts
+    setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
+    
+    try {
+      // Call the API to get the next question
+      const response = await fetch('/api/interview/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          answer: 'SKIPPED', // Special marker to indicate question was skipped
+          skipQuestion: true
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        if (result.data?.nextAction === 'completed') {
+          await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
+          onComplete()
+          return
+        }
+
+        if (result.data?.currentQuestion) {
+          setCurrentQuestion(result.data.currentQuestion)
+          setProgress(result.data.progress?.current || progress + 1)
+          await speakAIResponse(`Moving to the next question: ${result.data.currentQuestion.question}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error skipping question:', error)
+      await speakAIResponse("I apologize, there was an issue skipping the question. Please try again.")
+    }
+  }
+
+  const finishInterviewEarly = async () => {
+    if (audioState.isRecording) {
+      stopRecording()
+    }
+    
+    await speakAIResponse("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
+    onComplete()
+  }
+
   const renderCallControls = () => {
     if (audioState.isCallActive === 'connected') {
       return (
-        <div className="flex gap-4 justify-center">
-          <Button
-            onClick={audioState.isRecording ? stopRecording : startRecording}
-            disabled={audioState.isSpeaking || isProcessingAnswer}
-            className={`w-16 h-16 rounded-full ${
-              audioState.isRecording 
-                ? 'bg-red-500 hover:bg-red-600' 
-                : 'bg-blue-500 hover:bg-blue-600'
-            }`}
-          >
-            {audioState.isRecording ? <MicOff size={24} /> : <Mic size={24} />}
-          </Button>
-          
-          <Button
-            onClick={endCall}
-            variant="outline"
-            className="w-16 h-16 rounded-full border-red-500 text-red-500 hover:bg-red-50"
-          >
-            <PhoneOff size={24} />
-          </Button>
+        <div className="space-y-6">
+          {/* Primary Controls */}
+          <div className="flex gap-4 justify-center">
+            <Button
+              onClick={audioState.isRecording ? stopRecording : startRecording}
+              disabled={audioState.isSpeaking || isProcessingAnswer || audioState.isPaused}
+              className={`w-16 h-16 rounded-full ${
+                audioState.isRecording 
+                  ? 'bg-red-500 hover:bg-red-600' 
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+              title={audioState.isRecording ? "Stop Recording" : "Start Recording"}
+            >
+              {audioState.isRecording ? <MicOff size={24} /> : <Mic size={24} />}
+            </Button>
+            
+            <Button
+              onClick={audioState.isPaused ? resumeInterview : pauseInterview}
+              disabled={audioState.isSpeaking || isProcessingAnswer}
+              variant="outline"
+              className="w-16 h-16 rounded-full border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+              title={audioState.isPaused ? "Resume Interview" : "Pause Interview"}
+            >
+              {audioState.isPaused ? <Play size={24} /> : <Pause size={24} />}
+            </Button>
+            
+            <Button
+              onClick={endCall}
+              variant="outline"
+              className="w-16 h-16 rounded-full border-red-500 text-red-500 hover:bg-red-50"
+              title="End Call"
+            >
+              <PhoneOff size={24} />
+            </Button>
+          </div>
+
+          {/* Secondary Controls */}
+          <div className="flex gap-3 justify-center">
+            <Button
+              onClick={skipToNextQuestion}
+              disabled={audioState.isSpeaking || isProcessingAnswer || audioState.isPaused}
+              variant="outline"
+              size="sm"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              title="Skip to Next Question"
+            >
+              <SkipForward size={16} className="mr-1" />
+              Next Question
+            </Button>
+            
+            <Button
+              onClick={finishInterviewEarly}
+              disabled={audioState.isSpeaking || isProcessingAnswer}
+              variant="outline"
+              size="sm"
+              className="border-gray-400 text-gray-600 hover:bg-gray-50"
+              title="Finish Interview Early"
+            >
+              <Square size={16} className="mr-1" />
+              Finish Early
+            </Button>
+          </div>
+
+          {/* Pause Status */}
+          {audioState.isPaused && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+              <p className="text-yellow-800 font-medium">Interview Paused</p>
+              <p className="text-yellow-600 text-sm mt-1">Click resume to continue</p>
+            </div>
+          )}
         </div>
       )
     }

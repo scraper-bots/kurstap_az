@@ -5,6 +5,7 @@ import { InterviewService } from '@/lib/interview-service'
 export interface SubmitAnswerRequest {
   sessionId: string
   answer: string
+  skipQuestion?: boolean
 }
 
 export interface SubmitAnswerResponse {
@@ -49,13 +50,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
 
     // Parse request body
     const body: SubmitAnswerRequest = await req.json()
-    const { sessionId, answer } = body
+    const { sessionId, answer, skipQuestion } = body
 
     // Validate input
-    if (!sessionId || !answer || answer.trim().length === 0) {
+    if (!sessionId || (!answer && !skipQuestion) || (answer && answer.trim().length === 0 && !skipQuestion)) {
       return NextResponse.json({
         success: false,
-        error: 'Session ID and answer are required'
+        error: 'Session ID and answer are required (unless skipping question)'
       }, { status: 400 })
     }
 
@@ -63,7 +64,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
     const result = await InterviewService.submitAnswer(
       sessionId,
       userId,
-      answer.trim()
+      skipQuestion ? 'SKIPPED' : answer.trim(),
+      skipQuestion
     )
 
     if (!result.success) {
