@@ -80,9 +80,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-300 hover:text-white transition-colors">
+                <a href="https://www.birjob.com/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
                   Careers
-                </Link>
+                </a>
               </li>
               <li>
                 <Link href="/blog" className="text-gray-300 hover:text-white transition-colors">
