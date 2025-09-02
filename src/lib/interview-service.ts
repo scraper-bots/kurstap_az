@@ -1,6 +1,7 @@
 import { db } from './db'
 import { OpenAIService } from './openai'
 import { SessionStatus } from '@prisma/client'
+import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } from './detailed-interview-service'
 
 export interface InterviewQuestion {
   id: string
@@ -40,6 +41,7 @@ export interface InterviewSessionData {
   status: SessionStatus
   startedAt: string
   completedAt?: string
+  detailedInterviewId?: string
 }
 
 export class InterviewService {
@@ -330,6 +332,59 @@ export class InterviewService {
             feedback: `Interview completed with ${updatedAnswers.length} questions answered.`
           }
         })
+
+        // Create detailed interview analysis
+        try {
+          console.log('Creating detailed interview analysis...')
+          
+          // Transform answers to DetailedInterviewService format
+          const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
+            const matchingQuestion = sessionData.questions.find((q: any) => q.id === answer.questionId)
+            
+            return {
+              questionId: index + 1,
+              question: answer.question,
+              userAnswer: answer.answer + (answer.followUpAnswer ? `\n\nFollow-up: ${answer.followUpAnswer}` : ''),
+              idealAnswer: `A comprehensive answer should demonstrate relevant experience, specific examples, and clear communication.`,
+              score: answer.score?.overallScore || 75, // Use existing score or default
+              strengths: answer.score?.feedback ? [answer.score.feedback] : ['Clear communication'],
+              weaknesses: ['Could provide more specific examples'],
+              category: matchingQuestion?.category || 'General',
+              responseTime: 30,
+              confidence: answer.score?.overallScore || 75
+            }
+          })
+
+          // Generate detailed analysis
+          const analysis = await DetailedInterviewService.generateDetailedAnalysis(detailedAnswers)
+          
+          // Create detailed interview data
+          const detailedInterviewData: DetailedInterviewData = {
+            title: `${session.interview?.position || 'General'} Interview`,
+            company: 'Practice Session',
+            position: session.interview?.position || 'General',
+            difficulty: session.interview?.difficulty || 'MEDIUM',
+            duration: Math.round(((new Date()).getTime() - session.startedAt.getTime()) / 1000 / 60),
+            score: updatedSessionData.overallScore || 75,
+            ...analysis
+          }
+
+          // Create the detailed interview (this will create a separate interview record with full analysis)
+          const detailedInterview = await DetailedInterviewService.createDetailedInterview(
+            user.clerkId, // Use Clerk ID for consistency with frontend
+            detailedInterviewData,
+            detailedAnswers
+          )
+          
+          console.log(`✅ Created detailed interview analysis: ${detailedInterview.id}`)
+          
+          // Store the detailed interview ID in the session for reference
+          updatedSessionData.detailedInterviewId = detailedInterview.id
+          
+        } catch (detailedError) {
+          console.error('❌ Failed to create detailed interview analysis:', detailedError)
+          // Continue without failing the whole process
+        }
       }
 
       return {

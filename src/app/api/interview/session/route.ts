@@ -93,13 +93,15 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
         currentQuestion,
         followUpQuestion,
         answers: sessionData.answers,
+        questions: sessionData.questions, // Include full questions array for category mapping
         progress: {
           current: sessionData.currentQuestionIndex + 1,
           total: sessionData.questions.length
         },
         overallScore: sessionData.overallScore,
         startedAt: sessionData.startedAt,
-        completedAt: sessionData.completedAt
+        completedAt: sessionData.completedAt,
+        detailedInterviewId: sessionData.detailedInterviewId // Include reference to detailed interview if exists
       }
     })
   } catch (error) {
