@@ -22,18 +22,14 @@ export default function Home() {
               and helps you land your dream job with confidence.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
+            {/* CTA Button */}
+            <div className="flex justify-center mb-12">
+              <SignUpButton mode="modal" forceRedirectUrl="/interview">
                 <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
-                  Start Free Practice
+                  Start Practice
                   <ArrowRight className="inline-block w-5 h-5 ml-2" />
                 </button>
               </SignUpButton>
-              <button className="px-8 py-4 bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all transform hover:scale-105 flex items-center justify-center">
-                <Play className="w-5 h-5 mr-2" />
-                Watch Demo
-              </button>
             </div>
 
             {/* Stats */}
