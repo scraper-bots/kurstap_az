@@ -182,7 +182,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
             {Object.entries(interview.categoryScores).map(([category, score]) => (
               <div key={category} className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className={`text-2xl font-bold mb-1 ${getScoreColor(Number(score)).split(' ')[0]}`}>
-                  {score}%
+                  {Number(score)}%
                 </div>
                 <div className="text-sm text-gray-600">{category}</div>
               </div>
@@ -193,7 +193,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
         {/* Questions and Answers */}
         <div className="space-y-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Questions & Answers</h2>
-          {interview.questions.map((q, index) => (
+          {interview.questions.map((q: any, index: number) => (
             <div key={q.id} className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -234,7 +234,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
                       Strengths
                     </h4>
                     <ul className="space-y-1">
-                      {q.strengths.map((strength, idx) => (
+                      {q.strengths.map((strength: string, idx: number) => (
                         <li key={idx} className="text-sm text-gray-600 flex items-start">
                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                           {strength}
@@ -248,7 +248,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
                       Areas for Improvement
                     </h4>
                     <ul className="space-y-1">
-                      {q.weaknesses.map((weakness, idx) => (
+                      {q.weaknesses.map((weakness: string, idx: number) => (
                         <li key={idx} className="text-sm text-gray-600 flex items-start">
                           <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                           {weakness}
@@ -273,7 +273,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
                 Key Strengths
               </h3>
               <ul className="space-y-2">
-                {interview.overallAnalysis.strengths.map((strength, idx) => (
+                {interview.overallAnalysis.strengths.map((strength: string, idx: number) => (
                   <li key={idx} className="flex items-start text-gray-700">
                     <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     {strength}
@@ -288,7 +288,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
                 Areas Needing Improvement
               </h3>
               <ul className="space-y-2">
-                {interview.overallAnalysis.weaknesses.map((weakness, idx) => (
+                {interview.overallAnalysis.weaknesses.map((weakness: string, idx: number) => (
                   <li key={idx} className="flex items-start text-gray-700">
                     <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     {weakness}
@@ -304,7 +304,7 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
               Personalized Action Plan
             </h3>
             <div className="space-y-3">
-              {interview.overallAnalysis.recommendations.map((rec, idx) => (
+              {interview.overallAnalysis.recommendations.map((rec: string, idx: number) => (
                 <div key={idx} className="flex items-start bg-blue-50 p-4 rounded-lg">
                   <span className="bg-blue-600 text-white text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">
                     {idx + 1}

@@ -235,7 +235,7 @@ export class DetailedInterviewService {
     // This would typically call OpenAI or another AI service for analysis
     // For now, I'll provide a structured analysis based on the answers
     
-    const categories = [...new Set(answers.map(a => a.category))]
+    const categories = Array.from(new Set(answers.map(a => a.category)))
     const categoryScores: { [category: string]: number } = {}
     
     // Calculate category scores
@@ -255,8 +255,8 @@ export class DetailedInterviewService {
     const allWeaknesses = answers.flatMap(a => a.weaknesses)
     
     // Remove duplicates and get top items
-    const uniqueStrengths = [...new Set(allStrengths)].slice(0, 4)
-    const uniqueWeaknesses = [...new Set(allWeaknesses)].slice(0, 4)
+    const uniqueStrengths = Array.from(new Set(allStrengths)).slice(0, 4)
+    const uniqueWeaknesses = Array.from(new Set(allWeaknesses)).slice(0, 4)
 
     return {
       categoryScores,

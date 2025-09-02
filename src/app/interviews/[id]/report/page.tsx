@@ -308,10 +308,10 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                 <div key={skill}>
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-gray-600 capitalize">{skill.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    <span className="text-sm font-medium">{score}%</span>
+                    <span className="text-sm font-medium">{Number(score)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className={`h-2 rounded-full ${score >= 80 ? 'bg-green-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{width: `${score}%`}}></div>
+                    <div className={`h-2 rounded-full ${Number(score) >= 80 ? 'bg-green-500' : Number(score) >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{width: `${Number(score)}%`}}></div>
                   </div>
                 </div>
               ))}
@@ -328,7 +328,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Object.entries(report.benchmarkComparison.industryAverage).map(([category, industryScore]) => {
               const yourScore = report.benchmarkComparison.yourScores[category as keyof typeof report.benchmarkComparison.yourScores]
-              const difference = yourScore - industryScore
+              const difference = yourScore - Number(industryScore)
               
               return (
                 <div key={category} className="text-center p-4 bg-gray-50 rounded-lg">
@@ -336,13 +336,13 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">You</span>
-                      <span className={`font-semibold ${yourScore >= industryScore ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-semibold ${yourScore >= Number(industryScore) ? 'text-green-600' : 'text-red-600'}`}>
                         {yourScore}%
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Industry</span>
-                      <span className="text-gray-700">{industryScore}%</span>
+                      <span className="text-gray-700">{Number(industryScore)}%</span>
                     </div>
                     <div className="flex justify-between text-sm font-medium">
                       <span>Difference</span>
@@ -364,7 +364,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
             Detailed Strengths Analysis
           </h3>
           <div className="space-y-6">
-            {report.strengthsAnalysis.map((strength, idx) => (
+            {report.strengthsAnalysis.map((strength: any, idx: number) => (
               <div key={idx} className="border-l-4 border-green-500 pl-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-900">{strength.area}</h4>
@@ -376,7 +376,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                 <div>
                   <h5 className="text-sm font-medium text-gray-900 mb-1">Evidence:</h5>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {strength.evidence.map((evidence, evidenceIdx) => (
+                    {strength.evidence.map((evidence: string, evidenceIdx: number) => (
                       <li key={evidenceIdx} className="flex items-start">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                         {evidence}
@@ -396,7 +396,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
             Areas for Improvement
           </h3>
           <div className="space-y-8">
-            {report.weaknessesAnalysis.map((weakness, idx) => (
+            {report.weaknessesAnalysis.map((weakness: any, idx: number) => (
               <div key={idx} className="border-l-4 border-red-500 pl-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-900">{weakness.area}</h4>
@@ -412,7 +412,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                 <div>
                   <h5 className="text-sm font-medium text-gray-900 mb-2">Recommended Actions:</h5>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {weakness.improvementActions.map((action, actionIdx) => (
+                    {weakness.improvementActions.map((action: string, actionIdx: number) => (
                       <li key={actionIdx} className="flex items-start">
                         <Target className="w-4 h-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                         {action}
@@ -436,7 +436,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
             <div>
               <h4 className="text-lg font-semibold text-blue-700 mb-4">Immediate Focus (2-4 weeks)</h4>
               <div className="space-y-4">
-                {report.improvementRoadmap.immediate.map((item, idx) => (
+                {report.improvementRoadmap.immediate.map((item: any, idx: number) => (
                   <div key={idx} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                     <div className="flex items-center justify-between mb-2">
                       <h5 className="font-semibold text-gray-900">{item.skill}</h5>
@@ -449,7 +449,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                     <div>
                       <span className="text-sm font-medium text-gray-700">Resources:</span>
                       <ul className="text-sm text-gray-600 mt-1">
-                        {item.resources.map((resource, resourceIdx) => (
+                        {item.resources.map((resource: string, resourceIdx: number) => (
                           <li key={resourceIdx} className="flex items-start ml-2">
                             <span className="w-1 h-1 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                             {resource}
@@ -465,7 +465,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
             <div>
               <h4 className="text-lg font-semibold text-green-700 mb-4">Long-term Development (2-6 months)</h4>
               <div className="space-y-4">
-                {report.improvementRoadmap.longTerm.map((item, idx) => (
+                {report.improvementRoadmap.longTerm.map((item: any, idx: number) => (
                   <div key={idx} className="border border-green-200 rounded-lg p-4 bg-green-50">
                     <div className="flex items-center justify-between mb-2">
                       <h5 className="font-semibold text-gray-900">{item.skill}</h5>
@@ -478,7 +478,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                     <div>
                       <span className="text-sm font-medium text-gray-700">Resources:</span>
                       <ul className="text-sm text-gray-600 mt-1">
-                        {item.resources.map((resource, resourceIdx) => (
+                        {item.resources.map((resource: string, resourceIdx: number) => (
                           <li key={resourceIdx} className="flex items-start ml-2">
                             <span className="w-1 h-1 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                             {resource}
@@ -501,7 +501,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
               Recommended Resources
             </h3>
             <div className="space-y-4">
-              {report.nextSteps.suggestedResources.map((resource, idx) => (
+              {report.nextSteps.suggestedResources.map((resource: any, idx: number) => (
                 <div key={idx} className="border border-gray-200 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-gray-900">{resource.name}</span>
@@ -539,7 +539,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                 </div>
                 <div className="text-gray-600 mb-2">Key Focus Areas:</div>
                 <div className="space-y-1">
-                  {report.nextSteps.targetImprovement.keyFocusAreas.map((area, idx) => (
+                  {report.nextSteps.targetImprovement.keyFocusAreas.map((area: string, idx: number) => (
                     <div key={idx} className="flex items-center text-gray-700">
                       <CheckCircle2 className="w-3 h-3 text-green-500 mr-2" />
                       {area}
