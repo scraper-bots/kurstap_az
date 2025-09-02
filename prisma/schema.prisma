@@ -32,6 +32,7 @@ model User {
   interviews    Interview[]
   sessions      Session[]
   subscriptions Subscription[]
+  payments      Payment[]
   
   @@map("users")
 }
@@ -138,20 +139,70 @@ model Subscription {
   type      SubscriptionType
   status    SubscriptionStatus @default(ACTIVE)
   
-  // Stripe data
+  // Payment provider data
   stripeCustomerId       String?
   stripeSubscriptionId   String? @unique
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
+  
+  // Subscription periods
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  
+  // Associated payment
+  paymentId String?
   
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id])
   
   @@map("subscriptions")
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  userId    String
+  
+  // Order details
+  orderId     String       @unique  // Unique order ID for Epoint
+  planType    SubscriptionType?     // Plan being purchased
+  amount      Float                 // Payment amount
+  currency    String       @default("AZN")
+  description String?
+  
+  // Payment status
+  status      PaymentStatus @default(PENDING)
+  
+  // Epoint transaction data
+  transactionId      String?  // Epoint transaction ID
+  bankTransactionId  String?  // Bank transaction ID
+  bankResponse       String?  // Bank response details
+  responseCode       String?  // Response code from bank
+  responseMessage    String?  // Response message
+  rrn               String?  // Retrieval Reference Number
+  cardName          String?  // Cardholder name
+  cardMask          String?  // Masked card number
+  
+  // URLs for redirect
+  successUrl String
+  errorUrl   String
+  
+  // Error details
+  errorMessage String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+  
+  @@map("payments")
 }
 
 // Enums
@@ -195,4 +246,13 @@ enum SessionStatus {
   COMPLETED
   CANCELLED
   FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
 }
