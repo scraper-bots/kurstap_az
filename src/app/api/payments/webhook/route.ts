@@ -67,26 +67,37 @@ export async function POST(request: NextRequest) {
     // If payment is successful, update user subscription
     if (paymentResult.status === 'success' && payment.planType) {
       try {
-        // Update or create subscription record
-        await db.subscription.upsert({
-          where: { userId: payment.userId },
-          create: {
-            userId: payment.userId,
-            type: payment.planType as any,
-            status: 'ACTIVE',
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-            paymentId: payment.id
-          },
-          update: {
-            type: payment.planType as any,
-            status: 'ACTIVE',
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-            paymentId: payment.id,
-            updatedAt: new Date()
-          }
+        // Find existing subscription for user
+        const existingSubscription = await db.subscription.findFirst({
+          where: { userId: payment.userId }
         })
+
+        if (existingSubscription) {
+          // Update existing subscription
+          await db.subscription.update({
+            where: { id: existingSubscription.id },
+            data: {
+              type: payment.planType as any,
+              status: 'ACTIVE',
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+              paymentId: payment.id,
+              updatedAt: new Date()
+            }
+          })
+        } else {
+          // Create new subscription
+          await db.subscription.create({
+            data: {
+              userId: payment.userId,
+              type: payment.planType as any,
+              status: 'ACTIVE',
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+              paymentId: payment.id
+            }
+          })
+        }
 
         // Update user's subscription type
         await db.user.update({
