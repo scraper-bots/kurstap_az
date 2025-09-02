@@ -5,6 +5,8 @@ import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
 import { AudioInterview } from '@/components/audio-interview'
 import { useInterviewCompletion } from '@/hooks/useInterviewCompletion'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 interface InterviewState {
   stage: 'setup' | 'interview' | 'completed' | 'loading'
@@ -192,17 +194,23 @@ function InterviewContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center bg-white rounded-xl shadow-sm border p-8">
-          <h1 className="text-2xl font-bold mb-4 text-gray-900">Please sign in to start your interview</h1>
-          <p className="text-gray-600">You need to be signed in to access the AI interview platform</p>
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="text-center bg-white rounded-xl shadow-sm border p-8">
+            <h1 className="text-2xl font-bold mb-4 text-gray-900">Please sign in to start your interview</h1>
+            <p className="text-gray-600">You need to be signed in to access the AI interview platform</p>
+          </div>
         </div>
-      </div>
+        <Footer />
+      </>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-4xl mx-auto p-4">
         {state.stage === 'setup' && (
           <div className="bg-white rounded-xl shadow-sm border p-8 max-w-2xl mx-auto mt-8">
@@ -367,7 +375,9 @@ function InterviewContent() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   )
 }
 

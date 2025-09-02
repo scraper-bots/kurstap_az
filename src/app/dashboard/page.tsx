@@ -2,6 +2,8 @@ import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { UserService } from '@/lib/user-service'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 export default async function DashboardPage() {
   const clerkUser = await currentUser()
@@ -27,7 +29,9 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Enhanced Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -220,6 +224,8 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   )
 }

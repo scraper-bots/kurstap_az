@@ -3,6 +3,8 @@ import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, Target, TrendingUp, AlertTriangle, CheckCircle, Award, ArrowRight } from 'lucide-react'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 async function getInterviewDetail(interviewId: string) {
   try {
@@ -131,7 +133,9 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -326,6 +330,8 @@ export default async function InterviewDetailPage({ params }: InterviewDetailPro
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   )
 }
