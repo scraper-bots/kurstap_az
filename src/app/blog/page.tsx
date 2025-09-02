@@ -13,7 +13,7 @@ export default function BlogPage() {
       date: "January 15, 2025",
       readTime: "8 min read",
       category: "Interview Tips",
-      image: "/api/placeholder/800/400",
+      image: "https://images.unsplash.com/photo-1518378379207-3418372afea3?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       featured: true
     },
     {
@@ -23,7 +23,8 @@ export default function BlogPage() {
       author: "Sarah Johnson",
       date: "January 10, 2025",
       readTime: "6 min read",
-      category: "Career Advice"
+      category: "Career Advice",
+      image: "https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
       id: 3,
@@ -32,7 +33,8 @@ export default function BlogPage() {
       author: "Michael Chen",
       date: "January 5, 2025",
       readTime: "5 min read",
-      category: "Interview Tips"
+      category: "Interview Tips",
+      image: "https://images.unsplash.com/photo-1675266873434-5ba73c38ce6f?q=80&w=2014&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     }
   ]
 
@@ -64,12 +66,16 @@ export default function BlogPage() {
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="lg:order-2">
-                    <div className="h-64 lg:h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
-                      <div className="text-center p-8">
-                        <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <User className="w-10 h-10 text-white" />
-                        </div>
-                        <p className="text-blue-700 font-medium">Featured Article</p>
+                    <div className="h-64 lg:h-full relative overflow-hidden">
+                      <img
+                        src={featuredPost.image}
+                        alt={featuredPost.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-yellow-500 text-white text-sm font-medium px-3 py-1 rounded-full">
+                          Featured
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -123,13 +129,12 @@ export default function BlogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {regularPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
-                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-xl flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <User className="w-6 h-6 text-white" />
-                      </div>
-                      <p className="text-gray-600 text-sm">Article Image</p>
-                    </div>
+                  <div className="h-48 rounded-t-xl overflow-hidden">
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
                   <div className="p-6">
                     <div className="mb-3">

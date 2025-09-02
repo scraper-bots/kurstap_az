@@ -128,8 +128,19 @@ export default async function BlogPostPage({ params }: BlogPostParams) {
           </div>
         </div>
 
+        {/* Hero Image */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="aspect-video rounded-2xl overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1518378379207-3418372afea3?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="AI Interview Technology"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
         {/* Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <article className="prose prose-lg prose-blue max-w-none">
             <div 
               dangerouslySetInnerHTML={{ __html: post.content }}
