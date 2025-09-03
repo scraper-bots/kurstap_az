@@ -9,7 +9,12 @@ export default function Navbar() {
   const { isSignedIn, user } = useUser()
   const [isOpen, setIsOpen] = useState(false)
 
-  const navigation: { name: string; href: string }[] = []
+  const navigation: { name: string; href: string }[] = [
+    { name: 'Features', href: '/#features' },
+    { name: 'Pricing', href: '/pricing' },
+    { name: 'About', href: '/about' },
+    { name: 'Contact', href: '/contact' }
+  ]
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
