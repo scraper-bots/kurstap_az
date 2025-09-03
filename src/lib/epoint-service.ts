@@ -73,7 +73,9 @@ export class EpointService {
     return response.json()
   }
 
-  static async initiatePayment(paymentData: EpointPaymentRequest): Promise<EpointPaymentResponse> {
+  static async initiatePayment(paymentData: EpointPaymentRequest, retryCount = 0): Promise<EpointPaymentResponse> {
+    const maxRetries = 3
+    
     try {
       const payload = {
         public_key: this.PUBLIC_KEY,
@@ -96,12 +98,30 @@ export class EpointService {
         error: response.error
       }
     } catch (error) {
-      console.error('Epoint payment initiation error:', error)
+      console.error(`Epoint payment initiation error (attempt ${retryCount + 1}):`, error)
+      
+      // Retry on network errors if we haven't exceeded max retries
+      if (retryCount < maxRetries && this.isRetryableError(error)) {
+        console.log(`Retrying payment initiation in ${(retryCount + 1) * 1000}ms...`)
+        await this.delay((retryCount + 1) * 1000)
+        return this.initiatePayment(paymentData, retryCount + 1)
+      }
+      
       return {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+  }
+
+  private static isRetryableError(error: any): boolean {
+    // Network errors that should be retried
+    const retryableErrors = ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'ETIMEDOUT']
+    return error?.code && retryableErrors.includes(error.code)
+  }
+
+  private static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   static async checkPaymentStatus(transactionId: string): Promise<EpointPaymentResult | null> {
