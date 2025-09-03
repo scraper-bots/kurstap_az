@@ -120,16 +120,16 @@ export default function PaymentSuccessContent() {
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 Go to Dashboard
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
                 href="/interview"
-                className="inline-flex items-center justify-center px-8 py-4 border border-blue-300 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-blue-300 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-colors"
               >
-                Start Your First Premium Interview
+                <span className="text-center">Start Your First Premium Interview</span>
               </Link>
             </div>
 

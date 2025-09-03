@@ -129,7 +129,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
         const isLoading = loading === key
         
         return (
-          <Card key={key} className={`relative ${plan.popular ? 'border-2 border-blue-500 scale-105' : ''}`}>
+          <Card key={key} className={`relative ${plan.popular ? 'border-2 border-blue-500 md:scale-105' : ''}`}>
             {plan.popular && (
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500">
                 Most Popular

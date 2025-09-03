@@ -35,13 +35,13 @@ export default async function DashboardPage() {
       {/* Enhanced Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">BG</span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                   Welcome back, {clerkUser.firstName}! 👋
                 </h1>
                 <p className="text-gray-600 mt-1">Ready to ace your next interview?</p>
