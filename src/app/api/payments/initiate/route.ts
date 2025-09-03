@@ -65,6 +65,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get or create the database user
+    let dbUser = await db.user.findUnique({
+      where: { clerkId: user.id }
+    })
+    
+    if (!dbUser) {
+      // Create user if doesn't exist
+      dbUser = await db.user.create({
+        data: {
+          clerkId: user.id,
+          email: '',
+          firstName: '',
+          lastName: '',
+          planType: 'FREE' as any,
+          createdAt: new Date(),
+        }
+      })
+      console.log('Auto-created user for payment:', user.id)
+    }
+
     // Generate unique order ID
     const orderId = generateId()
 
@@ -72,7 +92,7 @@ export async function POST(request: NextRequest) {
     const payment = await db.payment.create({
       data: {
         id: generateId(),
-        userId: user.id,
+        userId: dbUser.id, // Use database user ID, not Clerk ID
         orderId: orderId,
         planType: planType,
         amount: EpointService.formatAmount(amount),
