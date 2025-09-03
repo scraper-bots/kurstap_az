@@ -1,9 +1,13 @@
+'use client'
+
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { SignUpButton, SignInButton } from '@clerk/nextjs'
+import { SignUpButton, SignInButton, useUser } from '@clerk/nextjs'
 import { CheckCircle, Play, Users, Star, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Home() {
+  const { isSignedIn } = useUser()
   return (
     <>
       <Navbar />
@@ -24,12 +28,21 @@ export default function Home() {
             
             {/* CTA Button */}
             <div className="flex justify-center mb-12">
-              <SignUpButton mode="modal" forceRedirectUrl="/interview">
-                <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
-                  Start Practice
-                  <ArrowRight className="inline-block w-5 h-5 ml-2" />
-                </button>
-              </SignUpButton>
+              {isSignedIn ? (
+                <Link href="/interview">
+                  <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
+                    Start Practice
+                    <ArrowRight className="inline-block w-5 h-5 ml-2" />
+                  </button>
+                </Link>
+              ) : (
+                <SignUpButton mode="modal" forceRedirectUrl="/interview">
+                  <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
+                    Start Practice
+                    <ArrowRight className="inline-block w-5 h-5 ml-2" />
+                  </button>
+                </SignUpButton>
+              )}
             </div>
 
             {/* Stats */}
