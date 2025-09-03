@@ -54,13 +54,29 @@ export class InterviewService {
     difficulty: 'easy' | 'medium' | 'hard' | 'mixed' = 'mixed'
   ): Promise<InterviewSessionData> {
     try {
-      // Ensure user exists in database first
-      const existingUser = await db.user.findUnique({
+      // Ensure user exists in database first - create if doesn't exist
+      let existingUser = await db.user.findUnique({
         where: { clerkId: userId }
       })
       
       if (!existingUser) {
-        throw new Error('User not found. Please sign in again.')
+        // Try to create the user automatically
+        try {
+          existingUser = await db.user.create({
+            data: {
+              clerkId: userId,
+              email: '', // Will be updated via webhook later
+              firstName: '',
+              lastName: '',
+              planType: 'FREE',
+              createdAt: new Date(),
+            }
+          })
+          console.log('Auto-created user for interview:', userId)
+        } catch (createError) {
+          console.error('Failed to auto-create user:', createError)
+          throw new Error('User not found. Please sign in again.')
+        }
       }
 
       // Generate questions for the position using OpenAI
@@ -155,13 +171,28 @@ export class InterviewService {
     finalEvaluation?: any
   }> {
     try {
-      // Get the user from database
-      const user = await db.user.findUnique({
+      // Get the user from database - create if doesn't exist
+      let user = await db.user.findUnique({
         where: { clerkId: clerkUserId }
       })
       
       if (!user) {
-        throw new Error('User not found')
+        try {
+          user = await db.user.create({
+            data: {
+              clerkId: clerkUserId,
+              email: '',
+              firstName: '',
+              lastName: '',
+              planType: 'FREE',
+              createdAt: new Date(),
+            }
+          })
+          console.log('Auto-created user for submit answer:', clerkUserId)
+        } catch (createError) {
+          console.error('Failed to auto-create user:', createError)
+          throw new Error('User not found')
+        }
       }
 
       const session = await db.session.findUnique({
@@ -392,13 +423,28 @@ export class InterviewService {
    */
   static async getSession(sessionId: string, clerkUserId: string): Promise<InterviewSessionData | null> {
     try {
-      // Get the user from database
-      const user = await db.user.findUnique({
+      // Get the user from database - create if doesn't exist  
+      let user = await db.user.findUnique({
         where: { clerkId: clerkUserId }
       })
       
       if (!user) {
-        return null
+        try {
+          user = await db.user.create({
+            data: {
+              clerkId: clerkUserId,
+              email: '',
+              firstName: '',
+              lastName: '',
+              planType: 'FREE',
+              createdAt: new Date(),
+            }
+          })
+          console.log('Auto-created user for get session:', clerkUserId)
+        } catch (createError) {
+          console.error('Failed to auto-create user:', createError)
+          return null
+        }
       }
 
       const session = await db.session.findUnique({
@@ -422,13 +468,28 @@ export class InterviewService {
    */
   static async getUserInterviews(clerkUserId: string, limit: number = 10) {
     try {
-      // Get the user from database
-      const user = await db.user.findUnique({
+      // Get the user from database - create if doesn't exist
+      let user = await db.user.findUnique({
         where: { clerkId: clerkUserId }
       })
       
       if (!user) {
-        return []
+        try {
+          user = await db.user.create({
+            data: {
+              clerkId: clerkUserId,
+              email: '',
+              firstName: '',
+              lastName: '',
+              planType: 'FREE',
+              createdAt: new Date(),
+            }
+          })
+          console.log('Auto-created user for get interviews:', clerkUserId)
+        } catch (createError) {
+          console.error('Failed to auto-create user:', createError)
+          return []
+        }
       }
 
       const interviews = await db.interview.findMany({

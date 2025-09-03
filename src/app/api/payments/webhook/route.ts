@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         // Update user's subscription type
         await db.user.update({
           where: { id: payment.userId },
-          data: { subscription: payment.planType as any }
+          data: { planType: payment.planType as any }
         })
 
         console.log(`User ${payment.userId} upgraded to ${payment.planType} plan`)

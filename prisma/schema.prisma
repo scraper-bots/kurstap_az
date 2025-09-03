@@ -22,7 +22,7 @@ model User {
   imageUrl  String?
   
   // User preferences and settings
-  subscription SubscriptionType @default(FREE)
+  planType SubscriptionType @default(FREE)
   
   // Timestamps
   createdAt DateTime @default(now())

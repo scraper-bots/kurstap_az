@@ -35,7 +35,7 @@ export class SubscriptionService {
       // Downgrade user to FREE plan
       await db.user.update({
         where: { id: subscription.userId },
-        data: { subscription: 'FREE' }
+        data: { planType: 'FREE' }
       })
 
       console.log(`Subscription ${subscription.id} expired for user ${subscription.userId}`)
@@ -79,7 +79,7 @@ export class SubscriptionService {
     // Update user subscription
     await db.user.update({
       where: { id: userId },
-      data: { subscription: planType }
+      data: { planType: planType }
     })
 
     return { success: true, currentPeriodEnd }
@@ -108,7 +108,7 @@ export class SubscriptionService {
       new Date(activeSubscription.currentPeriodEnd) < new Date() : false
 
     return {
-      planType: user.subscription,
+      planType: user.planType,
       status: activeSubscription?.status || 'INACTIVE',
       currentPeriodStart: activeSubscription?.currentPeriodStart,
       currentPeriodEnd: activeSubscription?.currentPeriodEnd,

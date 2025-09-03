@@ -5,7 +5,7 @@ export class UsageService {
     // Get user's current subscription
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { subscription: true }
+      select: { planType: true }
     })
 
     if (!user) {
@@ -19,7 +19,7 @@ export class UsageService {
       ENTERPRISE: -1 // Unlimited
     }
 
-    const userPlan = user.subscription || 'FREE'
+    const userPlan = user.planType || 'FREE'
     const monthlyLimit = planLimits[userPlan]
 
     // If unlimited plan, allow creation
@@ -58,7 +58,7 @@ export class UsageService {
   static async getUserUsageStats(userId: string) {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { subscription: true }
+      select: { planType: true }
     })
 
     if (!user) {
@@ -101,7 +101,7 @@ export class UsageService {
       ENTERPRISE: { interviews: -1, features: ['Team management', 'API access', 'Dedicated support'] }
     }
 
-    const userPlan = user.subscription || 'FREE'
+    const userPlan = user.planType || 'FREE'
     const planInfo = planLimits[userPlan]
 
     return {
@@ -128,14 +128,14 @@ export class UsageService {
   static async canUserAccessFeature(userId: string, feature: 'UNLIMITED_INTERVIEWS' | 'ADVANCED_ANALYTICS' | 'TEAM_MANAGEMENT' | 'API_ACCESS'): Promise<boolean> {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { subscription: true }
+      select: { planType: true }
     })
 
     if (!user) {
       return false
     }
 
-    const userPlan = user.subscription || 'FREE'
+    const userPlan = user.planType || 'FREE'
 
     const featureAccess = {
       FREE: {

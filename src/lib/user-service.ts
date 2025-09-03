@@ -141,7 +141,7 @@ export class UserService {
         completedInterviews,
         totalSessions: user._count.sessions,
         averageScore: Math.round(averageScore),
-        subscription: user.subscription,
+        subscription: user.planType,
       }
     } catch (error) {
       console.error('Error fetching user stats:', error)
