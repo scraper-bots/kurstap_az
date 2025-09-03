@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { generateId } from '@/lib/utils'
 
 interface PaymentRequest {
-  planType: 'FREE' | 'PREMIUM' | 'ENTERPRISE'
+  planType: 'BASIC' | 'STANDARD' | 'PREMIUM'
   amount: number
   description?: string
   successUrl: string
@@ -13,20 +13,23 @@ interface PaymentRequest {
 }
 
 const PLAN_CONFIGS = {
-  FREE: {
-    name: 'Free Trial',
-    price: 0,
-    features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support']
+  BASIC: {
+    name: 'Basic Package',
+    price: 5,
+    interviews: 1,
+    features: ['1 AI Interview', 'Basic feedback', 'Email support']
+  },
+  STANDARD: {
+    name: 'Standard Package', 
+    price: 20,
+    interviews: 5,
+    features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support']
   },
   PREMIUM: {
-    name: 'Premium Plan', 
+    name: 'Premium Subscription',
     price: 29.99,
-    features: ['Unlimited AI Interviews', 'Detailed feedback & analytics', 'Interview history tracking', 'Priority support']
-  },
-  ENTERPRISE: {
-    name: 'Enterprise Plan',
-    price: 99.99,
-    features: ['Everything in Premium', 'Team management', 'Custom interview templates', 'API access', 'Dedicated support']
+    interviews: -1,
+    features: ['Unlimited AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support']
   }
 }
 
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
           email: '',
           firstName: '',
           lastName: '',
-          planType: 'FREE' as any,
+          planType: 'BASIC' as any,
           createdAt: new Date(),
         }
       })

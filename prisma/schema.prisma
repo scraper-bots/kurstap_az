@@ -22,7 +22,8 @@ model User {
   imageUrl  String?
   
   // User preferences and settings
-  planType SubscriptionType @default(FREE)
+  planType SubscriptionType @default(BASIC)
+  interviewCredits Int @default(0) // Number of interviews user can take
   
   // Timestamps
   createdAt DateTime @default(now())
@@ -207,9 +208,9 @@ model Payment {
 
 // Enums
 enum SubscriptionType {
-  FREE
+  BASIC
+  STANDARD  
   PREMIUM
-  ENTERPRISE
 }
 
 enum SubscriptionStatus {

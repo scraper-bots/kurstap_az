@@ -2,63 +2,55 @@ import { db } from '@/lib/db'
 
 export class UsageService {
   static async checkInterviewLimit(userId: string): Promise<{ canCreateInterview: boolean; remainingInterviews: number; totalLimit: number }> {
-    // Get user's current subscription
+    // Get user's current credits and plan
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { planType: true }
+      select: { planType: true, interviewCredits: true }
     })
 
     if (!user) {
       throw new Error('User not found')
     }
 
-    // Define limits based on plan
-    const planLimits = {
-      FREE: 1, // Only 1 free interview
-      PREMIUM: -1, // Unlimited
-      ENTERPRISE: -1 // Unlimited
-    }
+    const userPlan = user.planType || 'BASIC'
+    const credits = user.interviewCredits || 0
 
-    const userPlan = user.planType || 'FREE'
-    const monthlyLimit = planLimits[userPlan]
+    // PREMIUM = unlimited interviews (subscription)
+    if (userPlan === 'PREMIUM') {
+      // Check if subscription is active
+      const activeSubscription = await db.subscription.findFirst({
+        where: { 
+          userId: userId,
+          status: 'ACTIVE',
+          currentPeriodEnd: {
+            gte: new Date()
+          }
+        }
+      })
 
-    // If unlimited plan, allow creation
-    if (monthlyLimit === -1) {
-      return {
-        canCreateInterview: true,
-        remainingInterviews: -1, // Unlimited
-        totalLimit: -1
-      }
-    }
-
-    // For FREE plan, check monthly usage
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
-
-    const monthlyUsage = await db.interview.count({
-      where: {
-        userId: userId,
-        createdAt: {
-          gte: startOfMonth
+      if (activeSubscription) {
+        return {
+          canCreateInterview: true,
+          remainingInterviews: -1, // Unlimited
+          totalLimit: -1
         }
       }
-    })
+    }
 
-    const remainingInterviews = Math.max(0, monthlyLimit - monthlyUsage)
-    const canCreateInterview = monthlyUsage < monthlyLimit
-
+    // For BASIC/STANDARD (credit-based) or expired PREMIUM
+    const canCreateInterview = credits > 0
+    
     return {
       canCreateInterview,
-      remainingInterviews,
-      totalLimit: monthlyLimit
+      remainingInterviews: credits,
+      totalLimit: credits
     }
   }
 
   static async getUserUsageStats(userId: string) {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { planType: true }
+      select: { planType: true, interviewCredits: true }
     })
 
     if (!user) {
@@ -96,24 +88,24 @@ export class UsageService {
 
     // Get plan limits
     const planLimits = {
-      FREE: { interviews: 1, features: ['1 AI interview per month', 'Basic feedback', 'Email support'] },
-      PREMIUM: { interviews: -1, features: ['Unlimited interviews', 'Advanced analytics', 'Priority support'] },
-      ENTERPRISE: { interviews: -1, features: ['Team management', 'API access', 'Dedicated support'] }
+      BASIC: { interviews: 'credits', features: ['Pay per interview', 'Basic feedback', 'Email support'] },
+      STANDARD: { interviews: 'credits', features: ['5 interviews per purchase', 'Detailed feedback', 'Priority support'] },
+      PREMIUM: { interviews: -1, features: ['Unlimited interviews', 'Advanced analytics', 'Priority support'] }
     }
 
-    const userPlan = user.planType || 'FREE'
+    const userPlan = user.planType || 'BASIC'
     const planInfo = planLimits[userPlan]
 
     return {
       plan: {
         type: userPlan,
-        name: userPlan === 'FREE' ? 'Free Plan' : userPlan === 'PREMIUM' ? 'Premium Plan' : 'Enterprise Plan',
+        name: userPlan === 'BASIC' ? 'Basic Package' : userPlan === 'STANDARD' ? 'Standard Package' : 'Premium Subscription',
         features: planInfo.features
       },
       usage: {
         monthlyInterviews,
-        monthlyLimit: planInfo.interviews,
-        remainingInterviews: planInfo.interviews === -1 ? -1 : Math.max(0, planInfo.interviews - monthlyInterviews),
+        monthlyLimit: planInfo.interviews === -1 ? -1 : user.interviewCredits || 0,
+        remainingInterviews: planInfo.interviews === -1 ? -1 : user.interviewCredits || 0,
         totalInterviews,
         completedInterviews,
         completionRate: totalInterviews > 0 ? Math.round((completedInterviews / totalInterviews) * 100) : 0
@@ -135,10 +127,16 @@ export class UsageService {
       return false
     }
 
-    const userPlan = user.planType || 'FREE'
+    const userPlan = user.planType || 'BASIC'
 
     const featureAccess = {
-      FREE: {
+      BASIC: {
+        UNLIMITED_INTERVIEWS: false,
+        ADVANCED_ANALYTICS: false,
+        TEAM_MANAGEMENT: false,
+        API_ACCESS: false
+      },
+      STANDARD: {
         UNLIMITED_INTERVIEWS: false,
         ADVANCED_ANALYTICS: false,
         TEAM_MANAGEMENT: false,
@@ -149,12 +147,6 @@ export class UsageService {
         ADVANCED_ANALYTICS: true,
         TEAM_MANAGEMENT: false,
         API_ACCESS: false
-      },
-      ENTERPRISE: {
-        UNLIMITED_INTERVIEWS: true,
-        ADVANCED_ANALYTICS: true,
-        TEAM_MANAGEMENT: true,
-        API_ACCESS: true
       }
     }
 
@@ -162,26 +154,33 @@ export class UsageService {
   }
 
   static async getUpgradePrompts(userId: string) {
-    const usageStats = await this.getUserUsageStats(userId)
+    // Get user's current credits
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { planType: true, interviewCredits: true }
+    })
+
+    if (!user) return []
+
     const prompts = []
 
-    if (usageStats.plan.type === 'FREE') {
-      // Check if used their free interview
-      if (usageStats.usage.monthlyInterviews >= 1) {
+    if (user.planType !== 'PREMIUM') {
+      // Check credits for BASIC/STANDARD users
+      if (user.interviewCredits <= 0) {
         prompts.push({
-          type: 'LIMIT_REACHED',
-          title: 'Free Interview Used',
-          message: `You've used your free interview this month. Upgrade to continue practicing!`,
-          action: 'Upgrade to Premium for unlimited interviews',
+          type: 'NO_CREDITS',
+          title: 'No Interview Credits',
+          message: `You have no interview credits remaining. Purchase more interviews to continue practicing!`,
+          action: 'Buy Interview Credits',
           urgency: 'high'
         })
-      } else if (usageStats.usage.monthlyInterviews === 0) {
+      } else if (user.interviewCredits <= 2) {
         prompts.push({
-          type: 'WELCOME_PROMPT',
-          title: 'Try Your Free Interview!',
-          message: `You have 1 free AI interview available. Experience our advanced coaching system.`,
-          action: 'Start Free Interview',
-          urgency: 'low'
+          type: 'LOW_CREDITS',
+          title: 'Running Low on Credits',
+          message: `You have ${user.interviewCredits} interview${user.interviewCredits === 1 ? '' : 's'} remaining. Consider purchasing more or upgrading to unlimited.`,
+          action: 'Get More Interviews',
+          urgency: 'medium'
         })
       }
     }

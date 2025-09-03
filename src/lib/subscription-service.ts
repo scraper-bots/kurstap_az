@@ -35,7 +35,7 @@ export class SubscriptionService {
       // Downgrade user to FREE plan
       await db.user.update({
         where: { id: subscription.userId },
-        data: { planType: 'FREE' }
+        data: { planType: 'BASIC' }
       })
 
       console.log(`Subscription ${subscription.id} expired for user ${subscription.userId}`)
@@ -44,7 +44,7 @@ export class SubscriptionService {
     }
   }
 
-  static async renewSubscription(userId: string, planType: 'PREMIUM' | 'ENTERPRISE') {
+  static async renewSubscription(userId: string, planType: 'PREMIUM') {
     const user = await db.user.findUnique({
       where: { id: userId },
       include: { subscriptions: true }

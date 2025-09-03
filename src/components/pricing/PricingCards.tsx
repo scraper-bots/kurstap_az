@@ -12,57 +12,59 @@ interface PricingCardsProps {
 }
 
 const PLANS = {
-  FREE: {
-    name: 'Free Trial',
-    price: 0,
+  BASIC: {
+    name: 'Basic Package',
+    price: 5,
     monthly: false,
     popular: false,
+    interviews: 1,
     features: [
-      '1 AI Interview (one-time)',
+      '1 AI Interview',
       'Basic feedback',
       'Email support',
       'Standard question bank'
     ],
-    buttonText: 'Current Plan',
-    disabled: true
-  },
-  PREMIUM: {
-    name: 'Premium Plan', 
-    price: 29.99,
-    monthly: true,
-    popular: true,
-    features: [
-      'Unlimited AI Interviews',
-      'Detailed feedback & analytics',
-      'Interview history tracking',
-      'Priority support',
-      'Advanced question bank',
-      'Performance benchmarking'
-    ],
-    buttonText: 'Upgrade to Premium',
+    buttonText: 'Buy 1 Interview',
     disabled: false
   },
-  ENTERPRISE: {
-    name: 'Enterprise Plan',
-    price: 99.99,
+  STANDARD: {
+    name: 'Standard Package', 
+    price: 20,
+    monthly: false,
+    popular: true,
+    interviews: 5,
+    features: [
+      '5 AI Interviews',
+      'Detailed feedback',
+      'Interview history',
+      'Priority support',
+      'Advanced question bank',
+      'Better value (₼4 per interview)'
+    ],
+    buttonText: 'Buy 5 Interviews',
+    disabled: false
+  },
+  PREMIUM: {
+    name: 'Premium Subscription',
+    price: 29.99,
     monthly: true,
     popular: false,
+    interviews: -1,
     features: [
-      'Everything in Premium',
-      'Team management',
-      'Custom interview templates',
-      'API access',
-      'Dedicated support',
-      'White-label options',
-      'Advanced reporting'
+      'Unlimited AI Interviews',
+      'Advanced analytics',
+      'Performance benchmarking',
+      'Priority support',
+      'Interview history tracking',
+      'Best for regular practice'
     ],
-    buttonText: 'Upgrade to Enterprise',
+    buttonText: 'Subscribe Monthly',
     disabled: false
   }
 }
 
 export function PricingCards({ currentUserId }: PricingCardsProps) {
-  const [currentPlan, setCurrentPlan] = useState<string>('FREE')
+  const [currentPlan, setCurrentPlan] = useState<string>('BASIC')
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
 
@@ -75,7 +77,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
       const response = await fetch('/api/subscriptions/status')
       if (response.ok) {
         const data = await response.json()
-        setCurrentPlan(data.planType || 'FREE')
+        setCurrentPlan(data.planType || 'BASIC')
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -83,7 +85,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
   }
 
   const handlePurchase = async (planType: keyof typeof PLANS) => {
-    if (planType === 'FREE' || loading) return
+    if (loading) return
 
     setLoading(planType)
     

@@ -99,11 +99,33 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        // Update user's subscription type
-        await db.user.update({
-          where: { id: payment.userId },
-          data: { planType: payment.planType as any }
-        })
+        // Update user's plan and add interview credits
+        const planCredits = {
+          'BASIC': 1,
+          'STANDARD': 5,
+          'PREMIUM': 0 // Premium gets subscription, not credits
+        }
+        
+        const creditsToAdd = planCredits[payment.planType as keyof typeof planCredits] || 0
+        
+        if (payment.planType === 'PREMIUM') {
+          // Premium subscription - update plan type only
+          await db.user.update({
+            where: { id: payment.userId },
+            data: { planType: payment.planType as any }
+          })
+        } else {
+          // BASIC/STANDARD - add credits
+          await db.user.update({
+            where: { id: payment.userId },
+            data: { 
+              planType: payment.planType as any,
+              interviewCredits: {
+                increment: creditsToAdd
+              }
+            }
+          })
+        }
 
         console.log(`User ${payment.userId} upgraded to ${payment.planType} plan`)
       } catch (error) {
