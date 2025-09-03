@@ -39,7 +39,7 @@ export default function PaymentSuccessContent() {
         
         // Map plan type to plan details
         const planDetails = {
-          'FREE': { name: 'Free Plan', price: 9.99, features: ['5 AI Interviews per month', 'Basic feedback', 'Email support'] },
+          'FREE': { name: 'Free Trial', price: 0, features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support'] },
           'PREMIUM': { name: 'Premium Plan', price: 29.99, features: ['Unlimited AI Interviews', 'Detailed feedback & analytics', 'Interview history tracking', 'Priority support'] },
           'ENTERPRISE': { name: 'Enterprise Plan', price: 99.99, features: ['Everything in Premium', 'Team management', 'Custom interview templates', 'API access', 'Dedicated support'] }
         }

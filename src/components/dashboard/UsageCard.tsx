@@ -138,7 +138,10 @@ export function UsageCard() {
           
           {!isUnlimited && stats.usage.remainingInterviews >= 0 && (
             <p className="text-sm text-gray-600">
-              {stats.usage.remainingInterviews} interview{stats.usage.remainingInterviews === 1 ? '' : 's'} remaining
+              {stats.usage.remainingInterviews === 0 
+                ? 'Free interview used - Upgrade to continue!' 
+                : `${stats.usage.remainingInterviews} interview${stats.usage.remainingInterviews === 1 ? '' : 's'} remaining`
+              }
             </p>
           )}
         </div>

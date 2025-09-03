@@ -14,9 +14,9 @@ interface PaymentRequest {
 
 const PLAN_CONFIGS = {
   FREE: {
-    name: 'Free Plan',
-    price: 9.99,
-    features: ['5 AI Interviews per month', 'Basic feedback', 'Email support']
+    name: 'Free Trial',
+    price: 0,
+    features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support']
   },
   PREMIUM: {
     name: 'Premium Plan', 

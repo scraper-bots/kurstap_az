@@ -13,12 +13,12 @@ interface PricingCardsProps {
 
 const PLANS = {
   FREE: {
-    name: 'Free Plan',
-    price: 9.99,
-    monthly: true,
+    name: 'Free Trial',
+    price: 0,
+    monthly: false,
     popular: false,
     features: [
-      '5 AI Interviews per month',
+      '1 AI Interview (one-time)',
       'Basic feedback',
       'Email support',
       'Standard question bank'
@@ -139,8 +139,10 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
               <div className="mt-4">
-                <span className="text-4xl font-bold">₼{plan.price}</span>
-                {plan.monthly && <span className="text-gray-600">/month</span>}
+                <span className="text-4xl font-bold">
+                  {plan.price === 0 ? 'Free' : `₼${plan.price}`}
+                </span>
+                {plan.monthly && plan.price > 0 && <span className="text-gray-600">/month</span>}
               </div>
             </CardHeader>
             

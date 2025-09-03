@@ -72,10 +72,10 @@ export function SubscriptionCard() {
   const getPlanInfo = (planType: string) => {
     const plans = {
       FREE: { 
-        name: 'Free Plan', 
+        name: 'Free Trial', 
         color: 'bg-gray-100 text-gray-800', 
         price: '₼0', 
-        features: ['5 AI interviews/month', 'Basic feedback'] 
+        features: ['1 AI interview (one-time)', 'Basic feedback'] 
       },
       PREMIUM: { 
         name: 'Premium Plan', 

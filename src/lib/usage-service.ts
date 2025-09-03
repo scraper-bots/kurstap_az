@@ -14,7 +14,7 @@ export class UsageService {
 
     // Define limits based on plan
     const planLimits = {
-      FREE: 5,
+      FREE: 1, // Only 1 free interview
       PREMIUM: -1, // Unlimited
       ENTERPRISE: -1 // Unlimited
     }
@@ -96,7 +96,7 @@ export class UsageService {
 
     // Get plan limits
     const planLimits = {
-      FREE: { interviews: 5, features: ['Basic feedback', 'Email support'] },
+      FREE: { interviews: 1, features: ['1 AI interview per month', 'Basic feedback', 'Email support'] },
       PREMIUM: { interviews: -1, features: ['Unlimited interviews', 'Advanced analytics', 'Priority support'] },
       ENTERPRISE: { interviews: -1, features: ['Team management', 'API access', 'Dedicated support'] }
     }
@@ -166,22 +166,22 @@ export class UsageService {
     const prompts = []
 
     if (usageStats.plan.type === 'FREE') {
-      // Check if close to monthly limit
-      if (usageStats.usage.monthlyLimit !== -1 && usageStats.usage.remainingInterviews <= 1) {
+      // Check if used their free interview
+      if (usageStats.usage.monthlyInterviews >= 1) {
         prompts.push({
-          type: 'LIMIT_WARNING',
-          title: 'Running Low on Interviews',
-          message: `You have ${usageStats.usage.remainingInterviews} interview${usageStats.usage.remainingInterviews === 1 ? '' : 's'} remaining this month.`,
+          type: 'LIMIT_REACHED',
+          title: 'Free Interview Used',
+          message: `You've used your free interview this month. Upgrade to continue practicing!`,
           action: 'Upgrade to Premium for unlimited interviews',
           urgency: 'high'
         })
-      } else if (usageStats.usage.monthlyInterviews >= 3) {
+      } else if (usageStats.usage.monthlyInterviews === 0) {
         prompts.push({
-          type: 'USAGE_SUGGESTION',
-          title: 'Loving the interviews?',
-          message: `You've completed ${usageStats.usage.monthlyInterviews} interviews this month!`,
-          action: 'Upgrade to Premium for unlimited access and advanced analytics',
-          urgency: 'medium'
+          type: 'WELCOME_PROMPT',
+          title: 'Try Your Free Interview!',
+          message: `You have 1 free AI interview available. Experience our advanced coaching system.`,
+          action: 'Start Free Interview',
+          urgency: 'low'
         })
       }
     }
