@@ -149,33 +149,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-indigo-600">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Ready to Ace Your Next Interview?
-            </h2>
-            <p className="text-xl text-blue-100 mb-8">
-              Join thousands of professionals who have improved their interview skills with Bir Guru
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
-                  Start Free Trial
-                  <ArrowRight className="inline-block w-5 h-5 ml-2" />
-                </button>
-              </SignUpButton>
-              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="px-8 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white hover:bg-white hover:text-blue-600 transition-all">
-                  Sign In
-                </button>
-              </SignInButton>
-            </div>
-            <p className="text-blue-200 mt-4 text-sm">
-              No credit card required • Free forever plan available
-            </p>
-          </div>
-        </section>
       </main>
       <Footer />
     </>
