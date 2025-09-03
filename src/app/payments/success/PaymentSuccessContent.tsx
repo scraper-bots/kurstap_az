@@ -33,10 +33,21 @@ export default function PaymentSuccessContent() {
 
   const fetchSubscriptionInfo = async () => {
     try {
-      const response = await fetch('/api/subscription')
+      const response = await fetch('/api/subscriptions/status')
       if (response.ok) {
         const data = await response.json()
-        setSubscription(data)
+        
+        // Map plan type to plan details
+        const planDetails = {
+          'FREE': { name: 'Free Plan', price: 9.99, features: ['5 AI Interviews per month', 'Basic feedback', 'Email support'] },
+          'PREMIUM': { name: 'Premium Plan', price: 29.99, features: ['Unlimited AI Interviews', 'Detailed feedback & analytics', 'Interview history tracking', 'Priority support'] },
+          'ENTERPRISE': { name: 'Enterprise Plan', price: 99.99, features: ['Everything in Premium', 'Team management', 'Custom interview templates', 'API access', 'Dedicated support'] }
+        }
+        
+        setSubscription({
+          type: data.planType,
+          plan: planDetails[data.planType as keyof typeof planDetails] || planDetails.FREE
+        })
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -85,7 +96,7 @@ export default function PaymentSuccessContent() {
                   <div className="flex items-center justify-between mb-6">
                     <span className="text-lg font-semibold text-gray-700">Price:</span>
                     <span className="text-lg font-bold text-gray-900">
-                      ${subscription.plan.price}/month
+                      ₼{subscription.plan.price}/month
                     </span>
                   </div>
                   <div className="mb-6">
