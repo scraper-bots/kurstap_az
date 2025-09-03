@@ -1,6 +1,8 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { PricingCards } from '@/components/pricing/PricingCards'
 import { redirect } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 export default async function PricingPage() {
   const user = await currentUser()
@@ -10,6 +12,8 @@ export default async function PricingPage() {
   }
 
   return (
+    <>
+      <Navbar />
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -56,5 +60,7 @@ export default async function PricingPage() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   )
 }
