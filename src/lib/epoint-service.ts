@@ -58,23 +58,47 @@ export class EpointService {
     const data = this.encodeData(payload)
     const signature = this.generateSignature(data)
 
+    const requestBody = { data, signature }
+    console.log('Epoint API request:', {
+      url: `${this.API_BASE_URL}${endpoint}`,
+      body: requestBody
+    })
+
+    // Try form data format first, as some payment gateways prefer this
+    const formData = new URLSearchParams()
+    formData.append('data', data)
+    formData.append('signature', signature)
+
     const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({ data, signature })
+      body: formData.toString()
     })
 
+    const responseText = await response.text()
+    
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`Epoint API error ${response.status}:`, errorText)
-      throw new Error(`Epoint API error: ${response.status} - ${errorText}`)
+      console.error(`Epoint API error ${response.status}:`, responseText)
+      throw new Error(`Epoint API error: ${response.status} - ${responseText}`)
     }
 
-    const result = await response.json()
-    console.log('Epoint API response:', result)
-    return result
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type')
+    if (!contentType?.includes('application/json')) {
+      console.error('Epoint API returned non-JSON response:', responseText)
+      throw new Error(`Epoint API returned non-JSON response: ${responseText.substring(0, 200)}...`)
+    }
+
+    try {
+      const result = JSON.parse(responseText)
+      console.log('Epoint API response:', result)
+      return result
+    } catch (parseError) {
+      console.error('Failed to parse Epoint API response:', responseText)
+      throw new Error(`Failed to parse Epoint API response: ${responseText.substring(0, 200)}...`)
+    }
   }
 
   static async initiatePayment(paymentData: EpointPaymentRequest, retryCount = 0): Promise<EpointPaymentResponse> {
