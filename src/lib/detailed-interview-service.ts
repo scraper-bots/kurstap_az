@@ -62,14 +62,23 @@ export class DetailedInterviewService {
    * Create a new detailed interview with all analysis data
    */
   static async createDetailedInterview(
-    userId: string,
+    clerkUserId: string,
     interviewData: DetailedInterviewData,
     answers: InterviewAnswerData[]
   ): Promise<Interview> {
     try {
+      // First, get the database user ID from the Clerk ID
+      const dbUser = await db.user.findUnique({
+        where: { clerkId: clerkUserId }
+      })
+
+      if (!dbUser) {
+        throw new Error(`Database user not found for Clerk ID: ${clerkUserId}`)
+      }
+
       const interview = await db.interview.create({
         data: {
-          userId,
+          userId: dbUser.id, // Use database user ID, not Clerk ID
           title: interviewData.title,
           company: interviewData.company,
           position: interviewData.position,
