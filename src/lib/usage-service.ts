@@ -12,7 +12,7 @@ export class UsageService {
       throw new Error('User not found')
     }
 
-    const userPlan = user.planType || 'BASIC'
+    const userPlan = user.planType || 'FREE'
     const credits = user.interviewCredits || 0
 
     // PREMIUM = unlimited interviews (subscription)
@@ -88,18 +88,19 @@ export class UsageService {
 
     // Get plan limits
     const planLimits = {
+      FREE: { interviews: 'credits', features: ['No interviews available', 'Must purchase to practice'] },
       BASIC: { interviews: 'credits', features: ['Pay per interview', 'Basic feedback', 'Email support'] },
       STANDARD: { interviews: 'credits', features: ['5 interviews per purchase', 'Detailed feedback', 'Priority support'] },
       PREMIUM: { interviews: -1, features: ['Unlimited interviews', 'Advanced analytics', 'Priority support'] }
     }
 
-    const userPlan = user.planType || 'BASIC'
+    const userPlan = user.planType || 'FREE'
     const planInfo = planLimits[userPlan]
 
     return {
       plan: {
         type: userPlan,
-        name: userPlan === 'BASIC' ? 'Basic Package' : userPlan === 'STANDARD' ? 'Standard Package' : 'Premium Subscription',
+        name: userPlan === 'FREE' ? 'Free Plan' : userPlan === 'BASIC' ? 'Basic Package' : userPlan === 'STANDARD' ? 'Standard Package' : 'Premium Subscription',
         features: planInfo.features
       },
       usage: {
@@ -127,9 +128,15 @@ export class UsageService {
       return false
     }
 
-    const userPlan = user.planType || 'BASIC'
+    const userPlan = user.planType || 'FREE'
 
     const featureAccess = {
+      FREE: {
+        UNLIMITED_INTERVIEWS: false,
+        ADVANCED_ANALYTICS: false,
+        TEAM_MANAGEMENT: false,
+        API_ACCESS: false
+      },
       BASIC: {
         UNLIMITED_INTERVIEWS: false,
         ADVANCED_ANALYTICS: false,
@@ -165,13 +172,17 @@ export class UsageService {
     const prompts = []
 
     if (user.planType !== 'PREMIUM') {
-      // Check credits for BASIC/STANDARD users
+      // Check credits for FREE/BASIC/STANDARD users
       if (user.interviewCredits <= 0) {
+        const message = user.planType === 'FREE' 
+          ? 'You need to purchase a plan to start practicing interviews!'
+          : 'You have no interview credits remaining. Purchase more interviews to continue practicing!'
+        
         prompts.push({
           type: 'NO_CREDITS',
-          title: 'No Interview Credits',
-          message: `You have no interview credits remaining. Purchase more interviews to continue practicing!`,
-          action: 'Buy Interview Credits',
+          title: user.planType === 'FREE' ? 'Purchase Required' : 'No Interview Credits',
+          message,
+          action: user.planType === 'FREE' ? 'Choose a Plan' : 'Buy Interview Credits',
           urgency: 'high'
         })
       } else if (user.interviewCredits <= 2) {
