@@ -102,12 +102,21 @@ export class EpointService {
       }
       
       // Return a structured response that indicates we have a payment form
-      return {
-        status: 'redirect',
+      const result = {
+        status: 'redirect' as const,
         transaction: transactionId,
         payment_form_html: responseText,
         needs_form_submission: true
       }
+      
+      console.log('Epoint service returning:', {
+        status: result.status,
+        transaction: result.transaction,
+        hasFormHtml: !!result.payment_form_html,
+        formHtmlLength: result.payment_form_html?.length
+      })
+      
+      return result
     }
     
     if (contentType?.includes('application/json')) {

@@ -127,6 +127,13 @@ export async function POST(request: NextRequest) {
 
     // Initiate payment with Epoint
     const epointResponse = await EpointService.initiatePayment(epointRequest)
+    
+    console.log('Epoint response received:', {
+      status: epointResponse.status,
+      hasTransaction: !!epointResponse.transaction,
+      hasPaymentFormHtml: !!epointResponse.payment_form_html,
+      needsFormSubmission: epointResponse.needs_form_submission
+    })
 
     if (epointResponse.status === 'error') {
       // Update payment record with error
