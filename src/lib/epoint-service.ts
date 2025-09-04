@@ -9,7 +9,7 @@ export interface EpointPaymentRequest {
   description?: string
   success_redirect_url?: string
   error_redirect_url?: string
-  other_attr?: any
+  other_attr?: any[]
 }
 
 export interface EpointPaymentResponse {
