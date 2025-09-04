@@ -12,20 +12,6 @@ interface PricingCardsProps {
 }
 
 const PLANS = {
-  FREE: {
-    name: 'Free Plan',
-    price: 0,
-    monthly: false,
-    popular: false,
-    interviews: 0,
-    features: [
-      'No interviews available',
-      'Must purchase to practice',
-      'View features only'
-    ],
-    buttonText: 'Current Plan',
-    disabled: true
-  },
   BASIC: {
     name: 'Basic Package',
     price: 5,
@@ -135,11 +121,27 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
     }
   }
 
-  const isCurrentPlan = (planType: string) => currentPlan === planType
+  const isCurrentPlan = (planType: string) => {
+    // FREE users don't have a current plan since no plan card exists for FREE
+    if (currentPlan === 'FREE') return false
+    return currentPlan === planType
+  }
 
   return (
-    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      {Object.entries(PLANS).map(([key, plan]) => {
+    <div className="max-w-6xl mx-auto">
+      {currentPlan === 'FREE' && (
+        <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg text-center">
+          <h3 className="text-xl font-semibold text-blue-900 mb-2">
+            Choose Your Interview Training Plan
+          </h3>
+          <p className="text-blue-700">
+            Select a plan below to start practicing AI interviews and get detailed feedback on your performance.
+          </p>
+        </div>
+      )}
+      
+      <div className="grid md:grid-cols-3 gap-8">
+        {Object.entries(PLANS).map(([key, plan]) => {
         const planKey = key as keyof typeof PLANS
         const isCurrent = isCurrentPlan(key)
         const isLoading = loading === key
@@ -198,7 +200,8 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
             </CardContent>
           </Card>
         )
-      })}
+        })}
+      </div>
     </div>
   )
 }
