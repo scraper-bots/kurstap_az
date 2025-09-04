@@ -9,6 +9,9 @@ import Link from 'next/link'
 
 interface SubscriptionInfo {
   planType: string
+  interviewCredits: number
+  hasCredits: boolean
+  canStartInterview: boolean
   status: string
   currentPeriodStart: string | null
   currentPeriodEnd: string | null
@@ -69,28 +72,35 @@ export function SubscriptionCard() {
     }
   }
 
-  const getPlanInfo = (planType: string) => {
-    const plans = {
-      FREE: { 
-        name: 'Free Trial', 
-        color: 'bg-gray-100 text-gray-800', 
-        price: '₼0', 
-        features: ['1 AI interview (one-time)', 'Basic feedback'] 
-      },
-      PREMIUM: { 
-        name: 'Premium Plan', 
-        color: 'bg-blue-100 text-blue-800', 
-        price: '₼29.99', 
-        features: ['Unlimited interviews', 'Advanced analytics'] 
-      },
-      ENTERPRISE: { 
-        name: 'Enterprise Plan', 
-        color: 'bg-purple-100 text-purple-800', 
-        price: '₼99.99', 
-        features: ['Team management', 'API access'] 
+  const getPlanInfo = (planType: string, interviewCredits: number) => {
+    if (planType === 'PREMIUM') {
+      return {
+        name: 'Premium Plan',
+        displayName: 'Unlimited Interviews',
+        color: 'bg-blue-100 text-blue-800',
+        price: '₼29.99',
+        features: ['Unlimited AI interviews', 'Advanced analytics', 'Priority support'],
+        remaining: 'Unlimited'
+      }
+    } else if (interviewCredits > 0) {
+      return {
+        name: `${interviewCredits} Interview${interviewCredits === 1 ? '' : 's'} Remaining`,
+        displayName: `${interviewCredits} Interview${interviewCredits === 1 ? '' : 's'} Available`,
+        color: 'bg-green-100 text-green-800',
+        price: planType === 'BASIC' ? '₼5' : planType === 'STANDARD' ? '₼20' : '₼0',
+        features: ['AI interview sessions', 'Basic feedback', 'Email support'],
+        remaining: `${interviewCredits} remaining`
+      }
+    } else {
+      return {
+        name: 'No Interviews Remaining',
+        displayName: '0 Interviews Available',
+        color: 'bg-red-100 text-red-800',
+        price: '₼0',
+        features: ['Purchase interviews to continue'],
+        remaining: '0 remaining'
       }
     }
-    return plans[planType as keyof typeof plans] || plans.FREE
   }
 
   if (loading) {
@@ -129,9 +139,9 @@ export function SubscriptionCard() {
     )
   }
 
-  const planInfo = getPlanInfo(subscription.planType)
-  const isActive = subscription.status === 'ACTIVE'
-  const isPremium = subscription.planType !== 'FREE'
+  const planInfo = getPlanInfo(subscription.planType, subscription.interviewCredits || 0)
+  const isActive = subscription.canStartInterview
+  const isPremium = subscription.planType === 'PREMIUM'
 
   return (
     <Card>
@@ -139,20 +149,31 @@ export function SubscriptionCard() {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <CreditCard className="w-5 h-5 mr-2" />
-            Current Plan
+            Interview Status
           </div>
           <Badge className={planInfo.color}>
-            {planInfo.name}
+            {planInfo.displayName}
           </Badge>
         </CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Plan Details */}
+        {/* Interview Details */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Monthly Price</span>
-            <span className="font-semibold">{planInfo.price}/month</span>
+            <span className="text-sm text-gray-600">Interviews Remaining</span>
+            <span className="font-semibold text-lg">
+              {subscription.planType === 'PREMIUM' ? '∞' : subscription.interviewCredits}
+            </span>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Plan Type</span>
+            <span className="font-semibold">
+              {subscription.planType === 'PREMIUM' ? 'Premium' : 
+               subscription.planType === 'STANDARD' ? 'Standard' : 
+               subscription.planType === 'BASIC' ? 'Basic' : 'Free'}
+            </span>
           </div>
           
           {isPremium && subscription.currentPeriodEnd && (
@@ -165,9 +186,9 @@ export function SubscriptionCard() {
           )}
           
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Status</span>
-            <Badge variant={isActive ? 'default' : 'secondary'}>
-              {subscription.isExpired ? 'Expired' : subscription.status}
+            <span className="text-sm text-gray-600">Can Start Interview</span>
+            <Badge variant={isActive ? 'default' : 'destructive'}>
+              {isActive ? 'Yes' : 'No - Purchase Needed'}
             </Badge>
           </div>
         </div>
@@ -187,32 +208,40 @@ export function SubscriptionCard() {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4 border-t">
-          {subscription.planType === 'FREE' ? (
+          {!subscription.canStartInterview ? (
             <Link href="/pricing">
               <Button className="w-full">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Upgrade Plan
+                Buy More Interviews
               </Button>
             </Link>
-          ) : (
+          ) : subscription.planType === 'PREMIUM' ? (
             <div className="space-y-2">
+              <Link href="/interview">
+                <Button className="w-full">
+                  Start Interview
+                </Button>
+              </Link>
               <Link href="/pricing">
                 <Button variant="outline" className="w-full">
                   <Settings className="w-4 h-4 mr-2" />
-                  Change Plan
+                  Manage Subscription
                 </Button>
               </Link>
-              
-              {subscription.status === 'ACTIVE' && (
-                <Button 
-                  variant="destructive" 
-                  className="w-full" 
-                  onClick={handleCancelSubscription}
-                  disabled={cancelling}
-                >
-                  {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Link href="/interview">
+                <Button className="w-full">
+                  Start Interview ({subscription.interviewCredits} left)
                 </Button>
-              )}
+              </Link>
+              <Link href="/pricing">
+                <Button variant="outline" className="w-full">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Buy More Interviews
+                </Button>
+              </Link>
             </div>
           )}
         </div>
