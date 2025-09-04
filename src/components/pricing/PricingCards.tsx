@@ -12,6 +12,20 @@ interface PricingCardsProps {
 }
 
 const PLANS = {
+  FREE: {
+    name: 'Free Plan',
+    price: 0,
+    monthly: false,
+    popular: false,
+    interviews: 0,
+    features: [
+      'No interviews available',
+      'Must purchase to practice',
+      'View features only'
+    ],
+    buttonText: 'Current Plan',
+    disabled: true
+  },
   BASIC: {
     name: 'Basic Package',
     price: 5,
@@ -64,7 +78,7 @@ const PLANS = {
 }
 
 export function PricingCards({ currentUserId }: PricingCardsProps) {
-  const [currentPlan, setCurrentPlan] = useState<string>('BASIC')
+  const [currentPlan, setCurrentPlan] = useState<string>('FREE')
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
 
@@ -77,7 +91,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
       const response = await fetch('/api/subscriptions/status')
       if (response.ok) {
         const data = await response.json()
-        setCurrentPlan(data.planType || 'BASIC')
+        setCurrentPlan(data.planType || 'FREE')
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -161,7 +175,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
               <Button 
                 className="w-full" 
                 variant={plan.popular ? 'default' : 'outline'}
-                disabled={isCurrent || isLoading}
+                disabled={isCurrent || isLoading || plan.disabled}
                 onClick={() => handlePurchase(planKey)}
               >
                 {isLoading ? (
