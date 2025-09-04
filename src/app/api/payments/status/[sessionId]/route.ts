@@ -54,11 +54,21 @@ export async function GET(
       // Continue with response even if DB update fails
     }
 
+    // Parse other_attr if it exists and is a string
+    let otherAttr = null
+    try {
+      if (paymentResult.other_attr && typeof paymentResult.other_attr === 'string') {
+        otherAttr = JSON.parse(paymentResult.other_attr)
+      }
+    } catch (parseError) {
+      console.error('Error parsing other_attr:', parseError)
+    }
+
     return NextResponse.json({
       status: paymentResult.status,
       amount: paymentResult.amount,
       currency: 'AZN',
-      planName: paymentResult.other_attr?.planName,
+      planName: otherAttr?.planName,
       transaction: paymentResult.transaction,
       code: paymentResult.code,
       message: EpointService.getStatusMessage(paymentResult.code),
