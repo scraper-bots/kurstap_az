@@ -67,10 +67,14 @@ export class EpointService {
     })
 
     if (!response.ok) {
-      throw new Error(`Epoint API error: ${response.status}`)
+      const errorText = await response.text()
+      console.error(`Epoint API error ${response.status}:`, errorText)
+      throw new Error(`Epoint API error: ${response.status} - ${errorText}`)
     }
 
-    return response.json()
+    const result = await response.json()
+    console.log('Epoint API response:', result)
+    return result
   }
 
   static async initiatePayment(paymentData: EpointPaymentRequest, retryCount = 0): Promise<EpointPaymentResponse> {
@@ -89,6 +93,7 @@ export class EpointService {
         other_attr: paymentData.other_attr
       }
 
+      console.log('Epoint payment payload:', JSON.stringify(payload, null, 2))
       const response = await this.makeRequest('/checkout', payload)
       
       return {

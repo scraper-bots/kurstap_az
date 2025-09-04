@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
       dbUser = await db.user.create({
         data: {
           clerkId: user.id,
-          email: '',
-          firstName: '',
-          lastName: '',
-          planType: 'BASIC' as any,
-          createdAt: new Date(),
+          email: user.emailAddresses[0]?.emailAddress || '',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          planType: 'FREE' as any,
+          imageUrl: user.imageUrl || undefined,
         }
       })
       console.log('Auto-created user for payment:', user.id)
