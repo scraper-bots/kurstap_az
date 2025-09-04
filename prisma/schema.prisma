@@ -195,6 +195,9 @@ model Payment {
   // Error details
   errorMessage String?
   
+  // Payment form data (for gateways that return HTML forms)
+  formHtml String? // HTML form content for payment submission
+  
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

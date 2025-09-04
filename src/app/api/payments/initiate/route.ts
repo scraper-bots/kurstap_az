@@ -150,15 +150,30 @@ export async function POST(request: NextRequest) {
       where: { id: payment.id },
       data: {
         transactionId: epointResponse.transaction,
+        formHtml: epointResponse.payment_form_html,
         updatedAt: new Date()
       }
     })
+
+    if (epointResponse.status === 'redirect' && epointResponse.needs_form_submission) {
+      // For Epoint, we serve the payment form directly
+      return NextResponse.json({
+        success: true,
+        sessionId: orderId,
+        transactionId: epointResponse.transaction,
+        redirectUrl: `/api/payments/form/${orderId}`,
+        planName: PLAN_CONFIGS[planType].name,
+        amount: amount,
+        currency: 'AZN',
+        requiresForm: true
+      })
+    }
 
     return NextResponse.json({
       success: true,
       sessionId: orderId,
       transactionId: epointResponse.transaction,
-      redirectUrl: epointResponse.redirect_url,
+      redirectUrl: epointResponse.redirect_url || `/api/payments/form/${orderId}`,
       planName: PLAN_CONFIGS[planType].name,
       amount: amount,
       currency: 'AZN'
