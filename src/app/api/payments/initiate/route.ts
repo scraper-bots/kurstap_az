@@ -14,19 +14,19 @@ interface PaymentRequest {
 
 const PLAN_CONFIGS = {
   BASIC: {
-    name: 'Basic Package',
+    name: '1 Interview',
     price: 5,
     interviews: 1,
     features: ['1 AI Interview', 'Basic feedback', 'Email support']
   },
   STANDARD: {
-    name: 'Standard Package', 
+    name: '5 Interviews', 
     price: 20,
     interviews: 5,
     features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support']
   },
   PREMIUM: {
-    name: 'Premium Subscription',
+    name: 'Unlimited Interviews',
     price: 29.99,
     interviews: -1,
     features: ['Unlimited AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support']
