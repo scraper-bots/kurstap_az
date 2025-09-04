@@ -375,7 +375,7 @@ function InterviewContent() {
             <p className="text-gray-600 mt-4">
               {isSubmitting 
                 ? 'Analyzing your responses and generating detailed feedback...'
-                : `Preparing ${state.difficulty || 'medium'} level questions for ${state.position || position}`
+                : `Preparing ${state.difficulty || difficulty} level questions for ${state.position || position}`
               }
             </p>
             {completionError && (
