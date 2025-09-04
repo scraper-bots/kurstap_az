@@ -132,7 +132,9 @@ export async function POST(request: NextRequest) {
       status: epointResponse.status,
       hasTransaction: !!epointResponse.transaction,
       hasPaymentFormHtml: !!epointResponse.payment_form_html,
-      needsFormSubmission: epointResponse.needs_form_submission
+      needsFormSubmission: epointResponse.needs_form_submission,
+      allFields: Object.keys(epointResponse),
+      rawResponse: epointResponse
     })
 
     if (epointResponse.status === 'error') {
@@ -159,16 +161,20 @@ export async function POST(request: NextRequest) {
       formHtmlLength: epointResponse.payment_form_html?.length
     })
     
+    // Temporarily log the raw response to debug field names
+    console.log('DEBUG - Raw epointResponse:', JSON.stringify(epointResponse, null, 2))
+    
     const updatedPayment = await db.payment.update({
       where: { id: payment.id },
       data: {
         transactionId: epointResponse.transaction,
-        formHtml: epointResponse.payment_form_html,
+        // Temporarily comment out formHtml to debug
+        // formHtml: epointResponse.payment_form_html,
         updatedAt: new Date()
       }
     })
     
-    console.log('Payment updated, formHtml stored:', !!updatedPayment.formHtml)
+    console.log('Payment updated (without formHtml for debugging)')
 
     if (epointResponse.status === 'redirect' && epointResponse.needs_form_submission) {
       // For Epoint, we serve the payment form directly
