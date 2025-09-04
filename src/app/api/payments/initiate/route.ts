@@ -118,11 +118,11 @@ export async function POST(request: NextRequest) {
       description: payment.description || undefined,
       success_redirect_url: `${successUrl}?session_id=${orderId}`,
       error_redirect_url: `${errorUrl}?error=payment_failed&session_id=${orderId}`,
-      other_attr: JSON.stringify({
+      other_attr: {
         planName: PLAN_CONFIGS[planType].name,
         planType: planType,
         userId: user.id
-      })
+      }
     }
 
     // Initiate payment with Epoint
@@ -154,47 +154,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update payment record with transaction ID and form HTML
-    console.log('Updating payment with:', {
-      transactionId: epointResponse.transaction,
-      hasFormHtml: !!epointResponse.payment_form_html,
-      formHtmlLength: epointResponse.payment_form_html?.length
-    })
+    // Update payment record with transaction ID
+    console.log('Updating payment with transaction ID:', epointResponse.transaction)
     
-    // Temporarily log the raw response to debug field names
-    console.log('DEBUG - Raw epointResponse:', JSON.stringify(epointResponse, null, 2))
-    
-    const updatedPayment = await db.payment.update({
+    await db.payment.update({
       where: { id: payment.id },
       data: {
         transactionId: epointResponse.transaction,
-        // Temporarily comment out formHtml to debug
-        // formHtml: epointResponse.payment_form_html,
         updatedAt: new Date()
       }
     })
-    
-    console.log('Payment updated (without formHtml for debugging)')
 
-    if (epointResponse.status === 'redirect' && epointResponse.needs_form_submission) {
-      // For Epoint, we serve the payment form directly
-      return NextResponse.json({
-        success: true,
-        sessionId: orderId,
-        transactionId: epointResponse.transaction,
-        redirectUrl: `/api/payments/form/${orderId}`,
-        planName: PLAN_CONFIGS[planType].name,
-        amount: amount,
-        currency: 'AZN',
-        requiresForm: true
-      })
-    }
-
+    // For /request endpoint, expect redirect_url in JSON response
     return NextResponse.json({
       success: true,
       sessionId: orderId,
       transactionId: epointResponse.transaction,
-      redirectUrl: epointResponse.redirect_url || `/api/payments/form/${orderId}`,
+      redirectUrl: epointResponse.redirect_url,
       planName: PLAN_CONFIGS[planType].name,
       amount: amount,
       currency: 'AZN'

@@ -9,7 +9,7 @@ export interface EpointPaymentRequest {
   description?: string
   success_redirect_url?: string
   error_redirect_url?: string
-  other_attr?: string
+  other_attr?: any
 }
 
 export interface EpointPaymentResponse {
@@ -66,7 +66,7 @@ export class EpointService {
       body: requestBody
     })
 
-    // Try form data format first, as some payment gateways prefer this
+    // Use form data format for Epoint API
     const formData = new URLSearchParams()
     formData.append('data', data)
     formData.append('signature', signature)
@@ -86,54 +86,15 @@ export class EpointService {
       throw new Error(`Epoint API error: ${response.status} - ${responseText}`)
     }
 
-    // Check if response is HTML (payment form) or JSON
-    const contentType = response.headers.get('content-type')
-    
-    if (contentType?.includes('text/html')) {
-      // Epoint returns HTML payment form directly
-      console.log('Epoint returned payment form HTML')
-      
-      // Extract transaction ID from the HTML form
-      const transIdMatch = responseText.match(/name="trans_id" value="([^"]+)"/);
-      const transactionId = transIdMatch ? transIdMatch[1] : null;
-      
-      if (!transactionId) {
-        throw new Error('Could not extract transaction ID from Epoint payment form');
-      }
-      
-      // Return a structured response that indicates we have a payment form
-      const result = {
-        status: 'redirect' as const,
-        transaction: transactionId,
-        payment_form_html: responseText,
-        needs_form_submission: true
-      }
-      
-      console.log('Epoint service returning:', {
-        status: result.status,
-        transaction: result.transaction,
-        hasFormHtml: !!result.payment_form_html,
-        formHtmlLength: result.payment_form_html?.length
-      })
-      
+    // For /request endpoint, expect JSON response
+    try {
+      const result = JSON.parse(responseText)
+      console.log('Epoint API response:', result)
       return result
+    } catch (parseError) {
+      console.error('Failed to parse Epoint API response:', responseText)
+      throw new Error(`Failed to parse Epoint API response: ${responseText.substring(0, 200)}...`)
     }
-    
-    if (contentType?.includes('application/json')) {
-      try {
-        const result = JSON.parse(responseText)
-        console.log('Epoint API response:', result)
-        return result
-      } catch (parseError) {
-        console.error('Failed to parse Epoint API response:', responseText)
-        throw new Error(`Failed to parse Epoint API response: ${responseText.substring(0, 200)}...`)
-      }
-    }
-    
-    // Unknown content type
-    console.error('Epoint API returned unexpected content type:', contentType)
-    console.error('Response:', responseText.substring(0, 500))
-    throw new Error(`Epoint API returned unexpected content type: ${contentType}`)
   }
 
   static async initiatePayment(paymentData: EpointPaymentRequest, retryCount = 0): Promise<EpointPaymentResponse> {
@@ -153,7 +114,7 @@ export class EpointService {
       }
 
       console.log('Epoint payment payload:', JSON.stringify(payload, null, 2))
-      const response = await this.makeRequest('/checkout', payload)
+      const response = await this.makeRequest('/request', payload)
       
       return {
         status: response.status,
