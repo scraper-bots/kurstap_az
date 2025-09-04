@@ -9,7 +9,7 @@ export interface EpointPaymentRequest {
   description?: string
   success_redirect_url?: string
   error_redirect_url?: string
-  other_attr?: any
+  other_attr?: string
 }
 
 export interface EpointPaymentResponse {
@@ -32,7 +32,7 @@ export interface EpointPaymentResult {
   card_name?: string
   card_mask?: string
   amount: number
-  other_attr?: any
+  other_attr?: string
 }
 
 export class EpointService {
