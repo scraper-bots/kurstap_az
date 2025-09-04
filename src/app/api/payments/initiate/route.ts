@@ -118,11 +118,11 @@ export async function POST(request: NextRequest) {
       description: payment.description || undefined,
       success_redirect_url: `${successUrl}?session_id=${orderId}`,
       error_redirect_url: `${errorUrl}?error=payment_failed&session_id=${orderId}`,
-      other_attr: [
-        PLAN_CONFIGS[planType].name,
-        planType,
-        user.id
-      ]
+      // other_attr: [
+      //   PLAN_CONFIGS[planType].name,
+      //   planType,
+      //   user.id
+      // ]
     }
 
     // Initiate payment with Epoint

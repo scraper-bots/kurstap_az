@@ -110,7 +110,7 @@ export class EpointService {
         description: paymentData.description,
         success_redirect_url: paymentData.success_redirect_url,
         error_redirect_url: paymentData.error_redirect_url,
-        other_attr: paymentData.other_attr
+        // other_attr: paymentData.other_attr
       }
 
       console.log('Epoint payment payload:', JSON.stringify(payload, null, 2))
