@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ArrowRight, Loader2 } from 'lucide-react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 interface SubscriptionInfo {
   type: string
@@ -33,6 +31,27 @@ export default function PaymentSuccessContent() {
 
   const fetchSubscriptionInfo = async () => {
     try {
+      // First, try to manually process the payment if it hasn't been processed yet
+      if (sessionId) {
+        try {
+          const processResponse = await fetch('/api/payments/process-manual', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ sessionId })
+          })
+          
+          if (processResponse.ok) {
+            const processData = await processResponse.json()
+            console.log('Payment processed:', processData)
+          }
+        } catch (processError) {
+          console.log('Payment already processed or processing failed:', processError)
+        }
+      }
+
+      // Then fetch updated subscription info
       const response = await fetch('/api/subscriptions/status')
       if (response.ok) {
         const data = await response.json()
@@ -40,8 +59,9 @@ export default function PaymentSuccessContent() {
         // Map plan type to plan details
         const planDetails = {
           'FREE': { name: 'Free Trial', price: 0, features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support'] },
-          'PREMIUM': { name: 'Premium Plan', price: 29.99, features: ['Unlimited AI Interviews', 'Detailed feedback & analytics', 'Interview history tracking', 'Priority support'] },
-          'ENTERPRISE': { name: 'Enterprise Plan', price: 99.99, features: ['Everything in Premium', 'Team management', 'Custom interview templates', 'API access', 'Dedicated support'] }
+          'BASIC': { name: 'Basic Package', price: 5, features: ['1 AI Interview', 'Basic feedback', 'Email support'] },
+          'STANDARD': { name: 'Standard Package', price: 20, features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support'] },
+          'PREMIUM': { name: 'Premium Subscription', price: 29.99, features: ['Unlimited AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support'] }
         }
         
         setSubscription({
@@ -57,9 +77,7 @@ export default function PaymentSuccessContent() {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             {/* Success Icon */}
@@ -151,7 +169,5 @@ export default function PaymentSuccessContent() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
   )
 }
