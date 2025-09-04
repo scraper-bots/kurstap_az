@@ -17,11 +17,21 @@ export async function GET(
       where: { orderId: orderId }
     })
 
+    console.log('Looking for payment with orderId:', orderId)
+    console.log('Payment found:', !!payment)
+    console.log('Payment has formHtml:', !!payment?.formHtml)
+
     if (!payment) {
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 })
     }
 
     if (!payment.formHtml) {
+      console.log('Payment record exists but no formHtml:', {
+        id: payment.id,
+        orderId: payment.orderId,
+        status: payment.status,
+        transactionId: payment.transactionId
+      })
       return NextResponse.json({ error: 'Payment form not available' }, { status: 404 })
     }
 

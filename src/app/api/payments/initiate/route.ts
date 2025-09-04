@@ -145,8 +145,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update payment record with transaction ID
-    await db.payment.update({
+    // Update payment record with transaction ID and form HTML
+    console.log('Updating payment with:', {
+      transactionId: epointResponse.transaction,
+      hasFormHtml: !!epointResponse.payment_form_html,
+      formHtmlLength: epointResponse.payment_form_html?.length
+    })
+    
+    const updatedPayment = await db.payment.update({
       where: { id: payment.id },
       data: {
         transactionId: epointResponse.transaction,
@@ -154,6 +160,8 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date()
       }
     })
+    
+    console.log('Payment updated, formHtml stored:', !!updatedPayment.formHtml)
 
     if (epointResponse.status === 'redirect' && epointResponse.needs_form_submission) {
       // For Epoint, we serve the payment form directly
