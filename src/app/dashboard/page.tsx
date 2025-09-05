@@ -2,6 +2,7 @@ import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { UserService } from '@/lib/user-service'
+import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -32,25 +33,13 @@ export default async function DashboardPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Enhanced Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">BG</span>
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Welcome back, {clerkUser.firstName}! 👋
-                </h1>
-                <p className="text-gray-600 mt-1">Ready to ace your next interview?</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <UserButton />
-            </div>
-          </div>
+      {/* Welcome Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Welcome back, {clerkUser.firstName}! 👋
+          </h1>
+          <p className="text-gray-600 mt-1">Ready to ace your next interview?</p>
         </div>
       </div>
 
@@ -80,27 +69,8 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Interview History Card */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Interview History</h3>
-            <div className="space-y-4">
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Track Your Progress</h4>
-                <p className="text-gray-600 mb-4">View detailed analysis of your interviews, including strengths, weaknesses, and improvement plans.</p>
-                <a
-                  href="/interviews"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  View Interview History
-                </a>
-              </div>
-            </div>
-          </div>
+          {/* Interview Balance Card */}
+          <SubscriptionCard />
         </div>
 
         {/* Start Interview Section */}
