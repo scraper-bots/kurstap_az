@@ -42,8 +42,8 @@ Return ONLY a valid JSON object with this exact structure:
   "behavioral": [
     {
       "question": "Tell me about a time when...",
-      "followUp": "What would you do differently?",
-      "difficulty": "medium",
+      "followUp": "What would you do differently?", 
+      "difficulty": "easy",
       "category": "behavioral",
       "expectedDuration": 3
     }
@@ -52,7 +52,7 @@ Return ONLY a valid JSON object with this exact structure:
     {
       "question": "Explain how you would...",
       "followUp": "What are the trade-offs?",
-      "difficulty": "hard",
+      "difficulty": "easy", 
       "category": "technical",
       "expectedDuration": 5
     }
@@ -69,11 +69,14 @@ Return ONLY a valid JSON object with this exact structure:
 }
 
 Requirements:
-- EXACTLY 25 behavioral questions: 5 easy, 8 medium, 12 hard difficulty
-- EXACTLY 25 technical questions: 5 easy, 8 medium, 12 hard difficulty  
+- Generate questions to match UI exactly: 5 easy total, 8 medium total, 12 hard total
+- EXACTLY 13 behavioral questions: 3 easy, 4 medium, 6 hard difficulty
+- EXACTLY 12 technical questions: 2 easy, 4 medium, 6 hard difficulty  
 - EXACTLY 0 situational questions (empty array)
-- CRITICAL: Behavioral array must have exactly 5 questions with difficulty:"easy", 8 with difficulty:"medium", 12 with difficulty:"hard"
-- CRITICAL: Technical array must have exactly 5 questions with difficulty:"easy", 8 with difficulty:"medium", 12 with difficulty:"hard"
+- CRITICAL: Each question MUST have category field set to "behavioral" or "technical"
+- CRITICAL: Total easy questions across both categories must equal exactly 5 (3 behavioral + 2 technical)
+- CRITICAL: Total medium questions across both categories must equal exactly 8 (4 behavioral + 4 technical)
+- CRITICAL: Total hard questions across both categories must equal exactly 12 (6 behavioral + 6 technical)
 - Each question MUST have a meaningful follow-up question
 - Expected duration should be realistic (3-6 minutes per question)
 - Questions should be highly specific to ${jobTitle} responsibilities and real interview scenarios
