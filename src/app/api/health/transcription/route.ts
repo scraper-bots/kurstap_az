@@ -17,7 +17,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       service: 'transcription'
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({
       status: 'unhealthy',
       error: 'Transcription service unavailable'

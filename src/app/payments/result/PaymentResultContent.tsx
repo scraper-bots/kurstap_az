@@ -164,7 +164,7 @@ export default function PaymentResultContent() {
               No Payment Information Found
             </h1>
             <p className="text-gray-600 mb-8">
-              We couldn't find any payment information to display.
+              We couldn&apos;t find any payment information to display.
             </p>
             <Link
               href="/dashboard"

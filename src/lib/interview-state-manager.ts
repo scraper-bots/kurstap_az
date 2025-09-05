@@ -432,7 +432,8 @@ class InterviewStateManager {
 
     } catch (error) {
       await interviewErrorHandler.handleError(error, {
-        stage: this.currentState.stage,
+        stage: this.currentState.stage === 'completed' ? 'completion' : 
+               this.currentState.stage === 'setup' ? 'setup' : 'interview',
         sessionId: this.currentState.sessionId,
         userId: this.currentState.userId
       })

@@ -60,7 +60,7 @@ export default function ContactPage() {
           message: data.error || 'Failed to send message. Please try again.'
         })
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: 'error',
         message: 'Failed to send message. Please check your connection and try again.'
@@ -77,7 +77,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Have questions about Bir Guru? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+              Have questions about Bir Guru? We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
             </p>
           </div>
 
@@ -249,7 +249,7 @@ export default function ContactPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">How does AI interview practice work?</h3>
                 <p className="text-gray-700">
                   Our AI interviewer conducts realistic voice conversations, provides real-time feedback, 
-                  and tracks your progress over time. It's like having a personal interview coach available 24/7.
+                  and tracks your progress over time. It&apos;s like having a personal interview coach available 24/7.
                 </p>
               </div>
 
@@ -270,7 +270,7 @@ export default function ContactPage() {
               </div>
 
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">What's included in the free plan?</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">What&apos;s included in the free plan?</h3>
                 <p className="text-gray-700">
                   The free plan includes basic interview practice, limited feedback, and access to 
                   our question bank. Upgrade for unlimited sessions and advanced analytics.

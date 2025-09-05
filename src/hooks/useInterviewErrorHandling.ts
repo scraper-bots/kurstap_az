@@ -55,8 +55,8 @@ export function useInterviewErrorHandling(
     suggestedActions: []
   })
 
-  const lastOperationRef = useRef<() => Promise<any>>()
-  const retryTimeoutRef = useRef<NodeJS.Timeout>()
+  const lastOperationRef = useRef<(() => Promise<any>) | null>(null)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize error handling systems
   useEffect(() => {

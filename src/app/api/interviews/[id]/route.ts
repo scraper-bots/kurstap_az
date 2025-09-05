@@ -33,7 +33,7 @@ export async function GET(
       overallScore: interview.score,
       questionsCount: interview.answers.length,
       category: 'Technical',
-      questions: interview.answers.map((answer, index) => ({
+      questions: interview.answers.map((answer) => ({
         id: answer.questionId,
         question: answer.question,
         userAnswer: answer.userAnswer,

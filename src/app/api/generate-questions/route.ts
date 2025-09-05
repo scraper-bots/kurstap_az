@@ -142,7 +142,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(req.url)
     const jobTitle = searchParams.get('jobTitle')
     const category = searchParams.get('category') as 'behavioral' | 'technical' | 'situational' | null
-    const limit = parseInt(searchParams.get('limit') || '20')
+    // const limit = parseInt(searchParams.get('limit') || '20') // Currently unused
 
     if (!jobTitle) {
       return NextResponse.json(

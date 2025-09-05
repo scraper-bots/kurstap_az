@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
-import { Mic, MicOff, Volume2, VolumeX, Phone, PhoneOff, Pause, Play, SkipForward, Square } from 'lucide-react'
+import { Mic, MicOff, Phone, PhoneOff, Pause, Play, SkipForward, Square } from 'lucide-react'
 import { dailyAudioService } from '@/lib/daily'
 
 interface AudioInterviewProps {
@@ -57,7 +57,7 @@ export function AudioInterview({
 
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
-  const [lastSpeechTime, setLastSpeechTime] = useState(0)
+  const [, setLastSpeechTime] = useState(0)
   const silenceTimer = useRef<NodeJS.Timeout | null>(null)
   const recordingTimeout = useRef<NodeJS.Timeout | null>(null)
 
@@ -521,13 +521,13 @@ export function AudioInterview({
       <Card className="p-6">
         <h3 className="font-semibold mb-3">How it works:</h3>
         <ul className="text-sm text-gray-600 space-y-2">
-          <li>• Click "Start Call" to begin your audio interview</li>
-          <li>• Listen to the AI interviewer's questions</li>
+          <li>• Click &quot;Start Call&quot; to begin your audio interview</li>
+          <li>• Listen to the AI interviewer&apos;s questions</li>
           <li>• Click the microphone to start recording your answer</li>
-          <li>• Speak naturally - the system will detect when you're done</li>
-          <li>• Use "Pause" to take a break and "Resume" to continue</li>
-          <li>• Click "Next Question" to skip the current question if needed</li>
-          <li>• Use "Finish Early" to end the interview before completing all questions</li>
+          <li>• Speak naturally - the system will detect when you&apos;re done</li>
+          <li>• Use &quot;Pause&quot; to take a break and &quot;Resume&quot; to continue</li>
+          <li>• Click &quot;Next Question&quot; to skip the current question if needed</li>
+          <li>• Use &quot;Finish Early&quot; to end the interview before completing all questions</li>
           <li>• Your responses are transcribed and evaluated in real-time</li>
         </ul>
       </Card>

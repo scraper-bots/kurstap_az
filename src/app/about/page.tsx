@@ -28,7 +28,7 @@ export default function AboutPage() {
               at every level, anywhere in the world.
             </p>
             <p className="text-lg text-gray-700">
-              Through cutting-edge AI technology and proven coaching methodologies, we're transforming how people 
+              Through cutting-edge AI technology and proven coaching methodologies, we&apos;re transforming how people 
               prepare for interviews, build confidence, and unlock their career potential.
             </p>
           </div>
@@ -50,7 +50,7 @@ export default function AboutPage() {
             </p>
             <p className="text-lg text-gray-700">
               Today, thousands of professionals trust Bir Guru to help them prepare for interviews, build confidence, 
-              and advance their careers. We're proud to be part of their success stories.
+              and advance their careers. We&apos;re proud to be part of their success stories.
             </p>
           </div>
         </section>
@@ -79,7 +79,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Excellence</h3>
               <p className="text-gray-700">
-                We're committed to delivering the highest quality AI-powered coaching experience through continuous innovation.
+                We&apos;re committed to delivering the highest quality AI-powered coaching experience through continuous innovation.
               </p>
             </div>
 
@@ -163,7 +163,7 @@ export default function AboutPage() {
           <div className="bg-white rounded-lg shadow-sm p-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Get in Touch</h2>
             <p className="text-lg text-gray-700 mb-6">
-              Have questions or want to learn more about Bir Guru? We'd love to hear from you.
+              Have questions or want to learn more about Bir Guru? We&apos;d love to hear from you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

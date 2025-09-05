@@ -114,7 +114,7 @@ export default function PaymentErrorContent() {
                   <li>Check that your card details are entered correctly</li>
                   <li>Ensure your card has sufficient funds</li>
                   <li>Try using a different payment method</li>
-                  <li>Contact your bank to ensure the payment isn't being blocked</li>
+                  <li>Contact your bank to ensure the payment isn&apos;t being blocked</li>
                 </ul>
                 <div className="pt-4">
                   <Link

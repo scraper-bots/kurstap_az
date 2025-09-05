@@ -142,7 +142,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
       }, { status: 500 })
     }
 
-    const { sessionData, nextAction, score } = result
+    const { sessionData, nextAction } = result
     console.log('✅ [INTERVIEW API] Result processing started', {
       ...logContext,
       nextAction,

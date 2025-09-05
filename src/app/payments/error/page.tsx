@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
-import { XCircle, RefreshCw, ArrowLeft, CreditCard } from 'lucide-react'
+import { XCircle } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import PaymentErrorContent from './PaymentErrorContent'

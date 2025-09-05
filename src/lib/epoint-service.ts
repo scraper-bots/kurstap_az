@@ -91,7 +91,7 @@ export class EpointService {
       const result = JSON.parse(responseText)
       console.log('Epoint API response:', result)
       return result
-    } catch (parseError) {
+    } catch {
       console.error('Failed to parse Epoint API response:', responseText)
       throw new Error(`Failed to parse Epoint API response: ${responseText.substring(0, 200)}...`)
     }

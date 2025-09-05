@@ -14,7 +14,7 @@ export async function GET() {
       timestamp,
       service: 'network'
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({
       status: 'unhealthy',
       error: 'Network check failed'

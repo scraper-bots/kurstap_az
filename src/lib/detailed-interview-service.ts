@@ -1,5 +1,5 @@
 import { db } from './db'
-import { Interview, InterviewAnswer, Difficulty, InterviewStatus } from '@prisma/client'
+import { Interview, Difficulty, InterviewStatus } from '@prisma/client'
 
 export interface DetailedInterviewData {
   title: string

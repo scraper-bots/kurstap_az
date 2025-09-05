@@ -1,4 +1,4 @@
-import Daily, { DailyCall, DailyEvent, DailyEventObjectTrack } from '@daily-co/daily-js'
+import Daily, { DailyCall, DailyEventObjectTrack } from '@daily-co/daily-js'
 
 export interface AudioCallConfig {
   roomUrl?: string
@@ -16,7 +16,7 @@ export class DailyAudioService {
   /**
    * Initialize Daily.co call object for audio-only interview
    */
-  async initialize(config: AudioCallConfig = {}): Promise<void> {
+  async initialize(): Promise<void> {
     try {
       // Create call object with audio-only configuration
       this.callObject = Daily.createCallObject({

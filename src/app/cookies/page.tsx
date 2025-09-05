@@ -110,7 +110,7 @@ export default function CookiePolicyPage() {
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Browser Settings</h3>
                   <p className="text-gray-700 mb-4">
-                    Most browsers allow you to control cookies through their settings preferences. Here's how:
+                    Most browsers allow you to control cookies through their settings preferences. Here&apos;s how:
                   </p>
                   <ul className="list-disc pl-5 text-gray-700 space-y-1">
                     <li><strong>Chrome:</strong> Settings → Privacy and security → Cookies and other site data</li>
@@ -131,7 +131,7 @@ export default function CookiePolicyPage() {
               <section className="mb-8">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Cookie Consent</h2>
                 <p className="text-gray-700 mb-4">
-                  When you first visit our website, we'll show you a cookie consent banner. You can:
+                  When you first visit our website, we&apos;ll show you a cookie consent banner. You can:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 mb-4">
                   <li>Accept all cookies for the full experience</li>
@@ -166,7 +166,7 @@ export default function CookiePolicyPage() {
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Updates to This Policy</h2>
                 <p className="text-gray-700 mb-4">
                   We may update this Cookie Policy from time to time. We will notify you of any material changes 
-                  by posting the updated policy on this page and updating the "last updated" date.
+                  by posting the updated policy on this page and updating the &quot;last updated&quot; date.
                 </p>
               </section>
 

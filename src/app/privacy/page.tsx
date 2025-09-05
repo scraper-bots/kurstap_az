@@ -18,7 +18,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 mb-4">
-                Bir Guru ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we 
+                Bir Guru (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we 
                 collect, use, disclose, and safeguard your information when you use our AI interview practice platform.
               </p>
             </section>
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. Voice Data and AI Processing</h2>
               <p className="text-gray-700 mb-4">
-                Our platform processes voice recordings to provide AI-powered interview feedback. Here's how we handle your voice data:
+                Our platform processes voice recordings to provide AI-powered interview feedback. Here&apos;s how we handle your voice data:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li>Voice recordings are processed in real-time for transcription and analysis</li>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Children's Privacy</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Children&apos;s Privacy</h2>
               <p className="text-gray-700 mb-4">
                 Our service is not intended for children under 13 years of age. We do not knowingly collect personal 
                 information from children under 13. If we become aware that we have collected such information, 
@@ -168,7 +168,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Changes to This Privacy Policy</h2>
               <p className="text-gray-700 mb-4">
                 We may update this Privacy Policy from time to time. We will notify you of any material changes by 
-                posting the new policy on this page and updating the "last updated" date. Your continued use of our 
+                posting the new policy on this page and updating the &quot;last updated&quot; date. Your continued use of our 
                 service constitutes acceptance of the updated policy.
               </p>
             </section>

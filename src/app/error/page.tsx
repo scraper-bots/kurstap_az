@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
-import { AlertTriangle, RefreshCw, ArrowLeft, Home, MessageSquare } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ErrorContent from './ErrorContent'

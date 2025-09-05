@@ -342,7 +342,7 @@ class InterviewRetryManager {
       audioOp,
       'audio_operation',
       {
-        onRetry: (attempt, error) => {
+        onRetry: (attempt) => {
           console.log(`🎤 Retrying audio operation ${context} (attempt ${attempt})`)
         }
       }

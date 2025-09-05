@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         let creditsToAdd = 0
         
         // Try to extract from description like "5 Interviews credit purchase - 5 credits"
-        let match = payment.description.match(/- (\d+) credits/)
+        const match = payment.description.match(/- (\d+) credits/)
         if (match) {
           creditsToAdd = parseInt(match[1])
         } else {

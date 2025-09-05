@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sessionId: string } }
+  { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
     const user = await currentUser()
@@ -12,9 +12,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { sessionId } = await params
     const session = await db.session.findFirst({
       where: {
-        id: params.sessionId,
+        id: sessionId,
         userId: user.id,
         status: { in: ['IN_PROGRESS', 'COMPLETED'] }
       }

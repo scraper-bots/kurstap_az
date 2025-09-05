@@ -2,8 +2,8 @@
 
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { SignUpButton, SignInButton, useUser } from '@clerk/nextjs'
-import { CheckCircle, Play, Users, Star, ArrowRight } from 'lucide-react'
+import { SignUpButton, useUser } from '@clerk/nextjs'
+import { CheckCircle, Users, Star, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Home() {

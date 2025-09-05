@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
-import { EpointService } from '@/lib/epoint-service'
-import { generateId } from '@/lib/utils'
+// import { EpointService } from '@/lib/epoint-service'
+// import { generateId } from '@/lib/utils'
 
 export class SubscriptionService {
   static async checkExpiredSubscriptions() {
@@ -42,7 +42,7 @@ export class SubscriptionService {
   }
 
   // DEPRECATED: No longer needed in credit-based system
-  static async renewSubscription(userId: string, planType: string) {
+  static async renewSubscription() {
     throw new Error('Subscription renewals are deprecated. Use credit purchases instead.')
   }
 
@@ -64,9 +64,9 @@ export class SubscriptionService {
 
     if (!user) return null
 
-    const activeSubscription = user.subscriptions[0]
-    const isExpired = activeSubscription?.currentPeriodEnd ? 
-      new Date(activeSubscription.currentPeriodEnd) < new Date() : false
+    // const activeSubscription = user.subscriptions[0]
+    // const isExpired = activeSubscription?.currentPeriodEnd ? 
+    //   new Date(activeSubscription.currentPeriodEnd) < new Date() : false
 
     return {
       interviewCredits: user.interviewCredits,

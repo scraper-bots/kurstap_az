@@ -386,7 +386,7 @@ class InterviewConnectionManager {
           this.reconnectionAttempts = 0
           return true
         }
-      } catch (error) {
+      } catch {
         console.log(`❌ Network recovery attempt ${attempt} failed`)
       }
       

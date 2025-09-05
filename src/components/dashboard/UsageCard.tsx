@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, Calendar, Target, AlertTriangle } from 'lucide-react'
+import { TrendingUp, Calendar, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 interface UsageStats {
