@@ -111,6 +111,12 @@ export class DailyAudioService {
       throw new Error('Call object not initialized')
     }
 
+    // Prevent double-start
+    if (this.isRecording || (this.mediaRecorder && this.mediaRecorder.state === 'recording')) {
+      console.warn('Recording is already active')
+      return
+    }
+
     try {
       // Get user media for recording
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -182,8 +188,8 @@ export class DailyAudioService {
       // Clear chunks for next recording cycle
       this.audioChunks = []
       
-      // Continue recording if still active
-      if (this.isRecording && this.mediaRecorder) {
+      // Continue recording if still active and not already recording
+      if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'inactive') {
         this.mediaRecorder.start(3000)
       }
     } catch (error) {

@@ -53,6 +53,7 @@ export function AudioInterview({
   const [currentQuestion, setCurrentQuestion] = useState(initialQuestion)
   const [progress, setProgress] = useState(1)
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
 
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
@@ -212,8 +213,12 @@ export function AudioInterview({
       
       if (result.success) {
         if (result.data?.nextAction === 'completed') {
-          await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
-          onComplete()
+          if (!isCompleting) {
+            setIsCompleting(true)
+            console.log('🏁 Interview completed, calling onComplete()')
+            await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
+            onComplete()
+          }
           return
         }
 
@@ -227,12 +232,14 @@ export function AudioInterview({
           await speakAIResponse(`Next question: ${result.data.currentQuestion.question}`)
         }
       } else {
-        await speakAIResponse("I'm sorry, there was an issue processing your answer. Could you please repeat your response?")
+        console.error('Answer submission failed:', result)
+        const errorMsg = result.error || "I'm sorry, there was an issue processing your answer."
+        await speakAIResponse(`${errorMsg} Could you please try again?`)
       }
 
     } catch (error) {
       console.error('Error submitting answer:', error)
-      await speakAIResponse("I apologize, there was a technical issue. Please try again.")
+      await speakAIResponse("I apologize, there was a technical issue. Please check your connection and try again.")
     } finally {
       setIsProcessingAnswer(false)
       setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
@@ -293,8 +300,12 @@ export function AudioInterview({
       
       if (result.success) {
         if (result.data?.nextAction === 'completed') {
-          await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
-          onComplete()
+          if (!isCompleting) {
+            setIsCompleting(true)
+            console.log('🏁 Interview completed via skip, calling onComplete()')
+            await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
+            onComplete()
+          }
           return
         }
 
