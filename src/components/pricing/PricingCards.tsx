@@ -5,103 +5,100 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckIcon } from '@heroicons/react/24/solid'
-import { useRouter } from 'next/navigation'
 
 interface PricingCardsProps {
-  currentUserId: string
+  // No props needed for credit-based system
 }
 
-const PLANS = {
-  BASIC: {
+const CREDIT_PACKAGES = {
+  SINGLE: {
     name: '1 Interview',
     price: 5,
-    monthly: false,
+    credits: 1,
     popular: false,
-    interviews: 1,
+    savings: 0,
     features: [
       '1 AI Interview',
-      'Basic feedback',
+      'Detailed feedback',
       'Email support',
-      'Standard question bank'
+      'Interview history'
     ],
     buttonText: 'Buy 1 Interview',
-    disabled: false
+    pricePerInterview: 5
   },
-  STANDARD: {
+  BUNDLE_5: {
     name: '5 Interviews', 
     price: 20,
-    monthly: false,
+    credits: 5,
     popular: true,
-    interviews: 5,
+    savings: 5, // ₼25 - ₼20 = ₼5 saved
     features: [
       '5 AI Interviews',
       'Detailed feedback',
       'Interview history',
       'Priority support',
-      'Advanced question bank',
-      'Better value (₼4 per interview)'
+      'Better value (₼4 per interview)',
+      'Save ₼5'
     ],
     buttonText: 'Buy 5 Interviews',
-    disabled: false
+    pricePerInterview: 4
   },
-  PREMIUM: {
+  BUNDLE_10: {
     name: '10 Interviews',
-    price: 29.99,
-    monthly: true,
+    price: 35,
+    credits: 10,
     popular: false,
-    interviews: 10,
+    savings: 15, // ₼50 - ₼35 = ₼15 saved
     features: [
       '10 AI Interviews',
-      'Advanced analytics',
-      'Performance benchmarking',
+      'Detailed feedback',
+      'Interview history',
       'Priority support',
-      'Interview history tracking',
-      'Best for regular practice'
+      'Best value (₼3.50 per interview)',
+      'Save ₼15'
     ],
-    buttonText: 'Subscribe Monthly',
-    disabled: false
+    buttonText: 'Buy 10 Interviews',
+    pricePerInterview: 3.5
   }
 }
 
-export function PricingCards({ currentUserId }: PricingCardsProps) {
-  const [currentPlan, setCurrentPlan] = useState<string>('FREE')
+export function PricingCards() {
   const [remainingInterviews, setRemainingInterviews] = useState<number>(0)
   const [loading, setLoading] = useState<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
-    fetchCurrentSubscription()
+    fetchUserCredits()
   }, [])
 
-  const fetchCurrentSubscription = async () => {
+  const fetchUserCredits = async () => {
     try {
-      const response = await fetch('/api/subscriptions/status')
+      const response = await fetch('/api/users/credits')
       if (response.ok) {
         const data = await response.json()
-        setCurrentPlan(data.planType || 'FREE')
-        setRemainingInterviews(data.remainingInterviews || 0)
+        setRemainingInterviews(data.credits || 0)
       }
     } catch (error) {
-      console.error('Error fetching subscription:', error)
+      console.error('Error fetching user credits:', error)
     }
   }
 
-  const handlePurchase = async (planType: keyof typeof PLANS) => {
+  const handlePurchase = async (packageType: keyof typeof CREDIT_PACKAGES) => {
     if (loading) return
 
-    setLoading(planType)
+    setLoading(packageType)
     
     try {
-      const plan = PLANS[planType]
-      const response = await fetch('/api/payments/initiate', {
+      const creditPackage = CREDIT_PACKAGES[packageType]
+      const response = await fetch('/api/payments/initiate-credits', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          planType,
-          amount: plan.price,
-          description: `${plan.name} subscription`,
+          packageType,
+          credits: creditPackage.credits,
+          amount: creditPackage.price,
+          description: `${creditPackage.name} credit purchase`,
           successUrl: `${window.location.origin}/payments/success`,
           errorUrl: `${window.location.origin}/payments/error`
         })
@@ -123,13 +120,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
     }
   }
 
-  const isCurrentPlan = (planType: string) => {
-    // FREE users don't have a current plan since no plan card exists for FREE
-    if (currentPlan === 'FREE') return false
-    return currentPlan === planType
-  }
-
-  const getButtonText = (planKey: string, plan: any, isCurrent: boolean, isLoading: boolean) => {
+  const getButtonText = (creditPackage: any, isLoading: boolean) => {
     if (isLoading) {
       return (
         <div className="flex items-center">
@@ -139,56 +130,65 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
       )
     }
     
-    if (isCurrent) {
-      if (remainingInterviews === 0) {
-        return 'Buy More Interviews'
-      }
-      return `${remainingInterviews} Interview${remainingInterviews === 1 ? '' : 's'} Left`
-    }
-    
-    return plan.buttonText
+    return creditPackage.buttonText
   }
 
   return (
     <div className="max-w-6xl mx-auto">
-      {currentPlan === 'FREE' && (
+      {remainingInterviews === 0 && (
         <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg text-center">
           <h3 className="text-xl font-semibold text-blue-900 mb-2">
-            Choose Your Interview Training Plan
+            Purchase Interview Credits
           </h3>
           <p className="text-blue-700">
-            Select a plan below to start practicing AI interviews and get detailed feedback on your performance.
+            Buy interview credits to start practicing AI interviews and get detailed feedback on your performance.
+          </p>
+        </div>
+      )}
+
+      {remainingInterviews > 0 && (
+        <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg text-center">
+          <h3 className="text-xl font-semibold text-green-900 mb-2">
+            You have {remainingInterviews} interview{remainingInterviews === 1 ? '' : 's'} remaining
+          </h3>
+          <p className="text-green-700">
+            You can purchase more credits anytime to add to your balance.
           </p>
         </div>
       )}
       
       <div className="grid md:grid-cols-3 gap-8">
-        {Object.entries(PLANS).map(([key, plan]) => {
-        const planKey = key as keyof typeof PLANS
-        const isCurrent = isCurrentPlan(key)
+        {Object.entries(CREDIT_PACKAGES).map(([key, creditPackage]) => {
+        const packageKey = key as keyof typeof CREDIT_PACKAGES
         const isLoading = loading === key
         
         return (
-          <Card key={key} className={`relative ${plan.popular ? 'border-2 border-blue-500 md:scale-105' : ''}`}>
-            {plan.popular && (
+          <Card key={key} className={`relative ${creditPackage.popular ? 'border-2 border-blue-500 md:scale-105' : ''}`}>
+            {creditPackage.popular && (
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500">
-                Most Popular
+                Best Value
+              </Badge>
+            )}
+
+            {creditPackage.savings > 0 && (
+              <Badge className="absolute -top-3 right-4 bg-green-500">
+                Save ₼{creditPackage.savings}
               </Badge>
             )}
             
             <CardHeader className="text-center pb-8">
-              <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+              <CardTitle className="text-2xl font-bold">{creditPackage.name}</CardTitle>
               <div className="mt-4">
-                <span className="text-4xl font-bold">
-                  {plan.price === 0 ? 'Free' : `₼${plan.price}`}
-                </span>
-                {plan.monthly && plan.price > 0 && <span className="text-gray-600">/month</span>}
+                <span className="text-4xl font-bold">₼{creditPackage.price}</span>
+                <div className="text-sm text-gray-600 mt-2">
+                  ₼{creditPackage.pricePerInterview} per interview
+                </div>
               </div>
             </CardHeader>
             
             <CardContent>
               <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, index) => (
+                {creditPackage.features.map((feature, index) => (
                   <li key={index} className="flex items-center">
                     <CheckIcon className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
                     <span className="text-sm">{feature}</span>
@@ -198,24 +198,12 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
               
               <Button 
                 className="w-full" 
-                variant={plan.popular ? 'default' : 'outline'}
-                disabled={(isCurrent && remainingInterviews > 0) || isLoading || plan.disabled}
-                onClick={() => handlePurchase(planKey)}
+                variant={creditPackage.popular ? 'default' : 'outline'}
+                disabled={isLoading}
+                onClick={() => handlePurchase(packageKey)}
               >
-                {getButtonText(key, plan, isCurrent, isLoading)}
+                {getButtonText(creditPackage, isLoading)}
               </Button>
-              
-              {isCurrent && remainingInterviews > 0 && (
-                <p className="text-sm text-green-600 text-center mt-2 font-medium">
-                  ✓ You have {remainingInterviews} interview{remainingInterviews === 1 ? '' : 's'} remaining
-                </p>
-              )}
-              
-              {isCurrent && remainingInterviews === 0 && (
-                <p className="text-sm text-red-600 text-center mt-2 font-medium">
-                  ⚠ No interviews remaining - Purchase more to continue
-                </p>
-              )}
             </CardContent>
           </Card>
         )
