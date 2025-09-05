@@ -15,7 +15,7 @@ export class UsageService {
     const userPlan = user.planType || 'FREE'
     const credits = user.interviewCredits || 0
 
-    // PREMIUM = unlimited interviews (subscription)
+    // PREMIUM = 10 interviews (subscription)
     if (userPlan === 'PREMIUM') {
       // Check if subscription is active
       const activeSubscription = await db.subscription.findFirst({
@@ -30,9 +30,9 @@ export class UsageService {
 
       if (activeSubscription) {
         return {
-          canCreateInterview: true,
-          remainingInterviews: -1, // Unlimited
-          totalLimit: -1
+          canCreateInterview: credits > 0,
+          remainingInterviews: credits,
+          totalLimit: 10
         }
       }
     }
@@ -91,7 +91,7 @@ export class UsageService {
       FREE: { interviews: 'credits', features: ['No interviews available', 'Must purchase to practice'] },
       BASIC: { interviews: 'credits', features: ['Pay per interview', 'Basic feedback', 'Email support'] },
       STANDARD: { interviews: 'credits', features: ['5 interviews per purchase', 'Detailed feedback', 'Priority support'] },
-      PREMIUM: { interviews: -1, features: ['Unlimited interviews', 'Advanced analytics', 'Priority support'] }
+      PREMIUM: { interviews: 10, features: ['10 interviews per month', 'Advanced analytics', 'Priority support'] }
     }
 
     const userPlan = user.planType || 'FREE'
@@ -100,13 +100,13 @@ export class UsageService {
     return {
       plan: {
         type: userPlan,
-        name: userPlan === 'FREE' ? 'Free Plan' : userPlan === 'BASIC' ? 'Basic Package' : userPlan === 'STANDARD' ? 'Standard Package' : 'Premium Subscription',
+        name: userPlan === 'FREE' ? 'Free Plan' : userPlan === 'BASIC' ? '1 Interview' : userPlan === 'STANDARD' ? '5 Interviews' : '10 Interviews',
         features: planInfo.features
       },
       usage: {
         monthlyInterviews,
-        monthlyLimit: planInfo.interviews === -1 ? -1 : user.interviewCredits || 0,
-        remainingInterviews: planInfo.interviews === -1 ? -1 : user.interviewCredits || 0,
+        monthlyLimit: planInfo.interviews === 10 ? 10 : user.interviewCredits || 0,
+        remainingInterviews: planInfo.interviews === 10 ? 10 : user.interviewCredits || 0,
         totalInterviews,
         completedInterviews,
         completionRate: totalInterviews > 0 ? Math.round((completedInterviews / totalInterviews) * 100) : 0
@@ -150,7 +150,7 @@ export class UsageService {
         API_ACCESS: false
       },
       PREMIUM: {
-        UNLIMITED_INTERVIEWS: true,
+        UNLIMITED_INTERVIEWS: false,
         ADVANCED_ANALYTICS: true,
         TEAM_MANAGEMENT: false,
         API_ACCESS: false

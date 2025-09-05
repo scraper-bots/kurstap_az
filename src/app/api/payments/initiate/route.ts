@@ -26,10 +26,10 @@ const PLAN_CONFIGS = {
     features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support']
   },
   PREMIUM: {
-    name: 'Unlimited Interviews',
+    name: '10 Interviews',
     price: 29.99,
-    interviews: -1,
-    features: ['Unlimited AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support']
+    interviews: 10,
+    features: ['10 AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support']
   }
 }
 

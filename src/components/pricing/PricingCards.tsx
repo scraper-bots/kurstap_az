@@ -13,7 +13,7 @@ interface PricingCardsProps {
 
 const PLANS = {
   BASIC: {
-    name: 'Basic Package',
+    name: '1 Interview',
     price: 5,
     monthly: false,
     popular: false,
@@ -28,7 +28,7 @@ const PLANS = {
     disabled: false
   },
   STANDARD: {
-    name: 'Standard Package', 
+    name: '5 Interviews', 
     price: 20,
     monthly: false,
     popular: true,
@@ -45,13 +45,13 @@ const PLANS = {
     disabled: false
   },
   PREMIUM: {
-    name: 'Premium Subscription',
+    name: '10 Interviews',
     price: 29.99,
     monthly: true,
     popular: false,
-    interviews: -1,
+    interviews: 10,
     features: [
-      'Unlimited AI Interviews',
+      '10 AI Interviews',
       'Advanced analytics',
       'Performance benchmarking',
       'Priority support',

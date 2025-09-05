@@ -59,9 +59,9 @@ export default function PaymentSuccessContent() {
         // Map plan type to plan details
         const planDetails = {
           'FREE': { name: 'Free Trial', price: 0, features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support'] },
-          'BASIC': { name: 'Basic Package', price: 5, features: ['1 AI Interview', 'Basic feedback', 'Email support'] },
-          'STANDARD': { name: 'Standard Package', price: 20, features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support'] },
-          'PREMIUM': { name: 'Premium Subscription', price: 29.99, features: ['Unlimited AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support'] }
+          'BASIC': { name: '1 Interview', price: 5, features: ['1 AI Interview', 'Basic feedback', 'Email support'] },
+          'STANDARD': { name: '5 Interviews', price: 20, features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support'] },
+          'PREMIUM': { name: '10 Interviews', price: 29.99, features: ['10 AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support'] }
         }
         
         setSubscription({
@@ -158,7 +158,7 @@ export default function PaymentSuccessContent() {
                   What happens next?
                 </h3>
                 <ul className="text-left space-y-2 text-blue-800">
-                  <li>• You now have access to unlimited AI interviews</li>
+                  <li>• You now have access to your purchased AI interviews</li>
                   <li>• Detailed feedback and analytics are available for all your sessions</li>
                   <li>• You can view your interview history and track progress</li>
                   <li>• Your billing cycle starts today</li>
