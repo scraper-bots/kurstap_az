@@ -2,6 +2,9 @@ import OpenAI from 'openai'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_API_KEY?.startsWith('sk-or-v1-') 
+    ? 'https://openrouter.ai/api/v1'
+    : 'https://api.openai.com/v1',
 })
 
 // Check if API key is configured
@@ -111,7 +114,7 @@ Generate professional, realistic questions that would be asked in actual ${jobTi
       return questionSet
     } catch (error) {
       console.error('Error generating questions with OpenAI:', error)
-      // Re-throw the error to be handled by the caller
+      // Re-throw the error - no fallbacks allowed
       throw error
     }
   }
