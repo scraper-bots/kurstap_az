@@ -77,21 +77,32 @@ export async function POST(request: NextRequest) {
           const match = payment.description.match(/- (\d+) credits/)
           if (match) {
             creditsToAdd = parseInt(match[1])
+          } else {
+            // Fallback: try to extract from package name like "1 Interview" or "5 Interviews"
+            const packageMatch = payment.description.match(/(\d+) Interview/)
+            if (packageMatch) {
+              creditsToAdd = parseInt(packageMatch[1])
+              console.log(`Webhook fallback credit extraction: ${creditsToAdd} credits from "${payment.description}"`)
+            }
           }
         }
 
         if (isCreditPurchase) {
           // This is a credit purchase - just add credits to user
-          await db.user.update({
+          console.log(`Webhook: Processing credit purchase for user ${payment.userId}: adding ${creditsToAdd} credits`)
+          console.log(`Webhook: Payment description: "${payment.description}"`)
+          
+          const updatedUser = await db.user.update({
             where: { id: payment.userId },
             data: {
               interviewCredits: {
                 increment: creditsToAdd
               }
-            }
+            },
+            select: { interviewCredits: true, clerkId: true }
           })
 
-          console.log(`User ${payment.userId} purchased ${creditsToAdd} interview credits`)
+          console.log(`Webhook: Successfully added ${creditsToAdd} credits to user ${payment.userId} (Clerk ID: ${updatedUser.clerkId}). New balance: ${updatedUser.interviewCredits}`)
         } else {
           // Legacy plan-based logic (keeping for backward compatibility)
           // Find existing subscription for user

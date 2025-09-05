@@ -5,31 +5,29 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ArrowRight, Loader2 } from 'lucide-react'
 
-interface SubscriptionInfo {
-  type: string
-  plan: {
-    name: string
-    price: number
-    features: string[]
-  }
+interface CreditPurchase {
+  credits: number
+  amount: number
+  packageName: string
 }
 
 export default function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null)
+  const [purchase, setPurchase] = useState<CreditPurchase | null>(null)
+  const [totalCredits, setTotalCredits] = useState<number>(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (sessionId) {
-      // Fetch subscription info
-      fetchSubscriptionInfo()
+      // Fetch purchase info
+      fetchPurchaseInfo()
     } else {
       setLoading(false)
     }
   }, [sessionId])
 
-  const fetchSubscriptionInfo = async () => {
+  const fetchPurchaseInfo = async () => {
     try {
       // First, try to manually process the payment if it hasn't been processed yet
       if (sessionId) {
@@ -45,32 +43,40 @@ export default function PaymentSuccessContent() {
           if (processResponse.ok) {
             const processData = await processResponse.json()
             console.log('Payment processed:', processData)
+            
+            // If this was a credit purchase, get the credits added
+            if (processData.creditsAdded) {
+              // Map credits to package details for display
+              const packageDetails = {
+                1: { name: '1 Interview', price: 5 },
+                5: { name: '5 Interviews', price: 20 },
+                10: { name: '10 Interviews', price: 35 }
+              }
+              
+              const packageInfo = packageDetails[processData.creditsAdded as keyof typeof packageDetails]
+              
+              if (packageInfo) {
+                setPurchase({
+                  credits: processData.creditsAdded,
+                  amount: packageInfo.price,
+                  packageName: packageInfo.name
+                })
+              }
+            }
           }
         } catch (processError) {
           console.log('Payment already processed or processing failed:', processError)
         }
       }
 
-      // Then fetch updated subscription info
-      const response = await fetch('/api/subscriptions/status')
-      if (response.ok) {
-        const data = await response.json()
-        
-        // Map plan type to plan details
-        const planDetails = {
-          'FREE': { name: 'Free Trial', price: 0, features: ['1 AI Interview (one-time)', 'Basic feedback', 'Email support'] },
-          'BASIC': { name: '1 Interview', price: 5, features: ['1 AI Interview', 'Basic feedback', 'Email support'] },
-          'STANDARD': { name: '5 Interviews', price: 20, features: ['5 AI Interviews', 'Detailed feedback', 'Interview history', 'Priority support'] },
-          'PREMIUM': { name: '10 Interviews', price: 29.99, features: ['10 AI Interviews', 'Advanced analytics', 'Performance benchmarking', 'Priority support'] }
-        }
-        
-        setSubscription({
-          type: data.planType,
-          plan: planDetails[data.planType as keyof typeof planDetails] || planDetails.FREE
-        })
+      // Get user's total credits after purchase
+      const creditsResponse = await fetch('/api/users/credits')
+      if (creditsResponse.ok) {
+        const creditsData = await creditsResponse.json()
+        setTotalCredits(creditsData.credits || 0)
       }
     } catch (error) {
-      console.error('Error fetching subscription:', error)
+      console.error('Error fetching purchase info:', error)
     } finally {
       setLoading(false)
     }
@@ -90,49 +96,60 @@ export default function PaymentSuccessContent() {
               Payment Successful! 🎉
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Thank you for upgrading to Bir Guru Premium. Your subscription is now active!
+              Thank you for purchasing interview credits. You can now start practicing!
             </p>
 
-            {/* Loading or Subscription Info */}
+            {/* Loading or Purchase Info */}
             {loading ? (
               <div className="flex items-center justify-center mb-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                <span className="ml-2 text-gray-600">Loading your subscription details...</span>
+                <span className="ml-2 text-gray-600">Processing your purchase...</span>
               </div>
-            ) : subscription ? (
+            ) : purchase ? (
               <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 max-w-2xl mx-auto">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Welcome to {subscription.plan.name}!
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Purchase Complete!
                 </h2>
-                <div className="text-left">
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-lg font-semibold text-gray-700">Plan:</span>
+                <div className="text-left space-y-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-gray-700">Package:</span>
                     <span className="text-lg font-bold text-blue-600">
-                      {subscription.plan.name}
+                      {purchase.packageName}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-lg font-semibold text-gray-700">Price:</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-gray-700">Credits Added:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      +{purchase.credits} Interview{purchase.credits === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-gray-700">Amount Paid:</span>
                     <span className="text-lg font-bold text-gray-900">
-                      ₼{subscription.plan.price}/month
+                      ₼{purchase.amount}
                     </span>
                   </div>
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                      Your new features:
-                    </h3>
-                    <ul className="space-y-2">
-                      {subscription.plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                          <span className="text-gray-600">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <span className="text-lg font-semibold text-gray-700">Total Credits:</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {totalCredits} Interview{totalCredits === 1 ? '' : 's'}
+                    </span>
                   </div>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 max-w-2xl mx-auto">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Credits Added Successfully!
+                </h2>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 mb-4">
+                    {totalCredits} Interview{totalCredits === 1 ? '' : 's'} Available
+                  </div>
+                  <p className="text-gray-600">You can now start your interview practice sessions.</p>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
@@ -147,7 +164,7 @@ export default function PaymentSuccessContent() {
                 href="/interview"
                 className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-blue-300 text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-colors"
               >
-                <span className="text-center">Start Your First Premium Interview</span>
+                <span className="text-center">Start Interview Practice</span>
               </Link>
             </div>
 
@@ -158,11 +175,11 @@ export default function PaymentSuccessContent() {
                   What happens next?
                 </h3>
                 <ul className="text-left space-y-2 text-blue-800">
-                  <li>• You now have access to your purchased AI interviews</li>
-                  <li>• Detailed feedback and analytics are available for all your sessions</li>
+                  <li>• Your interview credits have been added to your account</li>
+                  <li>• Each interview session will use 1 credit</li>
+                  <li>• Detailed feedback and analytics are available for all sessions</li>
                   <li>• You can view your interview history and track progress</li>
-                  <li>• Your billing cycle starts today</li>
-                  <li>• You can manage your subscription anytime in your dashboard</li>
+                  <li>• Purchase more credits anytime when you need them</li>
                 </ul>
               </div>
             </div>

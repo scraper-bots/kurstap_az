@@ -44,6 +44,7 @@ export async function GET() {
         planType: p.planType,
         amount: p.amount,
         status: p.status,
+        description: p.description,
         createdAt: p.createdAt
       })),
       subscriptions: user.subscriptions.map(s => ({

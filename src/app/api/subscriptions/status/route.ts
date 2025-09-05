@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
@@ -24,16 +24,17 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check if user has available interview credits or unlimited access
+    // Simple credit-based check
     const hasCredits = user.interviewCredits > 0
-    const canStartInterview = hasCredits || user.planType === 'PREMIUM'
+    const canStartInterview = hasCredits
 
     return NextResponse.json({
-      planType: user.planType,
+      planType: user.planType || 'FREE', // Keep for backward compatibility
       interviewCredits: user.interviewCredits,
+      remainingInterviews: user.interviewCredits, // Alias for compatibility
       hasCredits,
       canStartInterview,
-      message: !canStartInterview ? 'No interview credits available. Please upgrade your plan or purchase credits.' : undefined,
+      message: !canStartInterview ? 'No interview credits available. Please purchase credits to continue.' : undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     })

@@ -12,13 +12,18 @@ export async function GET() {
     // Get user from database
     const dbUser = await db.user.findUnique({
       where: { clerkId: user.id },
-      select: { interviewCredits: true }
+      select: { id: true, interviewCredits: true }
     })
+
+    console.log(`Credits API: Looking up user with Clerk ID: ${user.id}`)
 
     if (!dbUser) {
       // Return 0 credits if user doesn't exist yet
+      console.log(`Credits API: User not found in database`)
       return NextResponse.json({ credits: 0 })
     }
+
+    console.log(`Credits API: Found user ${dbUser.id} with ${dbUser.interviewCredits} credits`)
 
     return NextResponse.json({
       credits: dbUser.interviewCredits || 0
