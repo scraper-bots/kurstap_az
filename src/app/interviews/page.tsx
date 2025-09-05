@@ -1,4 +1,3 @@
-import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -72,8 +71,8 @@ export default async function InterviewsPage() {
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="text-blue-600 hover:text-blue-800">
+            <div className="flex flex-col space-y-4">
+              <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm font-medium">
                 ← Back to Dashboard
               </Link>
               <div>
@@ -87,7 +86,7 @@ export default async function InterviewsPage() {
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center">
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -148,21 +147,23 @@ export default async function InterviewsPage() {
           {interviews.map((interview: any) => (
             <div key={interview.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
               <div className="p-6">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold text-gray-900">{interview.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(interview.difficulty)}`}>
-                        {interview.difficulty}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(interview.overallScore)}`}>
-                        {interview.overallScore}%
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(interview.difficulty)}`}>
+                          {interview.difficulty}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(interview.overallScore)}`}>
+                          {interview.overallScore}%
+                        </span>
+                      </div>
                     </div>
                     
                     <p className="text-gray-600 mb-3">{interview.company}</p>
                     
-                    <div className="flex items-center space-x-6 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>{new Date(interview.date).toLocaleDateString()}</span>
@@ -181,16 +182,16 @@ export default async function InterviewsPage() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col items-end space-y-2">
+                  <div className="flex flex-col sm:flex-row lg:flex-col lg:items-end gap-2 w-full lg:w-auto">
                     <Link
                       href={`/interviews/${interview.id}`}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium text-center lg:min-w-[120px]"
                     >
                       View Details
                     </Link>
                     <Link
                       href={`/interviews/${interview.id}/report`}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium text-center lg:min-w-[120px]"
                     >
                       Full Report
                     </Link>

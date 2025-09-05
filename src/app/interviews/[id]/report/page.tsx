@@ -4,13 +4,11 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { 
   TrendingUp, 
-  TrendingDown, 
   Target, 
   Clock, 
   Brain, 
   Award, 
   BookOpen,
-  Calendar,
   BarChart3,
   CheckCircle2,
   AlertTriangle,

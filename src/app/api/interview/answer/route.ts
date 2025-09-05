@@ -39,7 +39,7 @@ export interface SubmitAnswerResponse {
 
 export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerResponse>> {
   const startTime = Date.now()
-  let logContext = {
+  const logContext = {
     userId: 'unknown',
     sessionId: 'unknown',
     answerLength: 0,
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
     // Prepare response based on next action with error handling
     let currentQuestion = undefined
     let followUpQuestion = undefined
-    let progress = {
+    const progress = {
       current: (sessionData?.currentQuestionIndex || 0) + 1,
       total: sessionData?.questions?.length || 0
     }
