@@ -76,11 +76,11 @@ export function SubscriptionCard() {
     if (planType === 'PREMIUM') {
       return {
         name: 'Premium Plan',
-        displayName: 'Unlimited Interviews',
+        displayName: '10 Interviews',
         color: 'bg-blue-100 text-blue-800',
         price: '₼29.99',
-        features: ['Unlimited AI interviews', 'Advanced analytics', 'Priority support'],
-        remaining: 'Unlimited'
+        features: ['10 AI interviews', 'Advanced analytics', 'Priority support'],
+        remaining: '10 per month'
       }
     } else if (interviewCredits > 0) {
       return {
@@ -109,7 +109,7 @@ export function SubscriptionCard() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <CreditCard className="w-5 h-5 mr-2" />
-            Subscription
+            Plan Status
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -129,11 +129,11 @@ export function SubscriptionCard() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <CreditCard className="w-5 h-5 mr-2" />
-            Subscription
+            Plan Status
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600">Unable to load subscription information.</p>
+          <p className="text-gray-600">Unable to load plan information.</p>
         </CardContent>
       </Card>
     )
@@ -163,7 +163,7 @@ export function SubscriptionCard() {
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Interviews Remaining</span>
             <span className="font-semibold text-lg">
-              {subscription.planType === 'PREMIUM' ? '∞' : subscription.interviewCredits}
+              {subscription.interviewCredits}
             </span>
           </div>
           
@@ -225,7 +225,7 @@ export function SubscriptionCard() {
               <Link href="/pricing">
                 <Button variant="outline" className="w-full">
                   <Settings className="w-4 h-4 mr-2" />
-                  Manage Subscription
+                  View Plans
                 </Button>
               </Link>
             </div>

@@ -49,7 +49,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="hidden md:block text-right">
-                <p className="text-sm text-gray-500">Subscription Status</p>
+                <p className="text-sm text-gray-500">Plan Status</p>
                 <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
                   (dbUser?.planType || 'BASIC') === 'BASIC' 
                     ? 'bg-gray-100 text-gray-800'
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Subscription</label>
+                <label className="text-sm font-medium text-gray-600">Current Plan</label>
                 <p className="text-sm text-gray-900">
                   <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                     (dbUser?.planType || 'BASIC') === 'BASIC' 
