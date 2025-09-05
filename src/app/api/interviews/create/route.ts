@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
-import { UsageService } from '@/lib/usage-service'
 import { generateId } from '@/lib/utils'
 
 interface CreateInterviewRequest {
@@ -31,14 +30,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check usage limits for FREE users
-    const usageCheck = await UsageService.checkInterviewLimit(user.id)
+    // Get or create user and check credits
+    let dbUser = await db.user.findUnique({
+      where: { clerkId: user.id },
+      select: { id: true, interviewCredits: true }
+    })
     
-    if (!usageCheck.canCreateInterview) {
+    if (!dbUser) {
+      // Create user if doesn't exist with 0 credits
+      dbUser = await db.user.create({
+        data: {
+          clerkId: user.id,
+          email: user.emailAddresses[0]?.emailAddress || '',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          planType: 'FREE' as any,
+          imageUrl: user.imageUrl || undefined,
+          interviewCredits: 0
+        },
+        select: { id: true, interviewCredits: true }
+      })
+    }
+    
+    // Check if user has credits
+    if (dbUser.interviewCredits <= 0) {
       return NextResponse.json(
         { 
-          error: 'Interview limit reached',
-          message: `You have reached your monthly limit of ${usageCheck.totalLimit} interviews. Upgrade to Premium for unlimited interviews.`,
+          error: 'No interview credits',
+          message: 'You need to purchase interview credits to start practicing.',
           remainingInterviews: 0,
           upgradeRequired: true
         },
@@ -46,38 +65,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create interview
-    const interview = await db.interview.create({
-      data: {
-        id: generateId(),
-        userId: user.id,
-        title,
-        description,
-        position,
-        company,
-        difficulty,
-        status: 'SCHEDULED',
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : new Date(),
-        questions: [], // Will be populated later
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+    // Use database transaction to create interview and deduct credit atomically
+    const result = await db.$transaction(async (tx) => {
+      // Create interview
+      const interview = await tx.interview.create({
+        data: {
+          id: generateId(),
+          userId: dbUser.id, // Use database user ID, not Clerk ID
+          title,
+          description,
+          position,
+          company,
+          difficulty,
+          status: 'SCHEDULED',
+          scheduledAt: scheduledAt ? new Date(scheduledAt) : new Date(),
+          questions: [], // Will be populated later
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      })
+
+      // Deduct one credit from user
+      const updatedUser = await tx.user.update({
+        where: { id: dbUser.id },
+        data: {
+          interviewCredits: {
+            decrement: 1
+          }
+        },
+        select: { interviewCredits: true }
+      })
+
+      return { interview, remainingCredits: updatedUser.interviewCredits }
     })
 
-    // Return success with remaining usage info
+    // Return success with remaining credits info
     return NextResponse.json({
       success: true,
       interview: {
-        id: interview.id,
-        title: interview.title,
-        position: interview.position,
-        difficulty: interview.difficulty,
-        scheduledAt: interview.scheduledAt,
-        status: interview.status
+        id: result.interview.id,
+        title: result.interview.title,
+        position: result.interview.position,
+        difficulty: result.interview.difficulty,
+        scheduledAt: result.interview.scheduledAt,
+        status: result.interview.status
       },
       usage: {
-        remainingInterviews: usageCheck.remainingInterviews - 1,
-        totalLimit: usageCheck.totalLimit
+        remainingInterviews: result.remainingCredits,
+        totalLimit: 'unlimited'
       }
     })
   } catch (error) {
