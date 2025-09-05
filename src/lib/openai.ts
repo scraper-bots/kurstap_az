@@ -69,14 +69,15 @@ Return ONLY a valid JSON object with this exact structure:
 }
 
 Requirements:
-- EXACTLY 3 behavioral questions (focus on leadership, teamwork, problem-solving, communication)
-- EXACTLY 3 technical questions (relevant to ${jobTitle} - tools, processes, best practices)  
+- EXACTLY 25 behavioral questions: 5 easy, 8 medium, 12 hard difficulty
+- EXACTLY 25 technical questions: 5 easy, 8 medium, 12 hard difficulty  
 - EXACTLY 0 situational questions (empty array)
-- Generate questions with MIXED difficulty levels: 1 easy, 1 medium, 1 hard for each category
+- CRITICAL: Behavioral array must have exactly 5 questions with difficulty:"easy", 8 with difficulty:"medium", 12 with difficulty:"hard"
+- CRITICAL: Technical array must have exactly 5 questions with difficulty:"easy", 8 with difficulty:"medium", 12 with difficulty:"hard"
 - Each question MUST have a meaningful follow-up question
 - Expected duration should be realistic (3-6 minutes per question)
 - Questions should be highly specific to ${jobTitle} responsibilities and real interview scenarios
-- Ensure "easy" difficulty questions are suitable for junior-level candidates
+- Easy questions suitable for entry-level, medium for experienced, hard for senior-level positions
 
 Generate professional, realistic questions that would be asked in actual ${jobTitle} interviews.`
 
