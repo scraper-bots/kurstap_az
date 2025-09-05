@@ -6,9 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckIcon } from '@heroicons/react/24/solid'
 
-interface PricingCardsProps {
-  // No props needed for credit-based system
-}
 
 const CREDIT_PACKAGES = {
   SINGLE: {

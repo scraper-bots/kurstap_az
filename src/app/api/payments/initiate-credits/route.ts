@@ -105,16 +105,14 @@ export async function POST(request: NextRequest) {
         id: generateId(),
         userId: dbUser.id,
         orderId: orderId,
-        planType: packageType, // Store package type instead of plan type
+        planType: 'BASIC', // Use BASIC as placeholder for credit purchases
         amount: EpointService.formatAmount(amount),
         currency: 'AZN',
         status: 'PENDING',
-        description: description || `${CREDIT_PACKAGES[packageType].name} credit purchase`,
+        description: description || `${CREDIT_PACKAGES[packageType].name} credit purchase - ${credits} credits`,
         successUrl: successUrl,
         errorUrl: errorUrl,
-        createdAt: new Date(),
-        // Store credits in a custom field or description
-        metadata: JSON.stringify({ credits: credits, packageType: packageType })
+        createdAt: new Date()
       }
     })
 

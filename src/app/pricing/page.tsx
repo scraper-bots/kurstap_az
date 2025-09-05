@@ -17,15 +17,15 @@ export default async function PricingPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Choose Your Interview Training Plan
+          Purchase Interview Credits
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Upgrade your interview skills with AI-powered coaching. 
-          Choose the plan that best fits your career goals.
+          Buy interview credits to practice with AI-powered coaching. 
+          Credits never expire and can be used anytime.
         </p>
       </div>
       
-      <PricingCards currentUserId={user.id} />
+      <PricingCards />
       
       <div className="mt-16 text-center">
         <h2 className="text-2xl font-semibold mb-4">Why Choose BirGuru?</h2>
