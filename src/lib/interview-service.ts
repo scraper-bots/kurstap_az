@@ -230,7 +230,7 @@ export class InterviewService {
 
       // Determine next action based on current stage and skip status
       let nextAction: 'next-question' | 'follow-up' | 'completed' = 'completed'
-      let updatedAnswers = [...sessionData.answers]
+      const updatedAnswers = [...sessionData.answers]
 
       if (skipQuestion) {
         // Skipping question - record it as skipped and move to next question
