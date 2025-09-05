@@ -296,7 +296,26 @@ export function AudioInterview({
         })
       })
       
-      const result = await response.json()
+      console.log('🔄 [SKIP] Response status:', response.status, response.statusText)
+      
+      // Enhanced JSON parsing with error handling
+      let result
+      try {
+        const responseText = await response.text()
+        console.log('🔄 [SKIP] Raw response:', responseText.substring(0, 500))
+        
+        if (!responseText.trim()) {
+          throw new Error('Empty response from server')
+        }
+        
+        result = JSON.parse(responseText)
+        console.log('✅ [SKIP] Successfully parsed JSON:', result)
+      } catch (parseError) {
+        console.error('❌ [SKIP] Failed to parse JSON response:', parseError)
+        console.error('❌ [SKIP] Response status:', response.status, response.statusText)
+        await speakAIResponse("There was a technical issue skipping the question. Please try again or continue with your answer.")
+        return
+      }
       
       if (result.success) {
         if (result.data?.nextAction === 'completed') {
