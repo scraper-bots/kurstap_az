@@ -65,6 +65,7 @@ const PLANS = {
 
 export function PricingCards({ currentUserId }: PricingCardsProps) {
   const [currentPlan, setCurrentPlan] = useState<string>('FREE')
+  const [remainingInterviews, setRemainingInterviews] = useState<number>(0)
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
 
@@ -78,6 +79,7 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
       if (response.ok) {
         const data = await response.json()
         setCurrentPlan(data.planType || 'FREE')
+        setRemainingInterviews(data.remainingInterviews || 0)
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -125,6 +127,26 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
     // FREE users don't have a current plan since no plan card exists for FREE
     if (currentPlan === 'FREE') return false
     return currentPlan === planType
+  }
+
+  const getButtonText = (planKey: string, plan: any, isCurrent: boolean, isLoading: boolean) => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          Processing...
+        </div>
+      )
+    }
+    
+    if (isCurrent) {
+      if (remainingInterviews === 0) {
+        return 'Buy More Interviews'
+      }
+      return `${remainingInterviews} Interview${remainingInterviews === 1 ? '' : 's'} Left`
+    }
+    
+    return plan.buttonText
   }
 
   return (
@@ -177,24 +199,21 @@ export function PricingCards({ currentUserId }: PricingCardsProps) {
               <Button 
                 className="w-full" 
                 variant={plan.popular ? 'default' : 'outline'}
-                disabled={isCurrent || isLoading || plan.disabled}
+                disabled={(isCurrent && remainingInterviews > 0) || isLoading || plan.disabled}
                 onClick={() => handlePurchase(planKey)}
               >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </div>
-                ) : isCurrent ? (
-                  'Current Plan'
-                ) : (
-                  plan.buttonText
-                )}
+                {getButtonText(key, plan, isCurrent, isLoading)}
               </Button>
               
-              {isCurrent && (
+              {isCurrent && remainingInterviews > 0 && (
                 <p className="text-sm text-green-600 text-center mt-2 font-medium">
-                  ✓ This is your current plan
+                  ✓ You have {remainingInterviews} interview{remainingInterviews === 1 ? '' : 's'} remaining
+                </p>
+              )}
+              
+              {isCurrent && remainingInterviews === 0 && (
+                <p className="text-sm text-red-600 text-center mt-2 font-medium">
+                  ⚠ No interviews remaining - Purchase more to continue
                 </p>
               )}
             </CardContent>
