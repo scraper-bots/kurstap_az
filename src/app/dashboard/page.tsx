@@ -2,6 +2,7 @@ import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { UserService } from '@/lib/user-service'
 import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard'
+import { InterviewHistoryCard } from '@/components/dashboard/InterviewHistoryCard'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -44,7 +45,7 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Card */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile</h3>
@@ -70,6 +71,9 @@ export default async function DashboardPage() {
 
           {/* Interview Balance Card */}
           <SubscriptionCard />
+
+          {/* Interview History Card */}
+          <InterviewHistoryCard />
         </div>
 
         {/* Start Interview Section */}
