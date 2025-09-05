@@ -170,29 +170,34 @@ function InterviewContent() {
   }
 
   const handleComplete = async () => {
+    console.log('🏁 Interview completion started', {
+      sessionId: state.sessionId,
+      position: state.position,
+      localAnswers: state.answers?.length || 0
+    })
 
-    if (!state.answers || state.answers.length === 0 || !state.position || !state.startTime) {
-      console.error('Missing interview data for completion', {
-        hasAnswers: !!state.answers,
-        answersLength: state.answers?.length,
-        hasPosition: !!state.position,
-        hasStartTime: !!state.startTime
-      })
-      
-      // If we don't have answers but have sessionId, try to fetch them from the session
-      if (state.sessionId && !state.answers?.length) {
+    // Always try to fetch answers from backend session first
+    if (state.sessionId) {
         try {
           const sessionResponse = await fetch(`/api/interview/session?sessionId=${state.sessionId}`)
           const sessionData = await sessionResponse.json()
           
-          if (sessionData.success && sessionData.data?.answers) {
+          console.log('📡 Session data received:', {
+            success: sessionData.success,
+            hasAnswers: !!sessionData.data?.answers,
+            answersCount: sessionData.data?.answers?.length || 0,
+            hasDetailedId: !!sessionData.data?.detailedInterviewId
+          })
+
+          if (sessionData.success && sessionData.data?.answers?.length > 0) {
             // Check if this session was already processed by the unified system
             if (sessionData.data.detailedInterviewId) {
+              console.log('✅ Interview already processed, redirecting to:', sessionData.data.detailedInterviewId)
               window.location.href = `/interviews/${sessionData.data.detailedInterviewId}`
               return
             }
             
-            // Transform session answers to completion API format (fallback for old sessions)
+            // Transform session answers to completion API format
             const transformedAnswers = sessionData.data.answers.map((answer: any, index: number) => {
               // Find matching question to get category
               const matchingQuestion = sessionData.data.questions?.find((q: any) => q.id === answer.questionId)
@@ -208,25 +213,53 @@ function InterviewContent() {
             
             const duration = Math.round((Date.now() - (state.startTime || Date.now())) / 1000 / 60)
             
+            console.log('🚀 Completing interview with backend data:', {
+              answers: transformedAnswers.length,
+              position: state.position,
+              duration
+            })
+            
             await completeInterview({
-              title: `${state.position} Interview`,
-              company: 'Practice Session',
+              title: `${state.position || 'Interview'}`,
+              company: 'Practice Session', 
               position: state.position || 'General Position',
               difficulty: (state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD') || 'MEDIUM',
               duration,
               answers: transformedAnswers
             })
             return
+          } else {
+            console.warn('⚠️ No answers found in session data')
           }
         } catch (error) {
-          console.error('Error fetching session data:', error)
+          console.error('❌ Error fetching session data:', error)
         }
-      }
-      
-      // Fallback to completed state if we can't save
-      setState(prev => ({ ...prev, stage: 'completed' }))
-      return
     }
+
+    // Final fallback: try with local state if available
+    if (state.answers && state.answers.length > 0 && state.position) {
+      console.log('🔄 Fallback: using local state data')
+      const duration = Math.round((Date.now() - (state.startTime || Date.now())) / 1000 / 60)
+      
+      try {
+        await completeInterview({
+          title: `${state.position} Interview`,
+          company: 'Practice Session',
+          position: state.position,
+          difficulty: (state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD') || 'MEDIUM',
+          duration,
+          answers: state.answers
+        })
+        return
+      } catch (error) {
+        console.error('❌ Fallback completion failed:', error)
+      }
+    }
+
+    // Last resort: show completed state without saving
+    console.warn('⚠️ Interview completed but could not save results')
+    setState(prev => ({ ...prev, stage: 'completed' }))
+    return
 
     setState(prev => ({ ...prev, stage: 'loading' }))
 
