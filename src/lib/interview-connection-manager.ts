@@ -3,7 +3,7 @@
  * Handles connection recovery, fallback modes, and service degradation
  */
 
-import { interviewErrorHandler, InterviewErrorType } from './interview-error-handler'
+import { InterviewErrorType } from './interview-error-handler'
 import { interviewRetryManager } from './interview-retry-manager'
 import { interviewStateManager } from './interview-state-manager'
 
@@ -77,7 +77,7 @@ class InterviewConnectionManager {
   private maxReconnectionAttempts = 5
   private healthCheckInterval: NodeJS.Timeout | null = null
   private connectionEvents: ConnectionEvent[] = []
-  private eventListeners: Map<string, Function[]> = new Map()
+  private eventListeners: Map<string, ((event: ConnectionEvent) => void)[]> = new Map()
 
   static getInstance(): InterviewConnectionManager {
     if (!InterviewConnectionManager.instance) {
@@ -464,14 +464,14 @@ class InterviewConnectionManager {
   /**
    * Event system for notifying components about connection changes
    */
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (event: ConnectionEvent) => void): void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, [])
     }
     this.eventListeners.get(event)!.push(callback)
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (event: ConnectionEvent) => void): void {
     const listeners = this.eventListeners.get(event)
     if (listeners) {
       const index = listeners.indexOf(callback)

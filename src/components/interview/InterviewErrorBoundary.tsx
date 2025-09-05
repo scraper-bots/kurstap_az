@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { AlertTriangle, RefreshCw, Wifi, WifiOff, Mic, MicOff, MessageSquare, Play, Settings, Clock } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Wifi, WifiOff, Mic, MicOff, MessageSquare, Play, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,9 +14,7 @@ import { Progress } from '@/components/ui/progress'
 
 import { 
   InterviewError, 
-  InterviewErrorType, 
-  InterviewRecoveryAction,
-  interviewErrorHandler 
+  InterviewErrorType
 } from '@/lib/interview-error-handler'
 import { 
   InterviewMode, 
@@ -43,7 +41,7 @@ export function InterviewErrorRecovery({
   isRetrying = false 
 }: ErrorRecoveryProps) {
   const [countdown, setCountdown] = useState<number | null>(null)
-  const [retryAttempt, setRetryAttempt] = useState(0)
+  const [, setRetryAttempt] = useState(0)
 
   const getErrorIcon = () => {
     switch (error.type) {

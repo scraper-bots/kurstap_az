@@ -3,7 +3,7 @@
  * Handles automatic retries for failed operations during interviews
  */
 
-import { interviewErrorHandler, InterviewErrorType, InterviewRecoveryAction } from './interview-error-handler'
+import { interviewErrorHandler } from './interview-error-handler'
 
 export interface RetryOptions {
   maxAttempts: number
@@ -175,8 +175,7 @@ class InterviewRetryManager {
   ): Promise<RetryResult<T>> {
     const options = { ...this.defaultConfigs[operationType], ...customOptions }
     const startTime = Date.now()
-    let lastError: any
-    let attempts = 0
+    // Remove unused variables that were causing lint errors
 
     // Use circuit breaker if service name provided
     if (serviceName) {

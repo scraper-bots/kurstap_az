@@ -16,12 +16,9 @@ import {
   ConnectionStatus, 
   interviewConnectionManager 
 } from '@/lib/interview-connection-manager'
+// Import removed to fix lint error - interviewRetryManager not used in this file
 import { 
-  interviewRetryManager 
-} from '@/lib/interview-retry-manager'
-import { 
-  interviewStateManager,
-  InterviewState 
+  interviewStateManager
 } from '@/lib/interview-state-manager'
 
 export interface InterviewErrorState {

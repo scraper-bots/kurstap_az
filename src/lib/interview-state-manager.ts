@@ -3,7 +3,7 @@
  * Handles state saving/loading across interruptions with multiple storage layers
  */
 
-import { interviewErrorHandler, InterviewErrorType } from './interview-error-handler'
+import { interviewErrorHandler } from './interview-error-handler'
 
 export interface InterviewState {
   sessionId: string
