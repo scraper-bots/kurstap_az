@@ -1,28 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { CreditCard, Calendar, Star, Settings, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
-
-interface SubscriptionInfo {
-  planType: string
-  interviewCredits: number
-  hasCredits: boolean
-  canStartInterview: boolean
-  status: string
-  currentPeriodStart: string | null
-  currentPeriodEnd: string | null
-  isExpired: boolean
-  recentPayments: Array<{
-    id: string
-    amount: number
-    status: string
-    createdAt: string
-  }>
-}
 
 export function SubscriptionCard() {
   const [interviewCredits, setInterviewCredits] = useState<number>(0)

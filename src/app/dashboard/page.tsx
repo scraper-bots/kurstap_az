@@ -48,16 +48,6 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="hidden md:block text-right">
-                <p className="text-sm text-gray-500">Plan Status</p>
-                <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                  (dbUser?.planType || 'BASIC') === 'BASIC' 
-                    ? 'bg-gray-100 text-gray-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {dbUser?.planType || 'FREE'}
-                </span>
-              </div>
               <UserButton />
             </div>
           </div>
@@ -79,18 +69,6 @@ export default async function DashboardPage() {
                 <label className="text-sm font-medium text-gray-600">Name</label>
                 <p className="text-sm text-gray-900">
                   {clerkUser.firstName} {clerkUser.lastName}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Current Plan</label>
-                <p className="text-sm text-gray-900">
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                    (dbUser?.planType || 'BASIC') === 'BASIC' 
-                      ? 'bg-gray-100 text-gray-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {dbUser?.planType || 'BASIC'}
-                  </span>
                 </p>
               </div>
               <div>
