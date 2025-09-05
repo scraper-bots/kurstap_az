@@ -88,7 +88,6 @@ export async function POST(request: NextRequest) {
           email: user.emailAddresses[0]?.emailAddress || '',
           firstName: user.firstName || '',
           lastName: user.lastName || '',
-          planType: 'FREE' as any,
           imageUrl: user.imageUrl || undefined,
           interviewCredits: 0
         }
@@ -105,7 +104,6 @@ export async function POST(request: NextRequest) {
         id: generateId(),
         userId: dbUser.id,
         orderId: orderId,
-        planType: 'BASIC', // Use BASIC as placeholder for credit purchases
         amount: EpointService.formatAmount(amount),
         currency: 'AZN',
         status: 'PENDING',

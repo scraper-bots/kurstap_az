@@ -22,7 +22,7 @@ export async function GET() {
       totalRevenue,
       monthlyRevenue,
       paymentStats,
-      planDistribution,
+      creditPaymentStats,
       recentPayments
     ] = await Promise.all([
       // Total revenue
@@ -48,11 +48,10 @@ export async function GET() {
         _count: { status: true }
       }),
 
-      // Plan type distribution
-      db.payment.groupBy({
-        by: ['planType'],
+      // Credit-based payments stats
+      db.payment.aggregate({
         where: { status: 'COMPLETED' },
-        _count: { planType: true },
+        _count: { id: true },
         _sum: { amount: true }
       }),
 
@@ -78,18 +77,16 @@ export async function GET() {
           status: stat.status,
           count: stat._count.status
         })),
-        planDistribution: planDistribution.map(plan => ({
-          planType: plan.planType,
-          count: plan._count.planType,
-          revenue: plan._sum.amount || 0
-        }))
+        creditStats: {
+          totalPayments: creditPaymentStats._count.id,
+          totalRevenue: creditPaymentStats._sum.amount || 0
+        }
       },
       recentPayments: recentPayments.map(payment => ({
         id: payment.id,
         orderId: payment.orderId,
         amount: payment.amount,
         status: payment.status,
-        planType: payment.planType,
         userEmail: payment.user.email,
         createdAt: payment.createdAt
       }))

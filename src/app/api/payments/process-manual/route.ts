@@ -44,30 +44,26 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Process the successful payment
-    if (payment.planType) {
+    // Process the successful payment - all payments are now credit-based
+    if (payment.description) {
       try {
-        // Check if this is a credit purchase by looking at description
-        let isCreditPurchase = false
+        // Extract credits from description
         let creditsToAdd = 0
         
-        if (payment.description && payment.description.includes('credit purchase')) {
-          isCreditPurchase = true
-          // Extract credits from description like "5 Interviews credit purchase - 5 credits"
-          const match = payment.description.match(/- (\d+) credits/)
-          if (match) {
-            creditsToAdd = parseInt(match[1])
-          } else {
-            // Fallback: try to extract from package name like "1 Interview" or "5 Interviews"
-            const packageMatch = payment.description.match(/(\d+) Interview/)
-            if (packageMatch) {
-              creditsToAdd = parseInt(packageMatch[1])
-              console.log(`Fallback credit extraction: ${creditsToAdd} credits from "${payment.description}"`)
-            }
+        // Try to extract from description like "5 Interviews credit purchase - 5 credits"
+        let match = payment.description.match(/- (\d+) credits/)
+        if (match) {
+          creditsToAdd = parseInt(match[1])
+        } else {
+          // Fallback: try to extract from package name like "1 Interview" or "5 Interviews"
+          const packageMatch = payment.description.match(/(\d+) Interview/)
+          if (packageMatch) {
+            creditsToAdd = parseInt(packageMatch[1])
+            console.log(`Manual payment credit extraction: ${creditsToAdd} credits from "${payment.description}"`)
           }
         }
 
-        if (isCreditPurchase) {
+        if (creditsToAdd > 0) {
           // This is a credit purchase - just add credits to user
           console.log(`Processing credit purchase for user ${payment.userId}: adding ${creditsToAdd} credits`)
           console.log(`Payment description: "${payment.description}"`)
@@ -91,74 +87,9 @@ export async function POST(request: NextRequest) {
             message: 'Credits added successfully'
           })
         } else {
-          // Legacy plan-based logic (keeping for backward compatibility)
-          // Find existing subscription for user
-          const existingSubscription = await db.subscription.findFirst({
-            where: { userId: payment.userId }
-          })
-
-          if (existingSubscription) {
-            // Update existing subscription
-            await db.subscription.update({
-              where: { id: existingSubscription.id },
-              data: {
-                type: payment.planType as any,
-                status: 'ACTIVE',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-                paymentId: payment.id,
-                updatedAt: new Date()
-              }
-            })
-          } else {
-            // Create new subscription
-            await db.subscription.create({
-              data: {
-                userId: payment.userId,
-                type: payment.planType as any,
-                status: 'ACTIVE',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-                paymentId: payment.id
-              }
-            })
-          }
-
-          // Update user's plan and add interview credits
-          const planCredits = {
-            'BASIC': 1,
-            'STANDARD': 5,
-            'PREMIUM': 0 // Premium gets unlimited (no credits system)
-          }
-          
-          const legacyCreditsToAdd = planCredits[payment.planType as keyof typeof planCredits] || 0
-          
-          if (payment.planType === 'PREMIUM') {
-            // Premium subscription - update plan type only
-            await db.user.update({
-              where: { id: payment.userId },
-              data: { planType: payment.planType as any }
-            })
-          } else {
-            // BASIC/STANDARD - add credits
-            await db.user.update({
-              where: { id: payment.userId },
-              data: { 
-                planType: payment.planType as any,
-                interviewCredits: {
-                  increment: legacyCreditsToAdd
-                }
-              }
-            })
-          }
-
-          console.log(`User ${payment.userId} manually upgraded to ${payment.planType} plan`)
-
           return NextResponse.json({
             success: true,
-            planType: payment.planType,
-            creditsAdded: legacyCreditsToAdd,
-            message: 'Payment processed successfully'
+            message: 'Payment processed but no credits could be determined from description'
           })
         }
       } catch (error) {
@@ -167,7 +98,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ error: 'No plan type found for payment' }, { status: 400 })
+    return NextResponse.json({ error: 'No payment description found' }, { status: 400 })
   } catch (error) {
     console.error('Error processing manual payment:', error)
     return NextResponse.json(

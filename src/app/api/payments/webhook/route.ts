@@ -64,17 +64,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // If payment is successful, process credit purchase or legacy plan
-    if (paymentResult.status === 'success' && payment.planType) {
+    // If payment is successful, process credit purchase
+    if (paymentResult.status === 'success') {
       try {
-        // Check if this is a credit purchase by looking at description
-        let isCreditPurchase = false
+        // All payments are now credit purchases - extract credits from description
         let creditsToAdd = 0
         
-        if (payment.description && payment.description.includes('credit purchase')) {
-          isCreditPurchase = true
-          // Extract credits from description like "5 Interviews credit purchase - 5 credits"
-          const match = payment.description.match(/- (\d+) credits/)
+        if (payment.description) {
+          // Try to extract from description like "5 Interviews credit purchase - 5 credits"
+          let match = payment.description.match(/- (\d+) credits/)
           if (match) {
             creditsToAdd = parseInt(match[1])
           } else {
@@ -87,8 +85,8 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        if (isCreditPurchase) {
-          // This is a credit purchase - just add credits to user
+        if (creditsToAdd > 0) {
+          // Add credits to user
           console.log(`Webhook: Processing credit purchase for user ${payment.userId}: adding ${creditsToAdd} credits`)
           console.log(`Webhook: Payment description: "${payment.description}"`)
           
@@ -104,68 +102,7 @@ export async function POST(request: NextRequest) {
 
           console.log(`Webhook: Successfully added ${creditsToAdd} credits to user ${payment.userId} (Clerk ID: ${updatedUser.clerkId}). New balance: ${updatedUser.interviewCredits}`)
         } else {
-          // Legacy plan-based logic (keeping for backward compatibility)
-          // Find existing subscription for user
-          const existingSubscription = await db.subscription.findFirst({
-            where: { userId: payment.userId }
-          })
-
-          if (existingSubscription) {
-            // Update existing subscription
-            await db.subscription.update({
-              where: { id: existingSubscription.id },
-              data: {
-                type: payment.planType as any,
-                status: 'ACTIVE',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-                paymentId: payment.id,
-                updatedAt: new Date()
-              }
-            })
-          } else {
-            // Create new subscription
-            await db.subscription.create({
-              data: {
-                userId: payment.userId,
-                type: payment.planType as any,
-                status: 'ACTIVE',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-                paymentId: payment.id
-              }
-            })
-          }
-
-          // Update user's plan and add interview credits
-          const planCredits = {
-            'BASIC': 1,
-            'STANDARD': 5,
-            'PREMIUM': 0 // Premium gets subscription, not credits
-          }
-          
-          const legacyCreditsToAdd = planCredits[payment.planType as keyof typeof planCredits] || 0
-          
-          if (payment.planType === 'PREMIUM') {
-            // Premium subscription - update plan type only
-            await db.user.update({
-              where: { id: payment.userId },
-              data: { planType: payment.planType as any }
-            })
-          } else {
-            // BASIC/STANDARD - add credits
-            await db.user.update({
-              where: { id: payment.userId },
-              data: { 
-                planType: payment.planType as any,
-                interviewCredits: {
-                  increment: legacyCreditsToAdd
-                }
-              }
-            })
-          }
-
-          console.log(`User ${payment.userId} upgraded to ${payment.planType} plan`)
+          console.warn(`Webhook: Could not determine credits from payment description: "${payment.description}"`)
         }
       } catch (error) {
         console.error('Error processing payment:', error)

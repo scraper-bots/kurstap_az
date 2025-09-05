@@ -22,7 +22,6 @@ model User {
   imageUrl  String?
   
   // User preferences and settings
-  planType SubscriptionType @default(FREE)
   interviewCredits Int @default(0) // Number of interviews user can take
   
   // Timestamps
@@ -136,8 +135,8 @@ model Subscription {
   id        String           @id @default(cuid())
   userId    String
   
-  // Subscription details
-  type      SubscriptionType
+  // Subscription details - DEPRECATED: Moving to credit-only system
+  type      String              @default("CREDIT_BASED") 
   status    SubscriptionStatus @default(ACTIVE)
   
   // Payment provider data
@@ -170,7 +169,6 @@ model Payment {
   
   // Order details
   orderId     String       @unique  // Unique order ID for Epoint
-  planType    SubscriptionType?     // Plan being purchased
   amount      Float                 // Payment amount
   currency    String       @default("AZN")
   description String?
@@ -210,13 +208,6 @@ model Payment {
 }
 
 // Enums
-enum SubscriptionType {
-  FREE
-  BASIC
-  STANDARD  
-  PREMIUM
-}
-
 enum SubscriptionStatus {
   ACTIVE
   CANCELLED

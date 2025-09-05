@@ -68,8 +68,7 @@ export class InterviewService {
               email: '', // Will be updated via webhook later
               firstName: '',
               lastName: '',
-              planType: 'BASIC',
-          interviewCredits: 0,
+              interviewCredits: 0,
               createdAt: new Date(),
             }
           })
@@ -110,22 +109,19 @@ export class InterviewService {
       }
 
       // Check and consume credits before creating interview
-      if (existingUser.planType !== 'PREMIUM') {
-        // For non-premium users, check credits
-        if (existingUser.interviewCredits <= 0) {
-          throw new Error('No interview credits available. Please purchase a plan to continue.')
-        }
-        
-        // Consume one credit
-        await db.user.update({
-          where: { id: existingUser.id },
-          data: {
-            interviewCredits: {
-              decrement: 1
-            }
-          }
-        })
+      if (existingUser.interviewCredits <= 0) {
+        throw new Error('No interview credits available. Please purchase interview credits to continue.')
       }
+      
+      // Consume one credit
+      await db.user.update({
+        where: { id: existingUser.id },
+        data: {
+          interviewCredits: {
+            decrement: 1
+          }
+        }
+      })
 
       // Create interview record
       const interview = await db.interview.create({
@@ -203,8 +199,7 @@ export class InterviewService {
               email: '',
               firstName: '',
               lastName: '',
-              planType: 'BASIC',
-          interviewCredits: 0,
+              interviewCredits: 0,
               createdAt: new Date(),
             }
           })
@@ -456,8 +451,7 @@ export class InterviewService {
               email: '',
               firstName: '',
               lastName: '',
-              planType: 'BASIC',
-          interviewCredits: 0,
+              interviewCredits: 0,
               createdAt: new Date(),
             }
           })
@@ -502,8 +496,7 @@ export class InterviewService {
               email: '',
               firstName: '',
               lastName: '',
-              planType: 'BASIC',
-          interviewCredits: 0,
+              interviewCredits: 0,
               createdAt: new Date(),
             }
           })

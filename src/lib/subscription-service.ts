@@ -32,11 +32,8 @@ export class SubscriptionService {
         }
       })
 
-      // Downgrade user to FREE plan
-      await db.user.update({
-        where: { id: subscription.userId },
-        data: { planType: 'BASIC' }
-      })
+      // User stays on credit system - no plan changes needed
+      console.log(`User ${subscription.userId} subscription expired - now on credit-only system`)
 
       console.log(`Subscription ${subscription.id} expired for user ${subscription.userId}`)
     } catch (error) {
@@ -44,45 +41,9 @@ export class SubscriptionService {
     }
   }
 
-  static async renewSubscription(userId: string, planType: 'PREMIUM') {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      include: { subscriptions: true }
-    })
-
-    if (!user) {
-      throw new Error('User not found')
-    }
-
-    const currentSubscription = user.subscriptions.find(sub => sub.status === 'ACTIVE')
-    
-    if (!currentSubscription) {
-      throw new Error('No active subscription found')
-    }
-
-    // Calculate renewal period
-    const currentPeriodStart = new Date()
-    const currentPeriodEnd = new Date()
-    currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1) // 1 month renewal
-
-    // Update subscription
-    await db.subscription.update({
-      where: { id: currentSubscription.id },
-      data: {
-        type: planType,
-        currentPeriodStart,
-        currentPeriodEnd,
-        updatedAt: new Date()
-      }
-    })
-
-    // Update user subscription
-    await db.user.update({
-      where: { id: userId },
-      data: { planType: planType }
-    })
-
-    return { success: true, currentPeriodEnd }
+  // DEPRECATED: No longer needed in credit-based system
+  static async renewSubscription(userId: string, planType: string) {
+    throw new Error('Subscription renewals are deprecated. Use credit purchases instead.')
   }
 
   static async getSubscriptionStatus(userId: string) {
@@ -108,11 +69,8 @@ export class SubscriptionService {
       new Date(activeSubscription.currentPeriodEnd) < new Date() : false
 
     return {
-      planType: user.planType,
-      status: activeSubscription?.status || 'INACTIVE',
-      currentPeriodStart: activeSubscription?.currentPeriodStart,
-      currentPeriodEnd: activeSubscription?.currentPeriodEnd,
-      isExpired,
+      interviewCredits: user.interviewCredits,
+      status: 'CREDIT_BASED',
       recentPayments: user.payments
     }
   }

@@ -10,7 +10,7 @@ interface PaymentResult {
   sessionId?: string
   amount?: number
   currency?: string
-  planName?: string
+  credits?: number
   error?: string
   subscription?: any
 }
@@ -39,7 +39,7 @@ export default function PaymentResultContent() {
               sessionId,
               amount: paymentData.amount,
               currency: paymentData.currency || 'AZN',
-              planName: paymentData.planName
+              credits: paymentData.credits
             })
           } else {
             // Fallback based on URL params
@@ -218,10 +218,10 @@ export default function PaymentResultContent() {
                     </p>
                   </div>
                 )}
-                {result.planName && (
+                {result.credits && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500">Plan:</span>
-                    <p className="text-sm text-gray-900">{result.planName}</p>
+                    <span className="text-sm font-medium text-gray-500">Credits:</span>
+                    <p className="text-sm text-gray-900">{result.credits} Interview Credits</p>
                   </div>
                 )}
                 <div>
@@ -249,28 +249,18 @@ export default function PaymentResultContent() {
           )}
 
           {/* Subscription Info */}
-          {result.subscription && result.status === 'success' && (
-            <div className="bg-blue-50 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">
-                Your Subscription
+          {result.credits && result.status === 'success' && (
+            <div className="bg-green-50 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-green-900 mb-3">
+                Credits Added Successfully! 🎉
               </h3>
-              <div className="text-left text-blue-800">
-                <p className="mb-2">
-                  <strong>Plan:</strong> {result.subscription.plan?.name}
+              <div className="text-center text-green-800">
+                <p className="text-2xl font-bold mb-2">
+                  {result.credits} Interview Credits
                 </p>
-                <p className="mb-2">
-                  <strong>Status:</strong> {result.subscription.status}
+                <p className="text-sm">
+                  Your credits have been added to your account and are ready to use for interviews.
                 </p>
-                {result.subscription.plan?.features && (
-                  <div className="mt-4">
-                    <p className="font-medium mb-2">Features included:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {result.subscription.plan.features.map((feature: string, index: number) => (
-                        <li key={index}>{feature}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           )}

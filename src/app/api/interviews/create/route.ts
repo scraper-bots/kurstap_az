@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
           email: user.emailAddresses[0]?.emailAddress || '',
           firstName: user.firstName || '',
           lastName: user.lastName || '',
-          planType: 'FREE' as any,
           imageUrl: user.imageUrl || undefined,
           interviewCredits: 0
         },

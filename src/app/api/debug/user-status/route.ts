@@ -33,7 +33,6 @@ export async function GET() {
       user: {
         clerkId: user.clerkId,
         email: user.email,
-        planType: user.planType,
         interviewCredits: user.interviewCredits,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
@@ -41,7 +40,6 @@ export async function GET() {
       payments: user.payments.map(p => ({
         id: p.id,
         orderId: p.orderId,
-        planType: p.planType,
         amount: p.amount,
         status: p.status,
         description: p.description,

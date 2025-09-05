@@ -68,7 +68,7 @@ export async function GET(
       status: paymentResult.status,
       amount: paymentResult.amount,
       currency: 'AZN',
-      planName: otherAttr?.planName,
+      credits: otherAttr?.credits || 1,
       transaction: paymentResult.transaction,
       code: paymentResult.code,
       message: EpointService.getStatusMessage(paymentResult.code),

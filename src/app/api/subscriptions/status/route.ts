@@ -13,7 +13,6 @@ export async function GET() {
     const user = await db.user.findUnique({
       where: { clerkId: userId },
       select: {
-        planType: true,
         interviewCredits: true,
         createdAt: true,
         updatedAt: true
@@ -29,7 +28,7 @@ export async function GET() {
     const canStartInterview = hasCredits
 
     return NextResponse.json({
-      planType: user.planType || 'FREE', // Keep for backward compatibility
+      systemType: 'CREDIT_BASED',
       interviewCredits: user.interviewCredits,
       remainingInterviews: user.interviewCredits, // Alias for compatibility
       hasCredits,

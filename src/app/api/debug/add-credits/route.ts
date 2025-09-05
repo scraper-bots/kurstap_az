@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Added ${creditsToAdd} credits`,
       newBalance: updatedUser.interviewCredits,
-      planType: updatedUser.planType
+      creditsSystem: 'ACTIVE'
     })
   } catch (error) {
     console.error('Error adding credits:', error)
