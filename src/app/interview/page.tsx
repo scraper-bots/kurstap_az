@@ -237,9 +237,9 @@ function InterviewContent() {
     }
 
     // Final fallback: try with local state if available
-    if (state.answers && state.answers.length > 0 && state.position) {
+    if (state.answers && state.answers.length > 0 && state.position && state.startTime) {
       console.log('🔄 Fallback: using local state data')
-      const duration = Math.round((Date.now() - (state.startTime || Date.now())) / 1000 / 60)
+      const duration = Math.round((Date.now() - state.startTime) / 1000 / 60)
       
       try {
         await completeInterview({
@@ -259,36 +259,6 @@ function InterviewContent() {
     // Last resort: show completed state without saving
     console.warn('⚠️ Interview completed but could not save results')
     setState(prev => ({ ...prev, stage: 'completed' }))
-    return
-
-    setState(prev => ({ ...prev, stage: 'loading' }))
-
-    try {
-      const duration = Math.round((Date.now() - state.startTime) / 1000 / 60) // Convert to minutes
-      
-      // Transform local state answers to completion API format
-      const transformedAnswers = state.answers.map((answer: any, index: number) => ({
-        questionId: answer.questionId || (index + 1),
-        question: answer.question || `Question ${index + 1}`,
-        userAnswer: answer.userAnswer || answer.answer || '',
-        category: answer.category || 'General',
-        responseTime: answer.responseTime || 30
-      }))
-      
-      await completeInterview({
-        title: `${state.position} Interview`,
-        company: 'Practice Session',
-        position: state.position,
-        difficulty: state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD',
-        duration,
-        answers: transformedAnswers
-      })
-      
-      // The useInterviewCompletion hook will handle navigation
-    } catch (error) {
-      console.error('Error completing interview:', error)
-      setState(prev => ({ ...prev, stage: 'completed' }))
-    }
   }
 
   if (!user) {
