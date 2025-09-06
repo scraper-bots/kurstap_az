@@ -134,7 +134,7 @@ export function AudioInterview({
       setIsVoiceDetected(false)
       handleSilenceDetected()
     }, SILENCE_THRESHOLD)
-  }, [handleSilenceDetected])
+  }, [])
 
   const handleSilenceDetected = useCallback(async () => {
     const transcript = audioState.pendingTranscript.trim()
@@ -163,7 +163,7 @@ export function AudioInterview({
       console.log('Very short response detected:', transcript)
       await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
     }
-  }, [audioState.pendingTranscript, isProcessingAnswer, handleAnswerSubmit, speakAIResponse])
+  }, [audioState.pendingTranscript, isProcessingAnswer])
 
   const startAudioInterview = async () => {
     try {

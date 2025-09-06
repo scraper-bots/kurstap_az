@@ -38,7 +38,7 @@ export interface InterviewErrorHandling {
   switchMode: (mode: InterviewMode) => Promise<void>
   clearError: () => void
   performHealthCheck: () => Promise<void>
-  getRecoverableSessions: () => Promise<any[]>
+  getRecoverableSessions: () => Promise<Record<string, unknown>[]>
 }
 
 export function useInterviewErrorHandling(
@@ -55,7 +55,7 @@ export function useInterviewErrorHandling(
     suggestedActions: []
   })
 
-  const lastOperationRef = useRef<(() => Promise<any>) | null>(null)
+  const lastOperationRef = useRef<(() => Promise<unknown>) | null>(null)
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize error handling systems
@@ -136,14 +136,14 @@ export function useInterviewErrorHandling(
 
       // Save current operation for potential retry
       if (context?.operation) {
-        lastOperationRef.current = context.operation
+        lastOperationRef.current = context.operation as (() => Promise<unknown>)
       }
 
       // Handle connection-specific errors
       if (isConnectionError(processedError.type)) {
         const recoveryResult = await interviewConnectionManager.handleConnectionFailure(
           processedError.type,
-          context
+          context || {}
         )
 
         if (recoveryResult.recovered) {
@@ -385,6 +385,6 @@ export function withInterviewErrorHandling<T extends object>(
     return React.createElement(WrappedComponent, {
       ...props,
       errorHandling
-    } as any)
+    } as P & { errorHandling: InterviewErrorHandling })
   }
 }

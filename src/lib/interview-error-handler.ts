@@ -67,7 +67,7 @@ export interface InterviewErrorContext {
   sessionId?: string
   userId?: string
   questionIndex?: number
-  stage: 'setup' | 'interview' | 'completion'
+  stage: 'setup' | 'interview' | 'completion' | 'error' | 'completed' | 'paused' | 'loading'
   audioState?: string
   networkInfo?: {
     online: boolean
@@ -94,6 +94,8 @@ export interface RecoveryStrategy {
   fallbackAction?: InterviewRecoveryAction
   userMessage: string
   technicalDetails?: string
+  autoRetry: boolean
+  retryDelayMs: number
 }
 
 class InterviewErrorHandler {
