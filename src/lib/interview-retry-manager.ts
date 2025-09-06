@@ -63,7 +63,7 @@ class CircuitBreaker {
       this.onSuccess(serviceName)
       return result
     } catch (error) {
-      this.onFailure(error, serviceName)
+      this.onFailure(error as Error, serviceName)
       throw error
     }
   }
@@ -138,7 +138,7 @@ class InterviewRetryManager {
       maxDelayMs: 20000,
       backoffFactor: 2.5,
       jitterMs: 300,
-      retryCondition: (error) => error.code !== 'ECONNREFUSED'
+      retryCondition: (error: Error & { code?: string }) => error.code !== 'ECONNREFUSED'
     },
     transcription: {
       maxAttempts: 3,
@@ -146,7 +146,7 @@ class InterviewRetryManager {
       maxDelayMs: 15000,
       backoffFactor: 2,
       jitterMs: 500,
-      retryCondition: (error) => error.status !== 403 // Don't retry permission errors
+      retryCondition: (error: Error & { status?: number }) => error.status !== 403 // Don't retry permission errors
     },
     tts_generation: {
       maxAttempts: 2,
@@ -195,7 +195,7 @@ class InterviewRetryManager {
       } catch (error) {
         return {
           success: false,
-          error,
+          error: error as Error,
           attempts: options.maxAttempts,
           totalTime: Date.now() - startTime
         }
@@ -218,7 +218,7 @@ class InterviewRetryManager {
     options: RetryOptions
   ): Promise<{ success: boolean; data?: T; error?: Error; attempts: number }> {
     let attempts = 0
-    let lastError: Error
+    let lastError: Error = new Error('Operation failed')
 
     while (attempts < options.maxAttempts) {
       attempts++
@@ -228,11 +228,11 @@ class InterviewRetryManager {
         console.log(`✅ Operation succeeded on attempt ${attempts}`)
         return { success: true, data: result, attempts }
       } catch (error) {
-        lastError = error
+        lastError = error as Error
         console.log(`❌ Operation failed on attempt ${attempts}:`, (error as any)?.message || error)
 
         // Check if error should be retried
-        if (options.retryCondition && !options.retryCondition(error)) {
+        if (options.retryCondition && !options.retryCondition(error as Error)) {
           console.log('🚫 Error not retryable, stopping attempts')
           break
         }
@@ -243,7 +243,7 @@ class InterviewRetryManager {
           console.log(`⏳ Waiting ${delay}ms before retry ${attempts + 1}`)
           
           // Call retry callback if provided
-          options.onRetry?.(attempts, error)
+          options.onRetry?.(attempts, error as Error)
           
           await this.sleep(delay)
         }
@@ -272,11 +272,11 @@ class InterviewRetryManager {
   private isRetryableError(error: Error): boolean {
     // Network timeouts and connection errors
     if (error.name === 'TypeError' && error.message.includes('fetch')) return true
-    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return true
+    if ((error as any).code === 'ECONNRESET' || (error as any).code === 'ETIMEDOUT') return true
     
     // HTTP status codes that should be retried
     const retryableStatuses = [408, 429, 502, 503, 504]
-    if (error.status && retryableStatuses.includes(error.status)) return true
+    if ((error as any).status && retryableStatuses.includes((error as any).status)) return true
     
     // Rate limiting
     if (error.message?.includes('rate_limit_exceeded')) return true
@@ -286,7 +286,7 @@ class InterviewRetryManager {
     
     // Don't retry authentication, permission, or validation errors
     const nonRetryableStatuses = [400, 401, 403, 404, 422]
-    if (error.status && nonRetryableStatuses.includes(error.status)) return false
+    if ((error as any).status && nonRetryableStatuses.includes((error as any).status)) return false
     
     return false
   }

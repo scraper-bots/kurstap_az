@@ -114,7 +114,7 @@ export class EpointService {
       }
 
       console.log('Epoint payment payload:', JSON.stringify(payload, null, 2))
-      const response = await this.makeRequest('/request', payload)
+      const response = await this.makeRequest('/request', payload) as EpointPaymentResponse
       
       return {
         status: response.status,
@@ -139,10 +139,10 @@ export class EpointService {
     }
   }
 
-  private static isRetryableError(error: unknown): boolean {
+  private static isRetryableError(error: unknown): error is { code: string } {
     // Network errors that should be retried
     const retryableErrors = ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'ETIMEDOUT']
-    return error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && retryableErrors.includes(error.code)
+    return !!(error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && retryableErrors.includes(error.code))
   }
 
   private static delay(ms: number): Promise<void> {

@@ -336,7 +336,10 @@ export class DailyAudioService {
 
     this.callObject.on('error', (error) => {
       console.error('Daily.co error:', error)
-      this.onCallError?.(error)
+      // Convert Daily error to proper Error object
+      const errorObj = new Error(error.errorMsg || 'Daily.co error occurred')
+      errorObj.name = 'DailyError'
+      this.onCallError?.(errorObj)
     })
 
     this.callObject.on('track-started', (event: DailyEventObjectTrack) => {

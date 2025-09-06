@@ -6,7 +6,7 @@ import { InterviewQuestion, InterviewAnswer } from '@/types/common'
 
 export type { InterviewQuestion } from '@/types/common'
 
-export interface InterviewAnswerWithScore extends InterviewAnswer {
+export interface InterviewAnswerWithScore extends Omit<InterviewAnswer, 'score'> {
   score?: {
     technicalAccuracy: number
     communicationClarity: number
@@ -207,7 +207,7 @@ export class InterviewService {
         throw new Error('Session not found')
       }
 
-      const sessionData = session.feedback as InterviewSessionData
+      const sessionData = session.feedback as unknown as InterviewSessionData
       const currentQuestion = sessionData.questions[sessionData.currentQuestionIndex]
       
       if (!currentQuestion) {
@@ -223,9 +223,10 @@ export class InterviewService {
       if (skipQuestion) {
         // Skipping question - record it as skipped and move to next question
         const answerRecord: InterviewAnswerWithScore = {
-          questionId: currentQuestion.id,
+          questionId: currentQuestion.id || sessionData.currentQuestionIndex,
           question: currentQuestion.question,
-          answer: 'SKIPPED',
+          userAnswer: 'SKIPPED',
+          category: currentQuestion.category || 'general',
           timestamp: new Date().toISOString(),
           followUpQuestion: currentQuestion.followUp,
           followUpAnswer: 'SKIPPED'
@@ -240,9 +241,10 @@ export class InterviewService {
       } else if (sessionData.currentStage === 'question') {
         // First answer to main question - ask follow-up
         const answerRecord: InterviewAnswerWithScore = {
-          questionId: currentQuestion.id,
+          questionId: currentQuestion.id || sessionData.currentQuestionIndex,
           question: currentQuestion.question,
-          answer,
+          userAnswer: answer,
+          category: currentQuestion.category || 'general',
           timestamp: new Date().toISOString()
         }
         updatedAnswers.push(answerRecord)
@@ -300,7 +302,7 @@ export class InterviewService {
             const question = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
             return {
               question: answer.question,
-              answer: answer.answer,
+              answer: answer.userAnswer,
               followUpQuestion: answer.followUpQuestion,
               followUpAnswer: answer.followUpAnswer,
               category: question?.category || 'general',
@@ -338,7 +340,7 @@ export class InterviewService {
       await db.session.update({
         where: { id: sessionId },
         data: {
-          feedback: updatedSessionData,
+          feedback: updatedSessionData as any,
           status: updatedSessionData.status,
           score: updatedSessionData.overallScore,
           completedAt: nextAction === 'completed' ? new Date() : null
@@ -367,7 +369,7 @@ export class InterviewService {
             return {
               questionId: index + 1,
               question: answer.question,
-              userAnswer: answer.answer + (answer.followUpAnswer ? `\n\nFollow-up: ${answer.followUpAnswer}` : ''),
+              userAnswer: answer.userAnswer + (answer.followUpAnswer ? `\n\nFollow-up: ${answer.followUpAnswer}` : ''),
               idealAnswer: `A comprehensive answer should demonstrate relevant experience, specific examples, and clear communication.`,
               score: answer.score?.overallScore || 75, // Use existing score or default
               strengths: answer.score?.feedback ? [answer.score.feedback] : ['Clear communication'],

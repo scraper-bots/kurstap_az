@@ -33,9 +33,9 @@ export class SubscriptionService {
       })
 
       // User stays on credit system - no plan changes needed
-      console.log(`User ${subscription.userId} subscription expired - now on credit-only system`)
+      console.log(`User ${subscription.user.id} subscription expired - now on credit-only system`)
 
-      console.log(`Subscription ${subscription.id} expired for user ${subscription.userId}`)
+      console.log(`Subscription ${subscription.id} expired for user ${subscription.user.id}`)
     } catch (error) {
       console.error('Error handling expired subscription:', error)
     }

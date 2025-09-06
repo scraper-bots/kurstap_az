@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   InterviewError, 
   InterviewErrorType,
+  RecoveryStrategy,
   interviewErrorHandler 
 } from '@/lib/interview-error-handler'
 import { 
@@ -18,6 +19,7 @@ import {
 } from '@/lib/interview-connection-manager'
 // Import removed to fix lint error - interviewRetryManager not used in this file
 import { 
+  InterviewState,
   interviewStateManager
 } from '@/lib/interview-state-manager'
 
@@ -38,7 +40,7 @@ export interface InterviewErrorHandling {
   switchMode: (mode: InterviewMode) => Promise<void>
   clearError: () => void
   performHealthCheck: () => Promise<void>
-  getRecoverableSessions: () => Promise<Record<string, unknown>[]>
+  getRecoverableSessions: () => Promise<InterviewState[]>
 }
 
 export function useInterviewErrorHandling(
@@ -177,7 +179,7 @@ export function useInterviewErrorHandling(
     } catch (handlingError) {
       console.error('Error in error handler:', handlingError)
     }
-  }, [sessionId, userId, scheduleAutoRetry])
+  }, [sessionId, userId])
 
   // Retry last operation
   const retryLastOperation = useCallback(async () => {
@@ -284,13 +286,13 @@ export function useInterviewErrorHandling(
     ].includes(errorType)
   }
 
-  const shouldAutoRetry = (error: InterviewError, strategy: { autoRetry: boolean }): boolean => {
+  const shouldAutoRetry = (error: InterviewError, strategy: RecoveryStrategy): boolean => {
     return strategy.action === 'RETRY_WITH_BACKOFF' && 
            error.retryCount < strategy.maxRetries &&
            error.userImpact !== 'critical'
   }
 
-  const scheduleAutoRetry = async (error: InterviewError, strategy: { retryDelayMs: number }): Promise<void> => {
+  const scheduleAutoRetry = async (error: InterviewError, strategy: RecoveryStrategy): Promise<void> => {
     const delay = Math.min(strategy.backoffMs * Math.pow(2, error.retryCount), 30000)
     
     console.log(`⏳ Scheduling auto-retry in ${delay}ms`)
@@ -385,6 +387,6 @@ export function withInterviewErrorHandling<T extends object>(
     return React.createElement(WrappedComponent, {
       ...props,
       errorHandling
-    } as P & { errorHandling: InterviewErrorHandling })
+    } as T & { errorHandling: InterviewErrorHandling })
   }
 }

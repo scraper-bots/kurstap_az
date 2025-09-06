@@ -193,7 +193,9 @@ class InterviewErrorHandler {
         backoffMs: 2000,
         fallbackAction: InterviewRecoveryAction.SAVE_AND_RESUME,
         userMessage: "Network connection issue. Retrying...",
-        technicalDetails: "Request timed out, implementing exponential backoff"
+        technicalDetails: "Request timed out, implementing exponential backoff",
+        autoRetry: true,
+        retryDelayMs: 2000
       },
       
       [InterviewErrorType.CONNECTION_LOST]: {
@@ -202,7 +204,9 @@ class InterviewErrorHandler {
         backoffMs: 1000,
         fallbackAction: InterviewRecoveryAction.FALLBACK_TO_TEXT,
         userMessage: "Connection lost. Your progress has been saved. Attempting to reconnect...",
-        technicalDetails: "WebSocket/HTTP connection dropped"
+        technicalDetails: "WebSocket/HTTP connection dropped",
+        autoRetry: true,
+        retryDelayMs: 1000
       },
       
       [InterviewErrorType.MICROPHONE_ACCESS_DENIED]: {
@@ -211,7 +215,9 @@ class InterviewErrorHandler {
         backoffMs: 0,
         fallbackAction: InterviewRecoveryAction.FALLBACK_TO_TEXT,
         userMessage: "Microphone access is needed for voice interviews. You can continue with text input.",
-        technicalDetails: "MediaDevices.getUserMedia() permission denied"
+        technicalDetails: "MediaDevices.getUserMedia() permission denied",
+        autoRetry: false,
+        retryDelayMs: 0
       },
       
       [InterviewErrorType.WEBRTC_CONNECTION_FAILED]: {
@@ -220,7 +226,9 @@ class InterviewErrorHandler {
         backoffMs: 3000,
         fallbackAction: InterviewRecoveryAction.FALLBACK_TO_TEXT,
         userMessage: "Audio connection failed. Switching to text mode...",
-        technicalDetails: "WebRTC peer connection establishment failed"
+        technicalDetails: "WebRTC peer connection establishment failed",
+        autoRetry: true,
+        retryDelayMs: 3000
       },
       
       [InterviewErrorType.SPEECH_RECOGNITION_FAILED]: {
@@ -229,7 +237,9 @@ class InterviewErrorHandler {
         backoffMs: 1000,
         fallbackAction: InterviewRecoveryAction.FALLBACK_TO_TEXT,
         userMessage: "Could not process your voice. Please try speaking again or use text input.",
-        technicalDetails: "Speech-to-text service error"
+        technicalDetails: "Speech-to-text service error",
+        autoRetry: false,
+        retryDelayMs: 1000
       },
       
       [InterviewErrorType.RATE_LIMITED]: {
@@ -238,7 +248,9 @@ class InterviewErrorHandler {
         backoffMs: 5000,
         fallbackAction: InterviewRecoveryAction.GRACEFUL_DEGRADATION,
         userMessage: "Service temporarily busy. Please wait a moment...",
-        technicalDetails: "API rate limit exceeded, implementing backoff"
+        technicalDetails: "API rate limit exceeded, implementing backoff",
+        autoRetry: true,
+        retryDelayMs: 5000
       },
       
       [InterviewErrorType.SESSION_EXPIRED]: {
@@ -246,7 +258,9 @@ class InterviewErrorHandler {
         maxRetries: 1,
         backoffMs: 0,
         userMessage: "Your session has expired. Saving progress and creating new session...",
-        technicalDetails: "Authentication token expired"
+        technicalDetails: "Authentication token expired",
+        autoRetry: false,
+        retryDelayMs: 0
       },
       
       [InterviewErrorType.TTS_SERVICE_ERROR]: {
@@ -254,7 +268,9 @@ class InterviewErrorHandler {
         maxRetries: 2,
         backoffMs: 2000,
         userMessage: "Voice playback unavailable. Questions will be shown as text.",
-        technicalDetails: "Text-to-speech service failure"
+        technicalDetails: "Text-to-speech service failure",
+        autoRetry: true,
+        retryDelayMs: 2000
       },
       
       [InterviewErrorType.DATABASE_ERROR]: {
@@ -263,7 +279,9 @@ class InterviewErrorHandler {
         backoffMs: 2000,
         fallbackAction: InterviewRecoveryAction.SAVE_AND_RESUME,
         userMessage: "Data save error. Retrying...",
-        technicalDetails: "Database connection or query failure"
+        technicalDetails: "Database connection or query failure",
+        autoRetry: true,
+        retryDelayMs: 2000
       },
       
       [InterviewErrorType.USER_NAVIGATION]: {
@@ -271,7 +289,9 @@ class InterviewErrorHandler {
         maxRetries: 0,
         backoffMs: 0,
         userMessage: "Interview paused. You can resume from where you left off.",
-        technicalDetails: "User navigated away from interview"
+        technicalDetails: "User navigated away from interview",
+        autoRetry: false,
+        retryDelayMs: 0
       },
       
       [InterviewErrorType.DEVICE_SLEEP]: {
@@ -279,7 +299,9 @@ class InterviewErrorHandler {
         maxRetries: 1,
         backoffMs: 0,
         userMessage: "Interview paused due to device sleep. Tap to continue.",
-        technicalDetails: "Device entered sleep/lock state"
+        technicalDetails: "Device entered sleep/lock state",
+        autoRetry: false,
+        retryDelayMs: 0
       },
       
       // Default strategy for unhandled errors
@@ -289,7 +311,9 @@ class InterviewErrorHandler {
         backoffMs: 1000,
         fallbackAction: InterviewRecoveryAction.SAVE_AND_RESUME,
         userMessage: "An unexpected error occurred. Attempting to recover...",
-        technicalDetails: "Unhandled exception"
+        technicalDetails: "Unhandled exception",
+        autoRetry: false,
+        retryDelayMs: 1000
       }
     }
 

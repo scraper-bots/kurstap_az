@@ -359,8 +359,9 @@ class InterviewConnectionManager {
     try {
       return await interviewRetryManager.retryAudioOperation(async () => {
         // Attempt to re-establish audio connection
-        if (context?.audioService?.reconnect) {
-          await context.audioService.reconnect()
+        const audioService = context?.audioService as { reconnect?: () => Promise<void> } | undefined
+        if (audioService?.reconnect) {
+          await audioService.reconnect()
           return true
         }
         throw new Error('No reconnection method available')
@@ -485,7 +486,7 @@ class InterviewConnectionManager {
     const connectionEvent: ConnectionEvent = {
       type: event as any,
       timestamp: new Date(),
-      metadata: data
+      metadata: data as Record<string, unknown> | undefined
     }
     
     this.connectionEvents.push(connectionEvent)
