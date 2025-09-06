@@ -16,7 +16,7 @@ export async function GET(): Promise<NextResponse> {
   // This is likely a browser navigation, provide helpful info
   return NextResponse.json({
     service: 'Bir Guru Text-to-Speech API',
-    description: 'Converts text to natural speech using ElevenLabs for audio interviews',
+    description: 'Converts text to natural speech using OpenAI TTS for audio interviews',
     usage: {
       method: 'POST',
       endpoint: '/api/interview/speak',
@@ -46,8 +46,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     timestamp: new Date().toISOString(),
     userId: 'unknown',
     textLength: 0,
-    hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
-    keyLength: process.env.ELEVENLABS_API_KEY?.length || 0,
+    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+    keyLength: process.env.OPENAI_API_KEY?.length || 0,
     environment: process.env.NODE_ENV || 'unknown',
     requestMethod: req.method,
     requestUrl: req.url,
@@ -83,19 +83,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     logContext.textLength = text.length
     console.log('✅ [TTS API] Text received', logContext)
 
-    // Validate text length (ElevenLabs has limits)
-    if (text.length > 5000) {
+    // Validate text length (OpenAI TTS has limits)
+    if (text.length > 4096) {
       console.error('❌ [TTS API] Text too long', logContext)
       return NextResponse.json({
         success: false,
-        error: 'Text too long (max 5000 characters)'
+        error: 'Text too long (max 4096 characters)'
       }, { status: 400 })
     }
 
-    if (!process.env.ELEVENLABS_API_KEY) {
-      console.error('❌ [TTS API] ElevenLabs API key not configured', {
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ [TTS API] OpenAI API key not configured', {
         ...logContext,
-        availableEnvVars: Object.keys(process.env).filter(k => k.includes('ELEVEN')),
+        availableEnvVars: Object.keys(process.env).filter(k => k.includes('OPENAI')),
         nodeEnv: process.env.NODE_ENV,
         isProduction: process.env.NODE_ENV === 'production'
       })
@@ -112,50 +112,46 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`Generating speech for text: "${text.slice(0, 100)}${text.length > 100 ? '...' : ''}"`)
 
-    // Generate speech with ElevenLabs
-    const elevenlabsResponse = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+    // Generate speech with OpenAI TTS
+    const openaiResponse = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': process.env.ELEVENLABS_API_KEY
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        text: text.trim(),
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5,
-          style: 0.2, // Slight style for more natural speech
-          use_speaker_boost: true
-        }
+        model: 'tts-1',
+        input: text.trim(),
+        voice: 'alloy',
+        response_format: 'mp3',
+        speed: 1.0
       })
     })
 
-    if (!elevenlabsResponse.ok) {
-      const errorText = await elevenlabsResponse.text()
-      console.error('❌ [TTS API] ElevenLabs API error', {
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text()
+      console.error('❌ [TTS API] OpenAI API error', {
         ...logContext,
-        status: elevenlabsResponse.status,
-        statusText: elevenlabsResponse.statusText,
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
         errorText: errorText.substring(0, 200)
       })
       
-      if (elevenlabsResponse.status === 429) {
+      if (openaiResponse.status === 429) {
         return NextResponse.json({
           success: false,
           error: 'Speech service rate limited. Please wait a moment before trying again.'
         }, { status: 429 })
       }
       
-      if (elevenlabsResponse.status === 401) {
+      if (openaiResponse.status === 401) {
         return NextResponse.json({
           success: false,
           error: 'Speech service authentication failed'
         }, { status: 503 })
       }
       
-      if (elevenlabsResponse.status >= 500) {
+      if (openaiResponse.status >= 500) {
         return NextResponse.json({
           success: false,
           error: 'Speech service temporarily unavailable'
@@ -169,7 +165,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Get the audio data
-    const audioBuffer = await elevenlabsResponse.arrayBuffer()
+    const audioBuffer = await openaiResponse.arrayBuffer()
     
     console.log('✅ [TTS API] Generated speech audio successfully', {
       ...logContext,
@@ -219,7 +215,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         timestamp: new Date().toISOString(),
         userId: logContext.userId,
         textLength: logContext.textLength,
-        hasElevenLabsKey: logContext.hasElevenLabsKey,
+        hasOpenAIKey: logContext.hasOpenAIKey,
         errorType: error instanceof Error ? error.constructor.name : typeof error
       }
     }, { status: 500 })
