@@ -229,15 +229,21 @@ function InterviewContent() {
               duration
             })
             
-            await completeInterview({
-              title: `${state.position || 'Interview'}`,
-              company: 'Practice Session', 
-              position: state.position || 'General Position',
-              difficulty: (state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD') || 'MEDIUM',
-              duration,
-              answers: transformedAnswers
-            })
-            return
+            try {
+              await completeInterview({
+                title: `${state.position || 'Interview'}`,
+                company: 'Practice Session', 
+                position: state.position || 'General Position',
+                difficulty: (state.difficulty?.toUpperCase() as 'EASY' | 'MEDIUM' | 'HARD') || 'MEDIUM',
+                duration,
+                answers: transformedAnswers
+              })
+              console.log('✅ Interview completion successful')
+              return
+            } catch (completionError) {
+              console.error('❌ Interview completion failed:', completionError)
+              // Fall through to next completion attempt
+            }
           } else {
             console.warn('⚠️ No answers found in session data')
           }
@@ -260,9 +266,12 @@ function InterviewContent() {
           duration,
           answers: state.answers
         })
+        console.log('✅ Fallback completion successful')
         return
       } catch (error) {
         console.error('❌ Fallback completion failed:', error)
+        // Show user-friendly message and set completed state
+        alert('Interview completed! There was a technical issue saving the detailed results, but your responses have been recorded. Please check your interview history.')
       }
     }
 

@@ -62,6 +62,13 @@ export function useInterviewCompletion() {
         score: Math.round(overallScore)
       }
 
+      console.log('💾 Calling completion API with data:', {
+        answers: processedAnswers.length,
+        position: interviewData.position,
+        duration: interviewData.duration,
+        score: interviewData.score
+      })
+
       const response = await fetch('/api/interviews/complete', {
         method: 'POST',
         headers: {
@@ -73,13 +80,28 @@ export function useInterviewCompletion() {
         })
       })
 
+      console.log('📡 Completion API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+
       if (!response.ok) {
-        throw new Error('Failed to save interview data')
+        const errorText = await response.text()
+        console.error('❌ Completion API error:', errorText)
+        throw new Error(`Failed to save interview data: ${response.status} - ${errorText}`)
       }
 
       const result = await response.json()
+      console.log('✅ Completion API result:', result)
+      
+      if (!result.success || !result.interviewId) {
+        console.error('❌ Invalid completion response:', result)
+        throw new Error('Invalid response from completion API')
+      }
       
       // Redirect to the interview detail page
+      console.log('🔄 Redirecting to:', `/interviews/${result.interviewId}`)
       router.push(`/interviews/${result.interviewId}`)
       
       return result
