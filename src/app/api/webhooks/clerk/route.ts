@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       'svix-id': svix_id,
       'svix-timestamp': svix_timestamp,
       'svix-signature': svix_signature,
-    })
+    }) as unknown as { type: string; data: Record<string, unknown> }
   } catch (err) {
     console.error('Error verifying webhook:', err)
     return new NextResponse('Error occured', {
@@ -59,13 +59,13 @@ export async function POST(req: NextRequest) {
   try {
     switch (eventType) {
       case 'user.created':
-        await handleUserCreated(evt.data)
+        await handleUserCreated(evt.data as { id: string; email_addresses: Array<{ email_address: string }>; first_name?: string; last_name?: string; image_url?: string })
         break
       case 'user.updated':
-        await handleUserUpdated(evt.data)
+        await handleUserUpdated(evt.data as { id: string; email_addresses: Array<{ email_address: string }>; first_name?: string; last_name?: string; image_url?: string })
         break
       case 'user.deleted':
-        await handleUserDeleted(evt.data)
+        await handleUserDeleted(evt.data as { id: string })
         break
       default:
         console.log('Unhandled webhook event:', eventType)

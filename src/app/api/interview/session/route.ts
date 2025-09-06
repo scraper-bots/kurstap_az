@@ -71,7 +71,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
       
       if (sessionData.currentStage === 'question') {
         currentQuestion = {
-          id: currentQ.id,
+          id: currentQ.id || '',
           question: currentQ.question,
           category: currentQ.category,
           difficulty: currentQ.difficulty,
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
         currentStage: sessionData.currentStage,
         currentQuestion,
         followUpQuestion,
-        answers: sessionData.answers,
+        answers: sessionData.answers as unknown as Array<Record<string, unknown>>,
         questions: sessionData.questions, // Include full questions array for category mapping
         progress: {
           current: sessionData.currentQuestionIndex + 1,

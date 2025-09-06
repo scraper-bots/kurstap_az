@@ -89,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Filter by difficulty if not mixed
     if (difficulty !== 'mixed') {
-      const filterByDifficulty = (questions: Array<{ difficulty: string }>) => 
+      const filterByDifficulty = <T extends { difficulty: string }>(questions: T[]): T[] => 
         questions.filter(q => q.difficulty === difficulty)
 
       filteredQuestionSet = {

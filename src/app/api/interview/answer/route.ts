@@ -165,7 +165,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
         const questionIndex = sessionData.currentQuestionIndex
         if (sessionData.questions && sessionData.questions[questionIndex]) {
           currentQuestion = {
-            id: sessionData.questions[questionIndex].id,
+            id: sessionData.questions[questionIndex].id || '',
             question: sessionData.questions[questionIndex].question,
             category: sessionData.questions[questionIndex].category,
             difficulty: sessionData.questions[questionIndex].difficulty,
@@ -188,7 +188,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
         if (sessionData.questions && sessionData.questions[questionIndex]) {
           const currentQ = sessionData.questions[questionIndex]
           currentQuestion = {
-            id: currentQ.id,
+            id: currentQ.id || '',
             question: currentQ.question,
             category: currentQ.category,
             difficulty: currentQ.difficulty,
@@ -236,9 +236,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
         overallScore: sessionData?.overallScore,
         sessionId: sessionData?.id || sessionId,
         // Include evaluation data when completed
-        ...(nextAction === 'completed' && result.finalEvaluation && {
+        ...(nextAction === 'completed' && result.finalEvaluation ? {
           finalEvaluation: result.finalEvaluation
-        })
+        } : {})
       }
     }
 

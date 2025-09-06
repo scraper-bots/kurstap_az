@@ -74,7 +74,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<StartIntervie
         interviewId: sessionData.interviewId,
         position: sessionData.position,
         currentQuestion: {
-          id: currentQuestion.id,
+          id: currentQuestion.id || '',
           question: currentQuestion.question,
           category: currentQuestion.category,
           difficulty: currentQuestion.difficulty,

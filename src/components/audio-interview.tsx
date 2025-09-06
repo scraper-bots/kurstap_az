@@ -89,7 +89,7 @@ export function AudioInterview({
       console.error('Daily.co call error:', error)
       setAudioState(prev => ({ 
         ...prev, 
-        error: `Call error: ${error.errorMsg || error.message || 'Unknown error'}`,
+        error: `Call error: ${error.message || 'Unknown error'}`,
         isCallActive: 'error'
       }))
     }
@@ -108,7 +108,7 @@ export function AudioInterview({
         recordingTimeout.current = null
       }
     }
-  }, [handleTranscriptReceived])
+  }, [])
 
   const handleTranscriptReceived = useCallback((transcript: string) => {
     console.log('Transcript received:', transcript)

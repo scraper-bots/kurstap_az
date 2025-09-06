@@ -84,7 +84,7 @@ function InterviewContent() {
         }
       }, 1000)
     }
-  }, [searchParams, position, startInterview])
+  }, [searchParams, position])
 
   const startInterview = async () => {
     if (!position.trim()) return
