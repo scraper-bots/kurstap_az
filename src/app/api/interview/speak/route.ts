@@ -42,27 +42,46 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const logContext = {
+    timestamp: new Date().toISOString(),
+    userId: 'unknown',
+    textLength: 0,
+    hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
+    keyLength: process.env.ELEVENLABS_API_KEY?.length || 0
+  }
+
   try {
+    console.log('🗣️ [TTS API] Starting speech synthesis request', logContext)
+
     // Check authentication
     const { userId } = await auth()
     if (!userId) {
+      console.error('❌ [TTS API] Authentication failed - no userId', logContext)
       return NextResponse.json({
         success: false,
         error: 'Unauthorized'
       }, { status: 401 })
     }
 
+    logContext.userId = userId
+    console.log('✅ [TTS API] Authentication successful', logContext)
+
     const { text } = await req.json()
     
     if (!text || text.trim().length === 0) {
+      console.error('❌ [TTS API] No text provided', logContext)
       return NextResponse.json({
         success: false,
         error: 'No text provided for speech synthesis'
       }, { status: 400 })
     }
 
+    logContext.textLength = text.length
+    console.log('✅ [TTS API] Text received', logContext)
+
     // Validate text length (ElevenLabs has limits)
     if (text.length > 5000) {
+      console.error('❌ [TTS API] Text too long', logContext)
       return NextResponse.json({
         success: false,
         error: 'Text too long (max 5000 characters)'
@@ -70,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!process.env.ELEVENLABS_API_KEY) {
-      console.warn('ElevenLabs API key not configured, returning text-only response')
+      console.error('❌ [TTS API] ElevenLabs API key not configured', logContext)
       return NextResponse.json({
         success: false,
         error: 'Speech synthesis not configured'
@@ -132,7 +151,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })
 
   } catch (error) {
-    console.error('Error generating speech:', error)
+    console.error('❌ [TTS API] Error generating speech', {
+      ...logContext,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      errorType: typeof error,
+      errorConstructor: error?.constructor?.name
+    })
     
     // Handle specific errors
     if (error instanceof Error) {
@@ -153,7 +178,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: false,
-      error: 'Failed to generate speech'
+      error: 'Failed to generate speech',
+      diagnostic: {
+        timestamp: new Date().toISOString(),
+        userId: logContext.userId,
+        textLength: logContext.textLength,
+        hasElevenLabsKey: logContext.hasElevenLabsKey,
+        errorType: error instanceof Error ? error.constructor.name : typeof error
+      }
     }, { status: 500 })
   }
 }

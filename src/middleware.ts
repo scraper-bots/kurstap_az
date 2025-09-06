@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/users/credits(.*)', // Public user credits API
   '/api/payments(.*)', // Public payment APIs
   '/api/health(.*)', // Public health check APIs
+  '/api/debug(.*)', // Debug APIs (development only)
   '/manifest.json', // PWA manifest
   '/about(.*)', // Public about page
   '/terms(.*)', // Public terms page

@@ -60,10 +60,12 @@ export function AudioInterview({
   const [, setLastSpeechTime] = useState(0)
   const silenceTimer = useRef<NodeJS.Timeout | null>(null)
   const recordingTimeout = useRef<NodeJS.Timeout | null>(null)
+  const aiSpeechEndTime = useRef<number>(0)
 
   // Auto-answer when user stops speaking
   const SILENCE_THRESHOLD = 2000 // 2 seconds of silence
   const MAX_RECORDING_TIME = 30000 // 30 seconds max per answer
+  const AI_SPEECH_BUFFER = 3000 // 3 seconds buffer after AI finishes speaking
 
   useEffect(() => {
     // Initialize Daily.co service
@@ -138,11 +140,21 @@ export function AudioInterview({
 
   const handleSilenceDetected = useCallback(async () => {
     const transcript = audioState.pendingTranscript.trim()
+    const timeSinceAiSpoke = Date.now() - aiSpeechEndTime.current
     
-    // Handle empty or very short responses
+    // Don't process silence too soon after AI finishes speaking
+    if (timeSinceAiSpoke < AI_SPEECH_BUFFER) {
+      console.log('Ignoring silence detection - too soon after AI speech', timeSinceAiSpoke)
+      return
+    }
+    
+    // Handle empty or very short responses only if we're actively recording
     if (transcript.length === 0) {
-      console.log('No speech detected during recording period')
-      await speakAIResponse("I didn't hear any response. Would you like me to repeat the question, or would you prefer to skip to the next question?")
+      // Only prompt if user was actively recording (not just after AI speech)
+      if (audioState.isRecording) {
+        console.log('No speech detected during active recording period')
+        await speakAIResponse("I didn't hear any response. Would you like me to repeat the question, or would you prefer to skip to the next question?")
+      }
       return
     }
     
@@ -163,7 +175,7 @@ export function AudioInterview({
       console.log('Very short response detected:', transcript)
       await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
     }
-  }, [audioState.pendingTranscript, isProcessingAnswer])
+  }, [audioState.pendingTranscript, audioState.isRecording, isProcessingAnswer])
 
   const startAudioInterview = async () => {
     try {
@@ -198,6 +210,9 @@ export function AudioInterview({
         pendingTranscript: '',
         currentTranscript: ''
       }))
+
+      // Reset AI speech timer when user starts recording - this shows intent to respond
+      aiSpeechEndTime.current = 0
 
       // Set maximum recording time limit
       recordingTimeout.current = setTimeout(() => {
@@ -317,11 +332,18 @@ export function AudioInterview({
       console.log('🗣️ Speaking:', text.substring(0, 100) + '...')
       await dailyAudioService.playAIResponse(text)
       console.log('✅ Speech completed')
+      
+      // Mark when AI finishes speaking to prevent immediate silence detection
+      aiSpeechEndTime.current = Date.now()
+      
     } catch (error) {
       console.error('Error playing AI response:', error)
       // Fallback: display text if TTS fails, but clear it after a few seconds
       console.log('📝 TTS failed, displaying text fallback:', text.substring(0, 100) + '...')
       setAudioState(prev => ({ ...prev, error: text }))
+      
+      // Mark speech end time even on TTS failure
+      aiSpeechEndTime.current = Date.now()
       
       // Clear the error after 5 seconds to keep interface clean
       setTimeout(() => {
