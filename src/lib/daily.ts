@@ -228,37 +228,71 @@ export class DailyAudioService {
   }
 
   /**
-   * Play AI response using text-to-speech
+   * Play AI response using text-to-speech with retry logic
    */
-  async playAIResponse(text: string): Promise<void> {
+  async playAIResponse(text: string, retryCount: number = 0): Promise<void> {
+    const maxRetries = 2
+    
     try {
       console.log('Sending text to speak API:', { text: text.slice(0, 100) + '...' })
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
       
       const response = await fetch('/api/interview/speak', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text }),
+        signal: controller.signal
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        throw new Error(`TTS failed: ${response.statusText}`)
+        throw new Error(`TTS failed: ${response.status} ${response.statusText}`)
       }
 
       const audioBuffer = await response.arrayBuffer()
+      
+      // Ensure we have valid audio data
+      if (audioBuffer.byteLength === 0) {
+        throw new Error('Received empty audio buffer')
+      }
+      
       const audioContext = new AudioContext()
       const audioBufferSource = audioContext.createBufferSource()
       
       const decodedBuffer = await audioContext.decodeAudioData(audioBuffer)
       audioBufferSource.buffer = decodedBuffer
       audioBufferSource.connect(audioContext.destination)
-      audioBufferSource.start()
       
-      console.log('Playing AI response')
+      // Return promise that resolves when audio finishes
+      return new Promise<void>((resolve, reject) => {
+        audioBufferSource.onended = () => resolve()
+        audioBufferSource.onerror = (error) => reject(error)
+        audioBufferSource.start()
+      })
+      
     } catch (error) {
-      console.error('Error playing AI response:', error)
-      throw new Error('Failed to play AI response')
+      console.error(`Error playing AI response (attempt ${retryCount + 1}):`, error)
+      
+      // Retry on network errors
+      if (retryCount < maxRetries && (
+        error instanceof Error && (
+          error.name === 'AbortError' ||
+          error.message.includes('fetch') ||
+          error.message.includes('network') ||
+          error.message.includes('HTTP2_PING_FAILED')
+        )
+      )) {
+        console.log(`Retrying TTS in ${(retryCount + 1) * 1000}ms...`)
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000))
+        return this.playAIResponse(text, retryCount + 1)
+      }
+      
+      throw error
     }
   }
 

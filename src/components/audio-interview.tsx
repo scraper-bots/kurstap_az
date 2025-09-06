@@ -146,10 +146,13 @@ export function AudioInterview({
       return
     }
     
-    // Filter out music notes and very short responses
-    if (transcript === '🎶' || transcript.length < 3) {
-      console.log('Detected background noise or very short response:', transcript)
-      await speakAIResponse("I detected some audio but couldn't understand your response clearly. Could you please try speaking again?")
+    // Filter out music notes, repeated words, and audio artifacts
+    const isRepeatedWord = /(\b\w+\b)(\s+\1){3,}/.test(transcript) // Detects repeated words like "difficult difficult difficult"
+    const isAudioArtifact = transcript === '🎶' || transcript.includes('What? What? What?') || transcript.length < 3
+    
+    if (isAudioArtifact || isRepeatedWord) {
+      console.log('Detected audio artifact or feedback:', transcript.substring(0, 50) + '...')
+      // Don't provide feedback for obvious audio artifacts to avoid more TTS
       return
     }
     
@@ -244,12 +247,20 @@ export function AudioInterview({
 
         if (result.data?.nextAction === 'follow-up' && result.data?.followUpQuestion) {
           // Ask follow-up question
+          console.log('➡️ Moving to follow-up question')
           await speakAIResponse(result.data.followUpQuestion)
         } else if (result.data?.nextAction === 'next-question' && result.data?.currentQuestion) {
           // Move to next question
+          console.log('➡️ Moving to next question:', result.data.currentQuestion.id)
           setCurrentQuestion(result.data.currentQuestion)
           setProgress(result.data.progress?.current || progress + 1)
-          await speakAIResponse(`Next question: ${result.data.currentQuestion.question}`)
+          
+          // Clear any queued messages and errors before speaking next question
+          speechQueue.current = []
+          setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
+          
+          // Don't prefix with "Next question:" to avoid confusion
+          await speakAIResponse(result.data.currentQuestion.question)
         }
       } else {
         console.error('Answer submission failed:', result)
@@ -292,17 +303,49 @@ export function AudioInterview({
     }
   }
 
+  const [isCurrentlySpeaking, setIsCurrentlySpeaking] = useState(false)
+  const speechQueue = useRef<string[]>([])
+
   const speakAIResponse = async (text: string) => {
+    // Prevent overlapping speech by queueing messages
+    if (isCurrentlySpeaking) {
+      console.log('⏳ Speech in progress, queuing message:', text.substring(0, 50) + '...')
+      speechQueue.current.push(text)
+      return
+    }
+
+    setIsCurrentlySpeaking(true)
     setAudioState(prev => ({ ...prev, isSpeaking: true }))
     
     try {
+      console.log('🗣️ Speaking:', text.substring(0, 100) + '...')
       await dailyAudioService.playAIResponse(text)
+      console.log('✅ Speech completed')
     } catch (error) {
       console.error('Error playing AI response:', error)
-      // Fallback: display text if TTS fails
-      setAudioState(prev => ({ ...prev, error: `AI: ${text}` }))
+      // Fallback: display text if TTS fails, but clear it after a few seconds
+      console.log('📝 TTS failed, displaying text fallback:', text.substring(0, 100) + '...')
+      setAudioState(prev => ({ ...prev, error: text }))
+      
+      // Clear the error after 5 seconds to keep interface clean
+      setTimeout(() => {
+        setAudioState(prev => ({ ...prev, error: null }))
+      }, 5000)
+      
+      // Add delay to prevent rapid failures
+      await new Promise(resolve => setTimeout(resolve, 2000))
     } finally {
+      setIsCurrentlySpeaking(false)
       setAudioState(prev => ({ ...prev, isSpeaking: false }))
+      
+      // Process next message in queue
+      if (speechQueue.current.length > 0) {
+        const nextMessage = speechQueue.current.shift()
+        if (nextMessage) {
+          // Small delay before next message
+          setTimeout(() => speakAIResponse(nextMessage), 500)
+        }
+      }
     }
   }
 
@@ -389,9 +432,16 @@ export function AudioInterview({
         }
 
         if (result.data?.currentQuestion) {
+          console.log('⏭️ Skip successful, moving to question:', result.data.currentQuestion.id)
           setCurrentQuestion(result.data.currentQuestion)
           setProgress(result.data.progress?.current || progress + 1)
-          await speakAIResponse(`Moving to the next question: ${result.data.currentQuestion.question}`)
+          
+          // Clear any queued messages and errors before speaking next question
+          speechQueue.current = []
+          setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
+          
+          // Simplified message
+          await speakAIResponse(result.data.currentQuestion.question)
         }
       } else {
         // Handle skip errors (like interview not found)
