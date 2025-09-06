@@ -120,13 +120,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (!elevenlabsResponse.ok) {
       const errorText = await elevenlabsResponse.text()
-      console.error('ElevenLabs API error:', elevenlabsResponse.status, errorText)
+      console.error('❌ [TTS API] ElevenLabs API error', {
+        ...logContext,
+        status: elevenlabsResponse.status,
+        statusText: elevenlabsResponse.statusText,
+        errorText: errorText.substring(0, 200)
+      })
       
       if (elevenlabsResponse.status === 429) {
         return NextResponse.json({
           success: false,
-          error: 'Speech service temporarily unavailable. Please try again.'
+          error: 'Speech service rate limited. Please wait a moment before trying again.'
         }, { status: 429 })
+      }
+      
+      if (elevenlabsResponse.status === 401) {
+        return NextResponse.json({
+          success: false,
+          error: 'Speech service authentication failed'
+        }, { status: 503 })
+      }
+      
+      if (elevenlabsResponse.status >= 500) {
+        return NextResponse.json({
+          success: false,
+          error: 'Speech service temporarily unavailable'
+        }, { status: 503 })
       }
       
       return NextResponse.json({
@@ -138,7 +157,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Get the audio data
     const audioBuffer = await elevenlabsResponse.arrayBuffer()
     
-    console.log(`Generated speech audio: ${audioBuffer.byteLength} bytes`)
+    console.log('✅ [TTS API] Generated speech audio successfully', {
+      ...logContext,
+      audioSize: audioBuffer.byteLength
+    })
 
     // Return audio data directly
     return new NextResponse(audioBuffer, {

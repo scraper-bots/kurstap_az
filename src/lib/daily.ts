@@ -301,7 +301,27 @@ export class DailyAudioService {
         return this.playAIResponse(text, retryCount + 1)
       }
       
-      throw error
+      // If TTS completely fails after all retries, provide graceful fallback
+      console.warn('🔇 TTS service unavailable, continuing without audio for:', text.substring(0, 100) + '...')
+      
+      // Show a notification or log that TTS failed but continue the interview
+      if (typeof window !== 'undefined' && text.length > 0) {
+        // Create a brief visual indication that TTS failed
+        const notification = document.createElement('div')
+        notification.textContent = '🔇 Voice synthesis temporarily unavailable'
+        notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#ff6b6b;color:white;padding:10px;border-radius:5px;z-index:9999;font-size:14px;'
+        document.body.appendChild(notification)
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification)
+          }
+        }, 3000)
+      }
+      
+      // Don't throw error - let the interview continue silently
+      return Promise.resolve()
     }
   }
 

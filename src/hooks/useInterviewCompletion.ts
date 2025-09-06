@@ -30,40 +30,77 @@ export function useInterviewCompletion() {
     setError(null)
 
     try {
+      // Validate input data
+      if (!data.answers || !Array.isArray(data.answers)) {
+        console.error('❌ Invalid answers data:', data.answers)
+        throw new Error('No interview answers to process')
+      }
+
+      if (data.answers.length === 0) {
+        console.error('❌ Empty answers array')
+        throw new Error('No interview answers found to process')
+      }
+
+      console.log('📊 Processing interview completion with', data.answers.length, 'answers')
+
       // Calculate scores and analysis for each answer
       const processedAnswers = data.answers.map((answer, index) => {
+        // Validate answer object
+        if (!answer) {
+          console.warn(`⚠️ Skipping null answer at index ${index}`)
+          return null
+        }
+
+        // Provide defaults for missing properties
+        const userAnswer = answer.userAnswer || ''
+        const question = answer.question || `Question ${index + 1}`
+        const category = answer.category || 'General'
+
+        if (!userAnswer.trim()) {
+          console.warn(`⚠️ Empty answer for question ${index + 1}:`, question)
+        }
+
         // Simple scoring algorithm - in production, this would be more sophisticated
-        const score = calculateAnswerScore(answer.userAnswer, answer.category)
-        const { strengths, weaknesses } = analyzeAnswer(answer.userAnswer, answer.category)
+        const score = calculateAnswerScore(userAnswer, category)
+        const { strengths, weaknesses } = analyzeAnswer(userAnswer, category)
 
         return {
           questionId: index + 1,
-          question: answer.question,
-          userAnswer: answer.userAnswer,
-          idealAnswer: getIdealAnswer(answer.category),
+          question,
+          userAnswer,
+          idealAnswer: getIdealAnswer(category),
           score,
           strengths,
           weaknesses,
-          category: answer.category,
+          category,
           responseTime: answer.responseTime || 30,
           confidence: Math.min(100, score + Math.random() * 20)
         }
-      })
+      }).filter(Boolean) // Remove null entries
 
-      // Calculate overall score
-      const overallScore = processedAnswers.reduce((sum, a) => sum + a.score, 0) / processedAnswers.length
+      // Calculate overall score, handling empty arrays
+      const validAnswers = processedAnswers.filter(a => a !== null) as Array<{score: number}>
+      const overallScore = validAnswers.length > 0 
+        ? validAnswers.reduce((sum, a) => sum + a.score, 0) / validAnswers.length
+        : 0
+
+      // Final validation before API call
+      if (validAnswers.length === 0) {
+        console.error('❌ No valid answers to process')
+        throw new Error('No valid interview answers found. Please try the interview again.')
+      }
 
       const interviewData = {
-        title: data.title,
+        title: data.title || 'Interview Session',
         company: data.company || 'Practice Session',
-        position: data.position,
-        difficulty: data.difficulty,
-        duration: data.duration,
+        position: data.position || 'General Position',
+        difficulty: data.difficulty || 'MEDIUM',
+        duration: Math.max(1, data.duration || 1), // Minimum 1 minute
         score: Math.round(overallScore)
       }
 
       console.log('💾 Calling completion API with data:', {
-        answers: processedAnswers.length,
+        answers: validAnswers.length,
         position: interviewData.position,
         duration: interviewData.duration,
         score: interviewData.score
@@ -76,7 +113,7 @@ export function useInterviewCompletion() {
         },
         body: JSON.stringify({
           interviewData,
-          answers: processedAnswers
+          answers: validAnswers
         })
       })
 
