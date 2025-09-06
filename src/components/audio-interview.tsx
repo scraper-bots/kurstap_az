@@ -236,6 +236,14 @@ export function AudioInterview({
   }
 
   const handleAnswerSubmit = async (answer: string) => {
+    console.log('🎯 [DEBUG] handleAnswerSubmit called!', {
+      answer: answer.substring(0, 100) + '...',
+      answerLength: answer.length,
+      isProcessingAnswer,
+      isCompleting,
+      stack: new Error().stack
+    })
+    
     if (!answer.trim() || isProcessingAnswer || isCompleting) return
 
     setIsProcessingAnswer(true)
@@ -390,6 +398,13 @@ export function AudioInterview({
   }
 
   const skipToNextQuestion = async () => {
+    console.log('🚨 [DEBUG] skipToNextQuestion called!', {
+      stack: new Error().stack,
+      isRecording: audioState.isRecording,
+      isProcessingAnswer,
+      isCompleting
+    })
+    
     if (audioState.isRecording) {
       stopRecording()
     }
