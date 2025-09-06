@@ -169,33 +169,43 @@ function InterviewContent() {
     }
   }
 
+  const [completionInProgress, setCompletionInProgress] = useState(false)
+
   const handleComplete = async () => {
+    // Prevent multiple completion calls
+    if (completionInProgress) {
+      console.log('⚠️ Completion already in progress, ignoring duplicate call')
+      return
+    }
+
+    setCompletionInProgress(true)
     console.log('🏁 Interview completion started', {
       sessionId: state.sessionId,
       position: state.position,
       localAnswers: state.answers?.length || 0
     })
 
-    // Always try to fetch answers from backend session first
-    if (state.sessionId) {
-        try {
-          const sessionResponse = await fetch(`/api/interview/session?sessionId=${state.sessionId}`)
-          const sessionData = await sessionResponse.json()
-          
-          console.log('📡 Session data received:', {
-            success: sessionData.success,
-            hasAnswers: !!sessionData.data?.answers,
-            answersCount: sessionData.data?.answers?.length || 0,
-            hasDetailedId: !!sessionData.data?.detailedInterviewId
-          })
+    try {
+      // Always try to fetch answers from backend session first
+      if (state.sessionId) {
+          try {
+            const sessionResponse = await fetch(`/api/interview/session?sessionId=${state.sessionId}`)
+            const sessionData = await sessionResponse.json()
+            
+            console.log('📡 Session data received:', {
+              success: sessionData.success,
+              hasAnswers: !!sessionData.data?.answers,
+              answersCount: sessionData.data?.answers?.length || 0,
+              hasDetailedId: !!sessionData.data?.detailedInterviewId
+            })
 
-          if (sessionData.success && sessionData.data?.answers?.length > 0) {
-            // Check if this session was already processed by the unified system
-            if (sessionData.data.detailedInterviewId) {
-              console.log('✅ Interview already processed, redirecting to:', sessionData.data.detailedInterviewId)
-              window.location.href = `/interviews/${sessionData.data.detailedInterviewId}`
-              return
-            }
+            if (sessionData.success && sessionData.data?.answers?.length > 0) {
+              // Check if this session was already processed by the unified system
+              if (sessionData.data.detailedInterviewId) {
+                console.log('✅ Interview already processed, redirecting to:', sessionData.data.detailedInterviewId)
+                window.location.href = `/interviews/${sessionData.data.detailedInterviewId}`
+                return
+              }
             
             // Transform session answers to completion API format
             const transformedAnswers = sessionData.data.answers.map((answer: any, index: number) => {
@@ -256,9 +266,15 @@ function InterviewContent() {
       }
     }
 
-    // Last resort: show completed state without saving
-    console.warn('⚠️ Interview completed but could not save results')
-    setState(prev => ({ ...prev, stage: 'completed' }))
+      // Last resort: show completed state without saving
+      console.warn('⚠️ Interview completed but could not save results')
+      setState(prev => ({ ...prev, stage: 'completed' }))
+    } catch (globalError) {
+      console.error('❌ Global completion error:', globalError)
+      setState(prev => ({ ...prev, stage: 'completed' }))
+    } finally {
+      setCompletionInProgress(false)
+    }
   }
 
   if (!user) {

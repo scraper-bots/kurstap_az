@@ -139,9 +139,26 @@ export function AudioInterview({
   const handleSilenceDetected = useCallback(async () => {
     const transcript = audioState.pendingTranscript.trim()
     
-    if (transcript.length > 10 && !isProcessingAnswer) { // Minimum meaningful response
+    // Handle empty or very short responses
+    if (transcript.length === 0) {
+      console.log('No speech detected during recording period')
+      await speakAIResponse("I didn't hear any response. Would you like me to repeat the question, or would you prefer to skip to the next question?")
+      return
+    }
+    
+    // Filter out music notes and very short responses
+    if (transcript === '🎶' || transcript.length < 3) {
+      console.log('Detected background noise or very short response:', transcript)
+      await speakAIResponse("I detected some audio but couldn't understand your response clearly. Could you please try speaking again?")
+      return
+    }
+    
+    if (transcript.length > 5 && !isProcessingAnswer) { // Reduced minimum meaningful response
       console.log('Silence detected, processing answer:', transcript)
       await handleAnswerSubmit(transcript)
+    } else if (transcript.length <= 5 && transcript.length > 0) {
+      console.log('Very short response detected:', transcript)
+      await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
     }
   }, [audioState.pendingTranscript, isProcessingAnswer])
 
@@ -201,7 +218,7 @@ export function AudioInterview({
   }
 
   const handleAnswerSubmit = async (answer: string) => {
-    if (!answer.trim() || isProcessingAnswer) return
+    if (!answer.trim() || isProcessingAnswer || isCompleting) return
 
     setIsProcessingAnswer(true)
     stopRecording()
@@ -217,7 +234,10 @@ export function AudioInterview({
             setIsCompleting(true)
             console.log('🏁 Interview completed, calling onComplete()')
             await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
-            onComplete()
+            // Add small delay to prevent multiple calls
+            setTimeout(() => {
+              onComplete()
+            }, 1000)
           }
           return
         }
@@ -234,11 +254,37 @@ export function AudioInterview({
       } else {
         console.error('Answer submission failed:', result)
         const errorMsg = result.error || "I'm sorry, there was an issue processing your answer."
+        
+        // Handle specific errors
+        if (result.error && result.error.includes('Interview not found')) {
+          console.error('🚨 Interview session lost, restarting completion flow')
+          if (!isCompleting) {
+            setIsCompleting(true)
+            await speakAIResponse("Your interview session has been completed. Redirecting you to results...")
+            setTimeout(() => {
+              onComplete()
+            }, 2000)
+          }
+          return
+        }
+        
         await speakAIResponse(`${errorMsg} Could you please try again?`)
       }
 
     } catch (error) {
       console.error('Error submitting answer:', error)
+      // Check if it's a network or session error
+      if (error instanceof Error && (error.message.includes('fetch') || error.message.includes('Failed to'))) {
+        await speakAIResponse("There seems to be a connection issue. Let me try to complete your interview.")
+        if (!isCompleting) {
+          setIsCompleting(true)
+          setTimeout(() => {
+            onComplete()
+          }, 2000)
+        }
+        return
+      }
+      
       await speakAIResponse("I apologize, there was a technical issue. Please check your connection and try again.")
     } finally {
       setIsProcessingAnswer(false)
@@ -261,8 +307,14 @@ export function AudioInterview({
   }
 
   const endCall = async () => {
+    if (isCompleting) return // Prevent duplicate calls
+    
+    setIsCompleting(true)
     await dailyAudioService.leaveRoom()
-    onComplete()
+    
+    setTimeout(() => {
+      onComplete()
+    }, 500)
   }
 
   const pauseInterview = () => {
@@ -280,6 +332,11 @@ export function AudioInterview({
     if (audioState.isRecording) {
       stopRecording()
     }
+    
+    // Prevent multiple skip calls
+    if (isProcessingAnswer || isCompleting) return
+    
+    setIsProcessingAnswer(true)
     
     // Clear any pending transcripts
     setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
@@ -323,7 +380,10 @@ export function AudioInterview({
             setIsCompleting(true)
             console.log('🏁 Interview completed via skip, calling onComplete()')
             await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
-            onComplete()
+            // Add delay to prevent multiple calls
+            setTimeout(() => {
+              onComplete()
+            }, 1000)
           }
           return
         }
@@ -333,20 +393,70 @@ export function AudioInterview({
           setProgress(result.data.progress?.current || progress + 1)
           await speakAIResponse(`Moving to the next question: ${result.data.currentQuestion.question}`)
         }
+      } else {
+        // Handle skip errors (like interview not found)
+        if (result.error && result.error.includes('Interview not found')) {
+          console.error('🚨 Interview session lost during skip')
+          if (!isCompleting) {
+            setIsCompleting(true)
+            await speakAIResponse("Your interview session has been completed. Redirecting you to results...")
+            setTimeout(() => {
+              onComplete()
+            }, 2000)
+          }
+          return
+        }
+        
+        await speakAIResponse(result.error || "There was an issue skipping the question. Please try again.")
       }
     } catch (error) {
       console.error('Error skipping question:', error)
+      
+      // Handle network errors during skip
+      if (error instanceof Error && error.message.includes('fetch')) {
+        if (!isCompleting) {
+          setIsCompleting(true)
+          await speakAIResponse("There seems to be a connection issue. Let me complete your interview.")
+          setTimeout(() => {
+            onComplete()
+          }, 2000)
+        }
+        return
+      }
+      
       await speakAIResponse("I apologize, there was an issue skipping the question. Please try again.")
+    } finally {
+      setIsProcessingAnswer(false)
     }
   }
 
   const finishInterviewEarly = async () => {
+    if (isCompleting) return // Prevent duplicate calls
+    
     if (audioState.isRecording) {
       stopRecording()
     }
     
+    setIsCompleting(true)
     await speakAIResponse("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
-    onComplete()
+    
+    setTimeout(() => {
+      onComplete()
+    }, 1500)
+  }
+
+  // Add rate limiting for button clicks
+  const [lastActionTime, setLastActionTime] = useState(0)
+  const ACTION_COOLDOWN = 2000 // 2 seconds cooldown between actions
+
+  const canPerformAction = () => {
+    const now = Date.now()
+    if (now - lastActionTime < ACTION_COOLDOWN) {
+      console.log('⚠️ Action blocked due to rate limiting')
+      return false
+    }
+    setLastActionTime(now)
+    return true
   }
 
   const renderCallControls = () => {
@@ -379,7 +489,11 @@ export function AudioInterview({
             </Button>
             
             <Button
-              onClick={endCall}
+              onClick={() => {
+                if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
+                  endCall()
+                }
+              }}
               variant="outline"
               className="w-16 h-16 rounded-full border-red-500 text-red-500 hover:bg-red-50"
               title="End Call"
@@ -391,7 +505,13 @@ export function AudioInterview({
           {/* Secondary Controls */}
           <div className="flex gap-3 justify-center">
             <Button
-              onClick={skipToNextQuestion}
+              onClick={() => {
+                if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
+                  skipToNextQuestion()
+                } else if (isProcessingAnswer || isCompleting) {
+                  console.log('⚠️ Skip blocked: operation in progress')
+                }
+              }}
               disabled={audioState.isSpeaking || isProcessingAnswer || audioState.isPaused}
               variant="outline"
               size="sm"
@@ -403,7 +523,11 @@ export function AudioInterview({
             </Button>
             
             <Button
-              onClick={finishInterviewEarly}
+              onClick={() => {
+                if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
+                  finishInterviewEarly()
+                }
+              }}
               disabled={audioState.isSpeaking || isProcessingAnswer}
               variant="outline"
               size="sm"
