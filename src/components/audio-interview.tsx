@@ -142,6 +142,16 @@ export function AudioInterview({
     const transcript = audioState.pendingTranscript.trim()
     const timeSinceAiSpoke = Date.now() - aiSpeechEndTime.current
     
+    console.log('🔍 [DEBUG] handleSilenceDetected called!', {
+      transcript: transcript.substring(0, 100) + '...',
+      transcriptLength: transcript.length,
+      timeSinceAiSpoke,
+      AI_SPEECH_BUFFER,
+      isRecording: audioState.isRecording,
+      isProcessingAnswer,
+      pendingTranscript: audioState.pendingTranscript.substring(0, 50) + '...'
+    })
+    
     // Don't process silence too soon after AI finishes speaking
     if (timeSinceAiSpoke < AI_SPEECH_BUFFER) {
       console.log('Ignoring silence detection - too soon after AI speech', timeSinceAiSpoke)
@@ -590,6 +600,7 @@ export function AudioInterview({
             <Button
               onClick={() => {
                 if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
+                  console.log('👤 User manually clicked Next Question button')
                   skipToNextQuestion()
                 } else if (isProcessingAnswer || isCompleting) {
                   console.log('⚠️ Skip blocked: operation in progress')
@@ -731,9 +742,10 @@ export function AudioInterview({
           <li>• Click &quot;Start Call&quot; to begin your audio interview</li>
           <li>• Listen to the AI interviewer&apos;s questions</li>
           <li>• Click the microphone to start recording your answer</li>
-          <li>• Speak naturally - the system will detect when you&apos;re done</li>
+          <li>• Speak naturally - the system will automatically detect when you&apos;re done</li>
+          <li>• <strong>Wait for the system to process your answer</strong> - don&apos;t click buttons immediately</li>
           <li>• Use &quot;Pause&quot; to take a break and &quot;Resume&quot; to continue</li>
-          <li>• Click &quot;Next Question&quot; to skip the current question if needed</li>
+          <li>• Only click &quot;Next Question&quot; if you want to skip without answering</li>
           <li>• Use &quot;Finish Early&quot; to end the interview before completing all questions</li>
           <li>• Your responses are transcribed and evaluated in real-time</li>
         </ul>
