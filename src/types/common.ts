@@ -3,7 +3,6 @@
 export interface InterviewQuestion {
   id?: string
   question: string
-  followUp: string
   category: 'behavioral' | 'technical' | 'situational'
   difficulty: 'easy' | 'medium' | 'hard'
   expectedDuration: number
@@ -20,8 +19,6 @@ export interface InterviewAnswer {
   category: string
   responseTime?: number
   confidence?: number
-  followUpQuestion?: string
-  followUpAnswer?: string
   timestamp?: string
 }
 

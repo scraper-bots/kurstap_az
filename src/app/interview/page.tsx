@@ -215,7 +215,7 @@ function InterviewContent() {
               return {
                 questionId: index + 1,
                 question: answer.question,
-                userAnswer: answer.answer + (answer.followUpAnswer ? `\n\nFollow-up: ${answer.followUpAnswer}` : ''),
+                userAnswer: answer.answer,
                 category: matchingQuestion?.category || 'General',
                 responseTime: 30 // Default response time
               }

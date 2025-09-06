@@ -245,11 +245,7 @@ export function AudioInterview({
           return
         }
 
-        if (result.data?.nextAction === 'follow-up' && result.data?.followUpQuestion) {
-          // Ask follow-up question
-          console.log('➡️ Moving to follow-up question')
-          await speakAIResponse(result.data.followUpQuestion)
-        } else if (result.data?.nextAction === 'next-question' && result.data?.currentQuestion) {
+        if (result.data?.nextAction === 'next-question' && result.data?.currentQuestion) {
           // Move to next question
           console.log('➡️ Moving to next question:', result.data.currentQuestion.id)
           setCurrentQuestion(result.data.currentQuestion)

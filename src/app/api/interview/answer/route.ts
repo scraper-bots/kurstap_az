@@ -11,7 +11,7 @@ export interface SubmitAnswerRequest {
 export interface SubmitAnswerResponse {
   success: boolean
   data?: {
-    nextAction: 'next-question' | 'follow-up' | 'completed'
+    nextAction: 'next-question' | 'completed'
     currentQuestion?: {
       id: string
       question: string
@@ -154,7 +154,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
 
     // Prepare response based on next action with error handling
     let currentQuestion = undefined
-    let followUpQuestion = undefined
     const progress = {
       current: (sessionData?.currentQuestionIndex || 0) + 1,
       total: sessionData?.questions?.length || 0
@@ -183,31 +182,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
             availableQuestions: sessionData.questions?.length || 0
           })
         }
-      } else if (nextAction === 'follow-up') {
-        const questionIndex = sessionData.currentQuestionIndex
-        if (sessionData.questions && sessionData.questions[questionIndex]) {
-          const currentQ = sessionData.questions[questionIndex]
-          currentQuestion = {
-            id: currentQ.id || '',
-            question: currentQ.question,
-            category: currentQ.category,
-            difficulty: currentQ.difficulty,
-            expectedDuration: currentQ.expectedDuration
-          }
-          followUpQuestion = currentQ.followUp
-          progress.current = sessionData.currentQuestionIndex + 1
-          console.log('✅ [INTERVIEW API] Follow-up question prepared', {
-            ...logContext,
-            questionId: currentQuestion.id,
-            hasFollowUp: !!followUpQuestion
-          })
-        } else {
-          console.error('❌ [INTERVIEW API] Question not found for follow-up', {
-            ...logContext,
-            questionIndex,
-            availableQuestions: sessionData.questions?.length || 0
-          })
-        }
       } else if (nextAction === 'completed') {
         console.log('✅ [INTERVIEW API] Interview completed', {
           ...logContext,
@@ -230,7 +204,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
       data: {
         nextAction,
         currentQuestion,
-        followUpQuestion,
         score: undefined, // No individual scoring during interview
         progress,
         overallScore: sessionData?.overallScore,

@@ -22,7 +22,7 @@ export interface InterviewSessionData {
   userId: string
   position: string
   currentQuestionIndex: number
-  currentStage: 'question' | 'follow-up' | 'completed'
+  currentStage: 'question' | 'completed'
   questions: InterviewQuestion[]
   answers: InterviewAnswerWithScore[]
   overallScore?: number
@@ -159,7 +159,7 @@ export class InterviewService {
   }
 
   /**
-   * Submit an answer and get the next question or follow-up
+   * Submit an answer and get the next question
    */
   static async submitAnswer(
     sessionId: string,
@@ -169,7 +169,7 @@ export class InterviewService {
   ): Promise<{
     success: boolean
     sessionData: InterviewSessionData
-    nextAction: 'next-question' | 'follow-up' | 'completed'
+    nextAction: 'next-question' | 'completed'
     score?: unknown
     finalEvaluation?: unknown
   }> {
@@ -216,8 +216,8 @@ export class InterviewService {
 
       // Skip individual scoring - will be done at the end
 
-      // Determine next action based on current stage and skip status
-      let nextAction: 'next-question' | 'follow-up' | 'completed' = 'completed'
+      // Determine next action based on skip status
+      let nextAction: 'next-question' | 'completed' = 'completed'
       const updatedAnswers = [...sessionData.answers]
 
       if (skipQuestion) {
@@ -227,19 +227,11 @@ export class InterviewService {
           question: currentQuestion.question,
           userAnswer: 'SKIPPED',
           category: currentQuestion.category || 'general',
-          timestamp: new Date().toISOString(),
-          followUpQuestion: currentQuestion.followUp,
-          followUpAnswer: 'SKIPPED'
+          timestamp: new Date().toISOString()
         }
         updatedAnswers.push(answerRecord)
-
-        if (sessionData.currentQuestionIndex + 1 < sessionData.questions.length) {
-          nextAction = 'next-question'
-        } else {
-          nextAction = 'completed'
-        }
-      } else if (sessionData.currentStage === 'question') {
-        // First answer to main question - ask follow-up
+      } else {
+        // Answer provided - record it and move to next question
         const answerRecord: InterviewAnswerWithScore = {
           questionId: currentQuestion.id || sessionData.currentQuestionIndex,
           question: currentQuestion.question,
@@ -248,23 +240,13 @@ export class InterviewService {
           timestamp: new Date().toISOString()
         }
         updatedAnswers.push(answerRecord)
-        nextAction = 'follow-up'
-      } else if (sessionData.currentStage === 'follow-up') {
-        // Follow-up answer - move to next question
-        const lastAnswerIndex = updatedAnswers.findIndex(a => a.questionId === currentQuestion.id)
-        if (lastAnswerIndex >= 0) {
-          updatedAnswers[lastAnswerIndex] = {
-            ...updatedAnswers[lastAnswerIndex],
-            followUpQuestion: currentQuestion.followUp,
-            followUpAnswer: answer
-          }
-        }
+      }
 
-        if (sessionData.currentQuestionIndex + 1 < sessionData.questions.length) {
-          nextAction = 'next-question'
-        } else {
-          nextAction = 'completed'
-        }
+      // Determine if we have more questions
+      if (sessionData.currentQuestionIndex + 1 < sessionData.questions.length) {
+        nextAction = 'next-question'
+      } else {
+        nextAction = 'completed'
       }
 
       // Update session data
@@ -272,9 +254,7 @@ export class InterviewService {
         ? sessionData.currentQuestionIndex + 1 
         : sessionData.currentQuestionIndex
 
-      const newStage = nextAction === 'follow-up' 
-        ? 'follow-up' 
-        : nextAction === 'next-question' 
+      const newStage = nextAction === 'next-question' 
           ? 'question' 
           : 'completed'
 
@@ -303,8 +283,6 @@ export class InterviewService {
             return {
               question: answer.question,
               answer: answer.userAnswer,
-              followUpQuestion: answer.followUpQuestion,
-              followUpAnswer: answer.followUpAnswer,
               category: question?.category || 'general',
               difficulty: question?.difficulty || 'medium'
             }
@@ -369,7 +347,7 @@ export class InterviewService {
             return {
               questionId: index + 1,
               question: answer.question,
-              userAnswer: answer.userAnswer + (answer.followUpAnswer ? `\n\nFollow-up: ${answer.followUpAnswer}` : ''),
+              userAnswer: answer.userAnswer,
               idealAnswer: `A comprehensive answer should demonstrate relevant experience, specific examples, and clear communication.`,
               score: answer.score?.overallScore || 75, // Use existing score or default
               strengths: answer.score?.feedback ? [answer.score.feedback] : ['Clear communication'],

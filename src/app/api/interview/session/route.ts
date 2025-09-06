@@ -9,7 +9,7 @@ export interface GetSessionResponse {
     interviewId: string
     position: string
     status: string
-    currentStage: 'question' | 'follow-up' | 'completed'
+    currentStage: 'question' | 'completed'
     currentQuestion?: {
       id: string
       question: string
@@ -17,7 +17,6 @@ export interface GetSessionResponse {
       difficulty: string
       expectedDuration: number
     }
-    followUpQuestion?: string
     answers: Array<Record<string, unknown>>
     progress: {
       current: number
@@ -64,7 +63,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
 
     // Prepare current question if in progress
     let currentQuestion = undefined
-    let followUpQuestion = undefined
 
     if (sessionData.status === 'IN_PROGRESS') {
       const currentQ = sessionData.questions[sessionData.currentQuestionIndex]
@@ -77,8 +75,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
           difficulty: currentQ.difficulty,
           expectedDuration: currentQ.expectedDuration
         }
-      } else if (sessionData.currentStage === 'follow-up') {
-        followUpQuestion = currentQ.followUp
       }
     }
 
@@ -91,7 +87,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
         status: sessionData.status,
         currentStage: sessionData.currentStage,
         currentQuestion,
-        followUpQuestion,
         answers: sessionData.answers as unknown as Array<Record<string, unknown>>,
         questions: sessionData.questions, // Include full questions array for category mapping
         progress: {

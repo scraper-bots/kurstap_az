@@ -14,7 +14,6 @@ if (!process.env.OPENAI_API_KEY) {
 
 export interface GeneratedQuestion {
   question: string
-  followUp: string
   difficulty: 'easy' | 'medium' | 'hard'
   category: 'behavioral' | 'technical' | 'situational'
   expectedDuration: number // in minutes
@@ -42,7 +41,6 @@ Return ONLY a valid JSON object with this exact structure:
   "behavioral": [
     {
       "question": "Tell me about a time when...",
-      "followUp": "What would you do differently?", 
       "difficulty": "easy",
       "category": "behavioral",
       "expectedDuration": 3
@@ -51,7 +49,6 @@ Return ONLY a valid JSON object with this exact structure:
   "technical": [
     {
       "question": "Explain how you would...",
-      "followUp": "What are the trade-offs?",
       "difficulty": "easy", 
       "category": "technical",
       "expectedDuration": 5
@@ -60,7 +57,6 @@ Return ONLY a valid JSON object with this exact structure:
   "situational": [
     {
       "question": "How would you handle...",
-      "followUp": "What if constraints changed?",
       "difficulty": "medium",
       "category": "situational",
       "expectedDuration": 4
@@ -77,7 +73,7 @@ Requirements:
 - CRITICAL: Total easy questions across both categories must equal exactly 5 (3 behavioral + 2 technical)
 - CRITICAL: Total medium questions across both categories must equal exactly 8 (4 behavioral + 4 technical)
 - CRITICAL: Total hard questions across both categories must equal exactly 12 (6 behavioral + 6 technical)
-- Each question MUST have a meaningful follow-up question
+- Questions should be comprehensive and complete on their own
 - Expected duration should be realistic (3-6 minutes per question)
 - Questions should be highly specific to ${jobTitle} responsibilities and real interview scenarios
 - Easy questions suitable for entry-level, medium for experienced, hard for senior-level positions
@@ -133,8 +129,6 @@ Generate professional, realistic questions that would be asked in actual ${jobTi
     questionsAndAnswers: Array<{
       question: string
       answer: string
-      followUpQuestion?: string
-      followUpAnswer?: string
       category: string
       difficulty: string
     }>
@@ -169,8 +163,6 @@ ${questionsAndAnswers.map((qa, index) => `
 Question ${index + 1} (${qa.category}, ${qa.difficulty}):
 "${qa.question}"
 Answer: "${qa.answer}"
-${qa.followUpQuestion ? `Follow-up: "${qa.followUpQuestion}"` : ''}
-${qa.followUpAnswer ? `Follow-up Answer: "${qa.followUpAnswer}"` : ''}
 `).join('\n')}
 
 Provide a comprehensive evaluation in this exact JSON format:
