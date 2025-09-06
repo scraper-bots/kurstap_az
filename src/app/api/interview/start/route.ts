@@ -5,6 +5,7 @@ import { InterviewService } from '@/lib/interview-service'
 export interface StartInterviewRequest {
   position: string
   difficulty?: 'easy' | 'medium' | 'hard' | 'mixed'
+  totalQuestions?: number
 }
 
 export interface StartInterviewResponse {
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<StartIntervie
 
     // Parse request body
     const body: StartInterviewRequest = await req.json()
-    const { position, difficulty = 'mixed' } = body
+    const { position, difficulty = 'mixed', totalQuestions = 5 } = body
 
     // Validate input
     if (!position || position.trim().length === 0) {
@@ -56,7 +57,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<StartIntervie
     const sessionData = await InterviewService.startInterview(
       userId,
       position.trim(),
-      difficulty
+      difficulty,
+      totalQuestions
     )
 
     const currentQuestion = sessionData.questions[0]
