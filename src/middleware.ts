@@ -20,6 +20,11 @@ const isPublicRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  // Let API routes handle their own authentication
+  if (req.nextUrl.pathname.startsWith('/api/interview/')) {
+    return
+  }
+  
   if (!isPublicRoute(req)) {
     await auth.protect()
   }
