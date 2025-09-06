@@ -104,14 +104,14 @@ class LocalStorageProvider implements StateStorage {
       
       // Convert date strings back to Date objects
       if (parsed.answers) {
-        parsed.answers = parsed.answers.map((answer: any) => ({
+        parsed.answers = parsed.answers.map((answer: { timestamp: string }) => ({
           ...answer,
           timestamp: new Date(answer.timestamp)
         }))
       }
       
       if (parsed.metadata?.interruptions) {
-        parsed.metadata.interruptions = parsed.metadata.interruptions.map((interruption: any) => ({
+        parsed.metadata.interruptions = parsed.metadata.interruptions.map((interruption: { timestamp: string }) => ({
           ...interruption,
           timestamp: new Date(interruption.timestamp)
         }))

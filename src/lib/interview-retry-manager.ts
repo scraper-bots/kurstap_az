@@ -11,15 +11,15 @@ export interface RetryOptions {
   maxDelayMs: number
   backoffFactor: number
   jitterMs?: number
-  retryCondition?: (error: any) => boolean
-  onRetry?: (attempt: number, error: any) => void
-  onMaxRetriesExceeded?: (error: any) => void
+  retryCondition?: (error: Error) => boolean
+  onRetry?: (attempt: number, error: Error) => void
+  onMaxRetriesExceeded?: (error: Error) => void
 }
 
 export interface RetryResult<T> {
   success: boolean
   data?: T
-  error?: any
+  error?: Error
   attempts: number
   totalTime: number
 }
@@ -81,7 +81,7 @@ class CircuitBreaker {
     }
   }
 
-  private onFailure(error: any, serviceName: string) {
+  private onFailure(error: Error, serviceName: string) {
     this.failureCount++
     this.lastFailureTime = Date.now()
 
@@ -216,9 +216,9 @@ class InterviewRetryManager {
   private async retryLoop<T>(
     operation: () => Promise<T>,
     options: RetryOptions
-  ): Promise<{ success: boolean; data?: T; error?: any; attempts: number }> {
+  ): Promise<{ success: boolean; data?: T; error?: Error; attempts: number }> {
     let attempts = 0
-    let lastError: any
+    let lastError: Error
 
     while (attempts < options.maxAttempts) {
       attempts++
@@ -269,7 +269,7 @@ class InterviewRetryManager {
   /**
    * Determine if error should be retried
    */
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: Error): boolean {
     // Network timeouts and connection errors
     if (error.name === 'TypeError' && error.message.includes('fetch')) return true
     if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return true
@@ -409,7 +409,7 @@ class InterviewRetryManager {
       maxDelayMs?: number
       backoffFactor?: number
       jitterMs?: number
-      retryCondition?: (error: any) => boolean
+      retryCondition?: (error: Error) => boolean
     }
   ): RetryOptions {
     return {
@@ -429,8 +429,8 @@ class InterviewRetryManager {
     operations: (() => Promise<T>)[],
     operationType: string = 'api_call',
     concurrency: number = 3
-  ): Promise<Array<{ success: boolean; data?: T; error?: any; index: number }>> {
-    const results: Array<{ success: boolean; data?: T; error?: any; index: number }> = []
+  ): Promise<Array<{ success: boolean; data?: T; error?: Error; index: number }>> {
+    const results: Array<{ success: boolean; data?: T; error?: Error; index: number }> = []
     
     // Process operations in batches
     for (let i = 0; i < operations.length; i += concurrency) {

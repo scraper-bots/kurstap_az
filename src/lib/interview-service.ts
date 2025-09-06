@@ -1,23 +1,12 @@
 import { db } from './db'
 import { OpenAIService } from './openai'
-import { SessionStatus } from '@prisma/client'
+import { SessionStatus, Difficulty } from '@prisma/client'
 import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } from './detailed-interview-service'
+import { InterviewQuestion, InterviewAnswer } from '@/types/common'
 
-export interface InterviewQuestion {
-  id: string
-  question: string
-  followUp: string
-  category: 'behavioral' | 'technical' | 'situational'
-  difficulty: 'easy' | 'medium' | 'hard'
-  expectedDuration: number
-}
+export type { InterviewQuestion } from '@/types/common'
 
-export interface InterviewAnswer {
-  questionId: string
-  question: string
-  answer: string
-  followUpQuestion?: string
-  followUpAnswer?: string
+export interface InterviewAnswerWithScore extends InterviewAnswer {
   score?: {
     technicalAccuracy: number
     communicationClarity: number
@@ -25,7 +14,6 @@ export interface InterviewAnswer {
     overallScore: number
     feedback: string
   }
-  timestamp: string
 }
 
 export interface InterviewSessionData {
@@ -36,7 +24,7 @@ export interface InterviewSessionData {
   currentQuestionIndex: number
   currentStage: 'question' | 'follow-up' | 'completed'
   questions: InterviewQuestion[]
-  answers: InterviewAnswer[]
+  answers: InterviewAnswerWithScore[]
   overallScore?: number
   status: SessionStatus
   startedAt: string
@@ -129,7 +117,7 @@ export class InterviewService {
           userId: existingUser.id, // Use the actual user ID from database
           title: `${position} Interview`,
           position,
-          difficulty: difficulty === 'mixed' ? 'MEDIUM' : difficulty.toUpperCase() as any,
+          difficulty: difficulty === 'mixed' ? 'MEDIUM' : difficulty.toUpperCase() as Difficulty,
           status: 'IN_PROGRESS',
           questions: selectedQuestions.map(q => q.question),
           scheduledAt: new Date(),
@@ -144,8 +132,8 @@ export class InterviewService {
           type: 'PRACTICE',
           status: 'IN_PROGRESS',
           feedback: {
-            questions: selectedQuestions as any,
-            answers: [] as any,
+            questions: selectedQuestions,
+            answers: [],
             currentQuestionIndex: 0,
             currentStage: 'question'
           } as any
@@ -182,8 +170,8 @@ export class InterviewService {
     success: boolean
     sessionData: InterviewSessionData
     nextAction: 'next-question' | 'follow-up' | 'completed'
-    score?: any
-    finalEvaluation?: any
+    score?: unknown
+    finalEvaluation?: unknown
   }> {
     try {
       // Get the user from database - create if doesn't exist
@@ -219,7 +207,7 @@ export class InterviewService {
         throw new Error('Session not found')
       }
 
-      const sessionData = session.feedback as any
+      const sessionData = session.feedback as InterviewSessionData
       const currentQuestion = sessionData.questions[sessionData.currentQuestionIndex]
       
       if (!currentQuestion) {
@@ -234,7 +222,7 @@ export class InterviewService {
 
       if (skipQuestion) {
         // Skipping question - record it as skipped and move to next question
-        const answerRecord: InterviewAnswer = {
+        const answerRecord: InterviewAnswerWithScore = {
           questionId: currentQuestion.id,
           question: currentQuestion.question,
           answer: 'SKIPPED',
@@ -251,7 +239,7 @@ export class InterviewService {
         }
       } else if (sessionData.currentStage === 'question') {
         // First answer to main question - ask follow-up
-        const answerRecord: InterviewAnswer = {
+        const answerRecord: InterviewAnswerWithScore = {
           questionId: currentQuestion.id,
           question: currentQuestion.question,
           answer,
@@ -309,7 +297,7 @@ export class InterviewService {
           
           // Prepare questions and answers for evaluation
           const questionsAndAnswers = updatedAnswers.map((answer) => {
-            const question = sessionData.questions.find((q: any) => q.id === answer.questionId)
+            const question = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
             return {
               question: answer.question,
               answer: answer.answer,
@@ -350,7 +338,7 @@ export class InterviewService {
       await db.session.update({
         where: { id: sessionId },
         data: {
-          feedback: updatedSessionData as any,
+          feedback: updatedSessionData,
           status: updatedSessionData.status,
           score: updatedSessionData.overallScore,
           completedAt: nextAction === 'completed' ? new Date() : null
@@ -374,7 +362,7 @@ export class InterviewService {
           
           // Transform answers to DetailedInterviewService format
           const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
-            const matchingQuestion = sessionData.questions.find((q: any) => q.id === answer.questionId)
+            const matchingQuestion = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
             
             return {
               questionId: index + 1,

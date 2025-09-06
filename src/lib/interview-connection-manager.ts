@@ -44,7 +44,7 @@ export interface DegradationConfig {
 export interface ConnectionEvent {
   type: 'connect' | 'disconnect' | 'reconnect' | 'degrade' | 'recover'
   timestamp: Date
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -264,7 +264,7 @@ class InterviewConnectionManager {
    */
   async handleConnectionFailure(
     failureType: InterviewErrorType, 
-    context: any
+    context: Record<string, unknown>
   ): Promise<{ recovered: boolean; newMode?: InterviewMode }> {
     console.log(`🚨 Handling connection failure: ${failureType}`)
 
@@ -294,7 +294,7 @@ class InterviewConnectionManager {
   /**
    * Specific failure handlers
    */
-  private async handleAudioConnectionFailure(context: any): Promise<{ recovered: boolean; newMode?: InterviewMode }> {
+  private async handleAudioConnectionFailure(context: Record<string, unknown>): Promise<{ recovered: boolean; newMode?: InterviewMode }> {
     console.log('🎤 Attempting to recover audio connection')
     
     // Try to reconnect audio
@@ -355,7 +355,7 @@ class InterviewConnectionManager {
   /**
    * Recovery attempt methods
    */
-  private async attemptAudioReconnection(context: any): Promise<boolean> {
+  private async attemptAudioReconnection(context: Record<string, unknown>): Promise<boolean> {
     try {
       return await interviewRetryManager.retryAudioOperation(async () => {
         // Attempt to re-establish audio connection
@@ -481,7 +481,7 @@ class InterviewConnectionManager {
     }
   }
 
-  private emitEvent(event: string, data?: any): void {
+  private emitEvent(event: string, data?: unknown): void {
     const connectionEvent: ConnectionEvent = {
       type: event as any,
       timestamp: new Date(),

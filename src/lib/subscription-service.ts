@@ -21,7 +21,7 @@ export class SubscriptionService {
     }
   }
 
-  private static async handleExpiredSubscription(subscription: any) {
+  private static async handleExpiredSubscription(subscription: { id: string; user: { id: string } }) {
     try {
       // Update subscription status to expired
       await db.subscription.update({

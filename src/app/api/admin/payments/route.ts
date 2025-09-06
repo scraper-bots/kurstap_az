@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { PaymentStatus } from '@prisma/client'
 
 // Admin endpoint to view all payments (requires admin role)
 export async function GET(request: NextRequest) {
@@ -26,8 +27,8 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    const where: any = {}
-    if (status) where.status = status
+    const where: { status?: PaymentStatus; planType?: string } = {}
+    if (status) where.status = status as PaymentStatus
     if (planType) where.planType = planType
 
     const [payments, total] = await Promise.all([

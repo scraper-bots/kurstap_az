@@ -18,7 +18,7 @@ export interface GetSessionResponse {
       expectedDuration: number
     }
     followUpQuestion?: string
-    answers: any[]
+    answers: Array<Record<string, unknown>>
     progress: {
       current: number
       total: number

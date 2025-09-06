@@ -2,17 +2,17 @@
  * Safe JSON parsing utilities for API responses
  */
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
-  diagnostic?: any
+  diagnostic?: Record<string, unknown>
 }
 
 /**
  * Safely parse JSON response with comprehensive error handling
  */
-export async function safeJsonParse<T = any>(
+export async function safeJsonParse<T = unknown>(
   response: Response,
   context: string = 'API'
 ): Promise<ApiResponse<T>> {
@@ -78,7 +78,7 @@ export async function safeJsonParse<T = any>(
 /**
  * Make a safe API request with automatic error handling
  */
-export async function safeApiRequest<T = any>(
+export async function safeApiRequest<T = unknown>(
   url: string,
   options: RequestInit = {},
   context: string = 'API'

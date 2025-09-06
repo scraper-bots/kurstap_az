@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Poppins, Space_Grotesk } from 'next/font/google'
+import Script from 'next/script'
 import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 
@@ -85,17 +86,18 @@ export default function RootLayout({
       <html lang="en" className={`${inter.variable} ${poppins.variable} ${spaceGrotesk.variable}`}>
         <head>
           {/* Google Analytics */}
-          <script async src="https://www.googletagmanager.com/gtag/js?id=G-GHTP21ZVDV"></script>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-GHTP21ZVDV');
-              `,
-            }}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-GHTP21ZVDV"
+            strategy="afterInteractive"
           />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-GHTP21ZVDV');
+            `}
+          </Script>
         </head>
         <body className={inter.className}>{children}</body>
       </html>

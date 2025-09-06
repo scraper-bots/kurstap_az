@@ -9,7 +9,7 @@ export interface EpointPaymentRequest {
   description?: string
   success_redirect_url?: string
   error_redirect_url?: string
-  other_attr?: any[]
+  other_attr?: unknown[]
 }
 
 export interface EpointPaymentResponse {
@@ -48,15 +48,15 @@ export class EpointService {
     return Buffer.from(hash, 'hex').toString('base64')
   }
 
-  private static encodeData(payload: any): string {
+  private static encodeData(payload: unknown): string {
     return Buffer.from(JSON.stringify(payload)).toString('base64')
   }
 
-  private static decodeData(data: string): any {
+  private static decodeData(data: string): unknown {
     return JSON.parse(Buffer.from(data, 'base64').toString())
   }
 
-  private static async makeRequest(endpoint: string, payload: any): Promise<any> {
+  private static async makeRequest(endpoint: string, payload: Record<string, unknown>): Promise<unknown> {
     const data = this.encodeData(payload)
     const signature = this.generateSignature(data)
 
@@ -139,10 +139,10 @@ export class EpointService {
     }
   }
 
-  private static isRetryableError(error: any): boolean {
+  private static isRetryableError(error: unknown): boolean {
     // Network errors that should be retried
     const retryableErrors = ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'ETIMEDOUT']
-    return error?.code && retryableErrors.includes(error.code)
+    return error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && retryableErrors.includes(error.code)
   }
 
   private static delay(ms: number): Promise<void> {
@@ -158,8 +158,8 @@ export class EpointService {
 
       const response = await this.makeRequest('/get-status', payload)
       
-      if (response.status === 'success' && response.data) {
-        return this.decodeData(response.data) as EpointPaymentResult
+      if (response && typeof response === 'object' && 'status' in response && response.status === 'success' && 'data' in response && response.data) {
+        return this.decodeData(response.data as string) as EpointPaymentResult
       }
       
       return null

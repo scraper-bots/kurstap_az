@@ -1,4 +1,4 @@
-import Daily, { DailyCall, DailyEventObjectTrack } from '@daily-co/daily-js'
+import Daily, { DailyCall, DailyEventObjectTrack, DailyCallOptions } from '@daily-co/daily-js'
 
 export interface AudioCallConfig {
   roomUrl?: string
@@ -81,7 +81,7 @@ export class DailyAudioService {
     }
 
     try {
-      const joinConfig: any = {
+      const joinConfig: DailyCallOptions = {
         url: roomUrl,
         userName,
         startAudioOff: false,
@@ -271,8 +271,17 @@ export class DailyAudioService {
       // Return promise that resolves when audio finishes
       return new Promise<void>((resolve, reject) => {
         audioBufferSource.onended = () => resolve()
-        audioBufferSource.onerror = (error) => reject(error)
-        audioBufferSource.start()
+        
+        // AudioBufferSourceNode doesn't have onerror, handle errors during start()
+        try {
+          audioBufferSource.start()
+        } catch (error) {
+          reject(error)
+        }
+        
+        // Set a timeout as fallback in case onended doesn't fire
+        const duration = decodedBuffer.duration * 1000 + 1000 // Add 1 second buffer
+        setTimeout(() => resolve(), duration)
       })
       
     } catch (error) {
@@ -342,7 +351,7 @@ export class DailyAudioService {
   // Event callbacks (to be set by the component)
   onCallJoined?: () => void
   onCallLeft?: () => void
-  onCallError?: (error: any) => void
+  onCallError?: (error: Error) => void
   onTranscriptReceived?: (transcript: string) => void
 
   /**

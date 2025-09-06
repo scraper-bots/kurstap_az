@@ -33,7 +33,7 @@ export interface InterviewErrorState {
 
 export interface InterviewErrorHandling {
   errorState: InterviewErrorState
-  handleError: (error: Error, context?: any) => Promise<void>
+  handleError: (error: Error, context?: Record<string, unknown>) => Promise<void>
   retryLastOperation: () => Promise<void>
   switchMode: (mode: InterviewMode) => Promise<void>
   clearError: () => void
@@ -103,7 +103,7 @@ export function useInterviewErrorHandling(
   }, [sessionId, userId])
 
   // Main error handler
-  const handleError = useCallback(async (error: Error, context?: any) => {
+  const handleError = useCallback(async (error: Error, context?: Record<string, unknown>) => {
     try {
       console.log('🚨 Handling interview error:', error.message)
 
@@ -177,7 +177,7 @@ export function useInterviewErrorHandling(
     } catch (handlingError) {
       console.error('Error in error handler:', handlingError)
     }
-  }, [sessionId, userId])
+  }, [sessionId, userId, scheduleAutoRetry])
 
   // Retry last operation
   const retryLastOperation = useCallback(async () => {
@@ -284,13 +284,13 @@ export function useInterviewErrorHandling(
     ].includes(errorType)
   }
 
-  const shouldAutoRetry = (error: InterviewError, strategy: any): boolean => {
+  const shouldAutoRetry = (error: InterviewError, strategy: { autoRetry: boolean }): boolean => {
     return strategy.action === 'RETRY_WITH_BACKOFF' && 
            error.retryCount < strategy.maxRetries &&
            error.userImpact !== 'critical'
   }
 
-  const scheduleAutoRetry = async (error: InterviewError, strategy: any): Promise<void> => {
+  const scheduleAutoRetry = async (error: InterviewError, strategy: { retryDelayMs: number }): Promise<void> => {
     const delay = Math.min(strategy.backoffMs * Math.pow(2, error.retryCount), 30000)
     
     console.log(`⏳ Scheduling auto-retry in ${delay}ms`)

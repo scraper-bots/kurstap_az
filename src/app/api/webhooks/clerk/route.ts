@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   // Create a new Svix instance with your secret
   const wh = new Webhook(webhookSecret)
 
-  let evt: any
+  let evt: { type: string; data: Record<string, unknown> }
 
   // Verify the payload with the headers
   try {
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
   return new NextResponse('Webhook processed successfully', { status: 200 })
 }
 
-async function handleUserCreated(userData: any) {
+async function handleUserCreated(userData: { id: string; email_addresses: Array<{ email_address: string }>; first_name?: string; last_name?: string; image_url?: string }) {
   console.log('Creating user:', userData.id)
   
   await UserService.createUser({
@@ -90,7 +90,7 @@ async function handleUserCreated(userData: any) {
   })
 }
 
-async function handleUserUpdated(userData: any) {
+async function handleUserUpdated(userData: { id: string; email_addresses: Array<{ email_address: string }>; first_name?: string; last_name?: string; image_url?: string }) {
   console.log('Updating user:', userData.id)
   
   await UserService.updateUser(userData.id, {
@@ -102,7 +102,7 @@ async function handleUserUpdated(userData: any) {
   })
 }
 
-async function handleUserDeleted(userData: any) {
+async function handleUserDeleted(userData: { id: string }) {
   console.log('Deleting user:', userData.id)
   
   await UserService.deleteUser(userData.id)

@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Calendar, Clock, User, ArrowRight } from 'lucide-react'
 
 export default function BlogPage() {
@@ -67,10 +68,12 @@ export default function BlogPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="lg:order-2">
                     <div className="h-64 lg:h-full relative overflow-hidden">
-                      <img
+                      <Image
                         src={featuredPost.image}
                         alt={featuredPost.title}
                         className="w-full h-full object-cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
                       />
                       <div className="absolute top-4 right-4">
                         <span className="bg-yellow-500 text-white text-sm font-medium px-3 py-1 rounded-full">
@@ -129,11 +132,13 @@ export default function BlogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {regularPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
-                  <div className="h-48 rounded-t-xl overflow-hidden">
-                    <img
+                  <div className="h-48 rounded-t-xl overflow-hidden relative">
+                    <Image
                       src={post.image}
                       alt={post.title}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   </div>
                   <div className="p-6">

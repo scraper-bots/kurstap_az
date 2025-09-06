@@ -25,7 +25,7 @@ export default function PaymentSuccessContent() {
     } else {
       setLoading(false)
     }
-  }, [sessionId])
+  }, [sessionId, fetchPurchaseInfo])
 
   const fetchPurchaseInfo = async () => {
     try {

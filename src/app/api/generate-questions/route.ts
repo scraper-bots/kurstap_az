@@ -15,9 +15,27 @@ export interface GenerateQuestionsResponse {
   data?: {
     jobTitle: string
     questions: {
-      behavioral: any[]
-      technical: any[]
-      situational: any[]
+      behavioral: Array<{
+        question: string
+        followUp: string
+        category: string
+        difficulty: string
+        expectedDuration: number
+      }>
+      technical: Array<{
+        question: string
+        followUp: string
+        category: string
+        difficulty: string
+        expectedDuration: number
+      }>
+      situational: Array<{
+        question: string
+        followUp: string
+        category: string
+        difficulty: string
+        expectedDuration: number
+      }>
     }
     totalQuestions: number
     stored: boolean
@@ -71,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Filter by difficulty if not mixed
     if (difficulty !== 'mixed') {
-      const filterByDifficulty = (questions: any[]) => 
+      const filterByDifficulty = (questions: Array<{ difficulty: string }>) => 
         questions.filter(q => q.difficulty === difficulty)
 
       filteredQuestionSet = {
