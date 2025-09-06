@@ -47,7 +47,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     userId: 'unknown',
     textLength: 0,
     hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
-    keyLength: process.env.ELEVENLABS_API_KEY?.length || 0
+    keyLength: process.env.ELEVENLABS_API_KEY?.length || 0,
+    environment: process.env.NODE_ENV || 'unknown',
+    requestMethod: req.method,
+    requestUrl: req.url,
+    userAgent: req.headers.get('user-agent')?.substring(0, 50) || 'unknown'
   }
 
   try {
@@ -89,10 +93,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!process.env.ELEVENLABS_API_KEY) {
-      console.error('❌ [TTS API] ElevenLabs API key not configured', logContext)
+      console.error('❌ [TTS API] ElevenLabs API key not configured', {
+        ...logContext,
+        availableEnvVars: Object.keys(process.env).filter(k => k.includes('ELEVEN')),
+        nodeEnv: process.env.NODE_ENV,
+        isProduction: process.env.NODE_ENV === 'production'
+      })
       return NextResponse.json({
         success: false,
-        error: 'Speech synthesis not configured'
+        error: 'Speech synthesis not configured',
+        diagnostic: {
+          environment: process.env.NODE_ENV,
+          hasKey: false,
+          timestamp: new Date().toISOString()
+        }
       }, { status: 503 })
     }
 
