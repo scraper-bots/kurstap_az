@@ -5,6 +5,9 @@ import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
 import { AudioInterview } from '@/components/audio-interview'
 import { useInterviewCompletion } from '@/hooks/useInterviewCompletion'
+import { LoadingState } from '@/components/ui/loading-spinner'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { useConfirmation, confirmations } from '@/components/ui/confirmation-dialog'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -34,6 +37,7 @@ interface InterviewState {
 function InterviewContent() {
   const { user } = useUser()
   const { completeInterview, isSubmitting, error: completionError } = useInterviewCompletion()
+  const { show: showConfirmation, ConfirmationComponent } = useConfirmation()
   const [state, setState] = useState<InterviewState>({
     stage: 'setup'
   })
@@ -313,7 +317,8 @@ function InterviewContent() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-4xl mx-auto p-4">
+        <div className="max-w-4xl mx-auto p-4">
+          {ConfirmationComponent}
         {state.stage === 'setup' && (
           <div className="bg-white rounded-xl shadow-sm border p-8 max-w-2xl mx-auto mt-8">
             <div className="mb-8 text-center">
@@ -401,22 +406,28 @@ function InterviewContent() {
         )}
 
         {state.stage === 'loading' && (
-          <div className="bg-white rounded-xl shadow-sm border p-8 max-w-2xl mx-auto mt-8 text-center">
-            <div className="flex items-center justify-center space-x-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="text-lg">
-                {isSubmitting ? 'Saving Interview Data...' : 'Setting up your AI interview...'}
-              </span>
-            </div>
-            <p className="text-gray-600 mt-4">
-              {isSubmitting 
+          <div className="bg-white rounded-xl shadow-sm border p-8 max-w-2xl mx-auto mt-8">
+            <LoadingState
+              message={isSubmitting ? 'Saving Interview Data...' : 'Setting up your AI interview...'}
+              submessage={isSubmitting 
                 ? 'Analyzing your responses and generating detailed feedback...'
                 : `Preparing ${state.difficulty || difficulty} level questions for ${state.position || position}`
               }
-            </p>
+            />
             {completionError && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{completionError}</p>
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="text-red-600">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-red-800 font-medium">Processing Error</h4>
+                    <p className="text-red-600 text-sm mt-1">{completionError}</p>
+                    <p className="text-red-500 text-xs mt-2">Please try again or contact support if the issue persists.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -458,9 +469,11 @@ function InterviewContent() {
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  setState({ stage: 'setup' })
-                  setPosition('')
-                  setDifficulty('medium')
+                  showConfirmation(confirmations.startOver(() => {
+                    setState({ stage: 'setup' })
+                    setPosition('')
+                    setDifficulty('medium')
+                  }))
                 }}
                 className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
               >
@@ -485,15 +498,22 @@ function InterviewContent() {
 
 export default function InterviewPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading interview...</p>
+    <ErrorBoundary onError={(error, errorInfo) => {
+      console.error('Interview page error:', error, errorInfo)
+    }}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+          <Navbar />
+          <LoadingState 
+            message="Loading interview..."
+            submessage="Preparing your interview experience"
+            className="min-h-screen"
+          />
+          <Footer />
         </div>
-      </div>
-    }>
-      <InterviewContent />
-    </Suspense>
+      }>
+        <InterviewContent />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

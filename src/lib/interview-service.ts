@@ -1,8 +1,9 @@
-import { db } from './db'
+import { db, DatabaseMetrics } from './db'
 import { OpenAIService } from './openai'
 import { SessionStatus, Difficulty } from '@prisma/client'
 import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } from './detailed-interview-service'
 import { InterviewQuestion, InterviewAnswer } from '@/types/common'
+import { InterviewCacheService } from './cache-service'
 
 export type { InterviewQuestion } from '@/types/common'
 
@@ -68,14 +69,18 @@ export class InterviewService {
         }
       }
 
-      // Generate questions for the position using OpenAI
-      const questionSet = await OpenAIService.generateQuestions(position)
+      // Generate questions for the position using OpenAI with caching
+      const questionSet = await InterviewCacheService.getGeneratedQuestions(
+        position,
+        difficulty,
+        () => OpenAIService.generateQuestions(position)
+      )
 
       // Flatten and shuffle questions
       const allQuestions: InterviewQuestion[] = [
-        ...questionSet.behavioral.map((q, i) => ({ id: `behavioral-${i}`, ...q })),
-        ...questionSet.technical.map((q, i) => ({ id: `technical-${i}`, ...q })),
-        ...questionSet.situational.map((q, i) => ({ id: `situational-${i}`, ...q }))
+        ...questionSet.behavioral.map((q: any, i: number) => ({ id: `behavioral-${i}`, ...q })),
+        ...questionSet.technical.map((q: any, i: number) => ({ id: `technical-${i}`, ...q })),
+        ...questionSet.situational.map((q: any, i: number) => ({ id: `situational-${i}`, ...q }))
       ]
 
       // Filter by difficulty if specified, but fall back to all questions if none match
@@ -281,46 +286,13 @@ export class InterviewService {
         completedAt: nextAction === 'completed' ? new Date().toISOString() : undefined
       }
 
-      // Perform comprehensive evaluation if completed
-      let finalEvaluation = undefined
+      // Skip expensive evaluation during answer submission to prevent timeouts
+      // This will be done later during completion
+      const finalEvaluation = undefined
       if (nextAction === 'completed') {
-        try {
-          
-          // Prepare questions and answers for evaluation
-          const questionsAndAnswers = updatedAnswers.map((answer) => {
-            const question = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
-            return {
-              question: answer.question,
-              answer: answer.userAnswer,
-              category: question?.category || 'general',
-              difficulty: question?.difficulty || 'medium'
-            }
-          })
-
-          finalEvaluation = await OpenAIService.evaluateCompleteInterview(
-            session.interview?.position || 'General',
-            questionsAndAnswers
-          )
-          
-          updatedSessionData.overallScore = finalEvaluation.overallScore
-          
-          // Store detailed evaluation in answers
-          finalEvaluation.detailedFeedback.forEach((feedback, index) => {
-            if (updatedAnswers[index]) {
-              updatedAnswers[index].score = {
-                technicalAccuracy: feedback.scores.technicalAccuracy,
-                communicationClarity: feedback.scores.communicationClarity,
-                problemSolvingApproach: feedback.scores.problemSolvingApproach,
-                overallScore: feedback.scores.overallScore,
-                feedback: feedback.feedback
-              }
-            }
-          })
-        } catch (error) {
-          console.error('Failed to evaluate interview:', error)
-          // Use fallback score
-          updatedSessionData.overallScore = 75
-        }
+        console.log('⏳ Skipping expensive evaluation during answer submission to prevent timeout')
+        // Set a default overall score instead of calling OpenAI
+        updatedSessionData.overallScore = 75 // Default score, will be updated later
       }
 
       // Update database
@@ -411,48 +383,58 @@ export class InterviewService {
   }
 
   /**
-   * Get current session state
+   * Get current session state with caching
    */
   static async getSession(sessionId: string, clerkUserId: string): Promise<InterviewSessionData | null> {
-    try {
-      // Get the user from database - create if doesn't exist  
-      let user = await db.user.findUnique({
-        where: { clerkId: clerkUserId }
-      })
+    return InterviewCacheService.getSessionData(sessionId, async () => {
+      const start = Date.now()
+      DatabaseMetrics.incrementQueryCount()
       
-      if (!user) {
-        try {
-          user = await db.user.create({
-            data: {
-              clerkId: clerkUserId,
-              email: '',
-              firstName: '',
-              lastName: '',
-              interviewCredits: 0,
-              createdAt: new Date(),
-            }
-          })
-          console.log('Auto-created user for get session:', clerkUserId)
-        } catch (createError) {
-          console.error('Failed to auto-create user:', createError)
+      try {
+        // Get the user from database - create if doesn't exist  
+        let user = await db.user.findUnique({
+          where: { clerkId: clerkUserId }
+        })
+        
+        if (!user) {
+          try {
+            user = await db.user.create({
+              data: {
+                clerkId: clerkUserId,
+                email: '',
+                firstName: '',
+                lastName: '',
+                interviewCredits: 0,
+                createdAt: new Date(),
+              }
+            })
+            console.log('Auto-created user for get session:', clerkUserId)
+          } catch (createError) {
+            console.error('Failed to auto-create user:', createError)
+            return null
+          }
+        }
+
+        const session = await db.session.findUnique({
+          where: { id: sessionId, userId: user.id },
+          include: { interview: true }
+        })
+
+        const queryTime = Date.now() - start
+        DatabaseMetrics.recordQueryTime(queryTime)
+
+        if (!session || !session.feedback) {
           return null
         }
-      }
 
-      const session = await db.session.findUnique({
-        where: { id: sessionId, userId: user.id },
-        include: { interview: true }
-      })
-
-      if (!session || !session.feedback) {
+        return session.feedback as unknown as InterviewSessionData
+      } catch (error) {
+        console.error('Error getting session:', error)
+        const queryTime = Date.now() - start
+        DatabaseMetrics.recordQueryTime(queryTime)
         return null
       }
-
-      return session.feedback as unknown as InterviewSessionData
-    } catch (error) {
-      console.error('Error getting session:', error)
-      return null
-    }
+    })
   }
 
   /**

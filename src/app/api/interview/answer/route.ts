@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { InterviewService } from '@/lib/interview-service'
+import { RetryService, CircuitBreaker } from '@/lib/retry-service'
+import { CompressionService } from '@/lib/compression-middleware'
 
 export interface SubmitAnswerRequest {
   sessionId: string
@@ -36,6 +38,9 @@ export interface SubmitAnswerResponse {
   }
   error?: string
 }
+
+// Circuit breaker for database operations
+const dbCircuitBreaker = new CircuitBreaker(5, 30000) // 5 failures, 30 second timeout
 
 export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerResponse>> {
   const startTime = Date.now()
@@ -105,16 +110,29 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
 
     console.log('✅ [INTERVIEW API] Input validation passed', logContext)
 
-    // Submit answer and get next action with comprehensive error handling
+    // Submit answer and get next action with retry logic and circuit breaker
     let result
     try {
-      console.log('🔄 [INTERVIEW API] Calling InterviewService.submitAnswer', logContext)
-      result = await InterviewService.submitAnswer(
-        sessionId,
-        userId,
-        skipQuestion ? 'SKIPPED' : answer.trim(),
-        skipQuestion
+      console.log('🔄 [INTERVIEW API] Calling InterviewService.submitAnswer with retry logic', logContext)
+      
+      result = await RetryService.withRetry(
+        () => dbCircuitBreaker.execute(() => 
+          InterviewService.submitAnswer(
+            sessionId,
+            userId,
+            skipQuestion ? 'SKIPPED' : answer.trim(),
+            skipQuestion
+          )
+        ),
+        {
+          maxAttempts: 3,
+          baseDelay: 1000,
+          onRetry: (attempt, error) => {
+            console.warn(`⚠️ [INTERVIEW API] Retry attempt ${attempt} for session ${sessionId}:`, error?.message)
+          }
+        }
       )
+      
       console.log('✅ [INTERVIEW API] InterviewService.submitAnswer completed', {
         ...logContext,
         resultSuccess: result.success,
@@ -122,11 +140,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
         duration: Date.now() - startTime
       })
     } catch (serviceError) {
-      console.error('❌ [INTERVIEW API] InterviewService.submitAnswer failed', {
+      console.error('❌ [INTERVIEW API] InterviewService.submitAnswer failed after retries', {
         ...logContext,
         error: serviceError instanceof Error ? serviceError.message : 'Unknown service error',
         stack: serviceError instanceof Error ? serviceError.stack : undefined,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
+        circuitBreakerState: dbCircuitBreaker.getState()
       })
       throw serviceError // Re-throw to be caught by outer try-catch
     }
@@ -222,7 +241,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
       duration: Date.now() - startTime
     })
 
-    return NextResponse.json(responseData)
+    // Return compressed response for better performance
+    return await CompressionService.createCompressedResponse(req, responseData) as NextResponse<SubmitAnswerResponse>
   } catch (error) {
     const duration = Date.now() - startTime
     console.error('❌ [INTERVIEW API] Unhandled error in answer submission', {

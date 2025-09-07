@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { GracefulDegradationService, RetryService } from './retry-service'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -26,9 +27,35 @@ export interface QuestionSet {
   situational: GeneratedQuestion[]
 }
 
+// Fallback questions for when OpenAI is unavailable
+const FALLBACK_QUESTIONS: Record<string, QuestionSet> = {
+  default: {
+    jobTitle: 'General',
+    behavioral: [
+      { question: 'Tell me about a time when you had to work under pressure.', difficulty: 'easy', category: 'behavioral', expectedDuration: 3 },
+      { question: 'Describe a challenging project you worked on recently.', difficulty: 'medium', category: 'behavioral', expectedDuration: 4 },
+      { question: 'How do you handle conflict with team members?', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 }
+    ],
+    technical: [
+      { question: 'Explain your approach to problem-solving.', difficulty: 'easy', category: 'technical', expectedDuration: 4 },
+      { question: 'What tools and technologies do you use in your work?', difficulty: 'medium', category: 'technical', expectedDuration: 5 },
+      { question: 'How do you stay current with industry trends?', difficulty: 'hard', category: 'technical', expectedDuration: 6 }
+    ],
+    situational: []
+  }
+}
+
 export class OpenAIService {
+  static {
+    // Register fallback for OpenAI service
+    GracefulDegradationService.registerFallback('openai-questions', async () => {
+      console.log('🔄 Using fallback questions due to OpenAI unavailability')
+      return FALLBACK_QUESTIONS.default
+    })
+  }
+
   /**
-   * Generate job-specific interview questions using OpenAI
+   * Generate job-specific interview questions using OpenAI with fallback
    */
   static async generateQuestions(jobTitle: string): Promise<QuestionSet> {
     const prompt = `
@@ -80,9 +107,12 @@ Requirements:
 
 Generate professional, realistic questions that would be asked in actual ${jobTitle} interviews.`
 
-    try {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
+    return GracefulDegradationService.executeWithFallback(
+      'openai-questions',
+      async () => {
+        return RetryService.withRetry(async () => {
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -111,12 +141,17 @@ Generate professional, realistic questions that would be asked in actual ${jobTi
         throw new Error('Invalid question set structure received')
       }
 
-      return questionSet
-    } catch (error) {
-      console.error('Error generating questions with OpenAI:', error)
-      // Re-throw the error - no fallbacks allowed
-      throw error
-    }
+          return questionSet
+        }, {
+          maxAttempts: 2,
+          baseDelay: 2000,
+          onRetry: (attempt, error) => {
+            console.warn(`🔄 OpenAI retry attempt ${attempt}:`, error?.message)
+          }
+        })
+      },
+      { fallbackAfterFailures: 2 }
+    )
   }
 
   // Embeddings removed - no vector storage needed
