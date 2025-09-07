@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = request.headers.get('x-user-id')
+    // const userEmail = request.headers.get('x-user-email')
+    // const userRole = request.headers.get('x-user-role')
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -12,9 +14,9 @@ export async function POST(request: NextRequest) {
     const { credits } = await request.json()
     const creditsToAdd = credits || 5
 
-    // Get user from database using Clerk ID
+    // Get user from database using user ID
     const user = await db.user.findUnique({
-      where: { clerkId: userId }
+      where: { id: userId }
     })
 
     if (!user) {

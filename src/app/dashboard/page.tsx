@@ -1,32 +1,40 @@
-import { currentUser } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
-import { UserService } from '@/lib/user-service'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard'
 import { InterviewHistoryCard } from '@/components/dashboard/InterviewHistoryCard'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useAuth } from '@/hooks/useAuth'
 
-export default async function DashboardPage() {
-  const clerkUser = await currentUser()
+export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   
-  if (!clerkUser) {
-    redirect('/sign-in')
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
   }
 
-  // Get or create user in database (gracefully handle errors)
-  let dbUser = null
-  
-  try {
-    dbUser = await UserService.getOrCreateUser({
-      clerkId: clerkUser.id,
-      email: clerkUser.emailAddresses[0]?.emailAddress || '',
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
-      imageUrl: clerkUser.imageUrl,
-    })
-  } catch (error) {
-    console.error('Database error:', error)
-    // Continue without database data
+  if (!isAuthenticated || !user) {
+    return null // Redirecting
   }
 
   return (
@@ -37,7 +45,7 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Welcome back, {clerkUser.firstName}! 👋
+            Welcome back, {user.firstName || 'User'}! 👋
           </h1>
           <p className="text-gray-600 mt-1">Ready to ace your next interview?</p>
         </div>
@@ -52,18 +60,18 @@ export default async function DashboardPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-600">Email</label>
-                <p className="text-sm text-gray-900">{clerkUser.emailAddresses[0]?.emailAddress}</p>
+                <p className="text-sm text-gray-900">{user.email}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">Name</label>
                 <p className="text-sm text-gray-900">
-                  {clerkUser.firstName} {clerkUser.lastName}
+                  {user.firstName} {user.lastName}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Member Since</label>
+                <label className="text-sm font-medium text-gray-600">Interview Credits</label>
                 <p className="text-sm text-gray-900">
-                  {dbUser?.createdAt ? new Date(dbUser.createdAt).toLocaleDateString() : 'N/A'}
+                  {user.interviewCredits}
                 </p>
               </div>
             </div>
@@ -165,15 +173,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Database Status */}
-        {!dbUser && (
-          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">
-              <strong>Note:</strong> Database connection issue. Some features may not work properly.
-              Your user data will sync once the database is connected.
-            </p>
-          </div>
-        )}
       </div>
       </div>
       <Footer />

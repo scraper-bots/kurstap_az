@@ -1,14 +1,39 @@
-import { currentUser } from '@clerk/nextjs/server'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { PricingCards } from '@/components/pricing/PricingCards'
-import { redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useAuth } from '@/hooks/useAuth'
 
-export default async function PricingPage() {
-  const user = await currentUser()
+export default function PricingPage() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   
-  if (!user) {
-    redirect('/sign-in?redirect_url=/pricing')
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login?redirect=/pricing')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null // Redirecting
   }
 
   return (

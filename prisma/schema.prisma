@@ -15,14 +15,23 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  clerkId   String   @unique
   email     String   @unique
+  password  String   // Hashed password
   firstName String?
   lastName  String?
   imageUrl  String?
   
+  // Email verification
+  emailVerified DateTime?
+  emailVerificationToken String?
+  
+  // Password reset
+  resetPasswordToken String?
+  resetPasswordTokenExpires DateTime?
+  
   // User preferences and settings
   interviewCredits Int @default(0) // Number of interviews user can take
+  role UserRole @default(USER)
   
   // Timestamps
   createdAt DateTime @default(now())
@@ -33,8 +42,23 @@ model User {
   sessions      Session[]
   subscriptions Subscription[]
   payments      Payment[]
+  userSessions  UserSession[]
   
   @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_sessions")
 }
 
 model Interview {
@@ -45,18 +69,25 @@ model Interview {
   position    String        // Job position being interviewed for
   company     String?       // Company name
   difficulty  Difficulty    @default(MEDIUM)
+  mode        InterviewMode @default(STANDARD) // New: Interview mode with predefined settings
   status      InterviewStatus @default(SCHEDULED)
   
-  // Interview content
-  questions   String[]      // Array of questions
-  duration    Int?          // Duration in minutes
+  // Interview content - now all questions provided at once
+  questions   Json[]        // Array of detailed question objects with metadata
+  totalQuestions Int         // Total number of questions for this interview
+  duration    Int?          // Total duration in minutes
   feedback    String?       // AI feedback
   score       Float?        // Overall score (0-100)
+  
+  // Video recording and analysis
+  videoUrl         String?   // URL to recorded video
+  videoAnalysis    Json?     // AI analysis of video (facial expressions, body language, etc.)
+  audioTranscript  String?   // Full transcript of the video
   
   // Detailed analysis data
   categoryScores    Json?     // Scores by category (Behavioral, Technical, etc.)
   overallAnalysis   Json?     // Strengths, weaknesses, recommendations
-  responseMetrics   Json?     // Response time, confidence levels
+  responseMetrics   Json?     // Response time, confidence levels, facial analysis
   benchmarkData     Json?     // Industry comparison data
   improvementPlan   Json?     // Roadmap and resources
   
@@ -110,9 +141,17 @@ model Session {
   status      SessionStatus @default(IN_PROGRESS)
   duration    Int?        // Duration in seconds
   
-  // Audio/Video data
-  audioUrl    String?     // S3 or storage URL
+  // Video/Audio data
+  videoUrl    String?     // Video recording URL
+  audioUrl    String?     // Audio-only URL (fallback)
   transcript  String?     // Speech-to-text transcript
+  
+  // Video analysis data
+  videoAnalysis Json?     // Frame-by-frame analysis results
+  facialMetrics Json?     // Facial expression analysis
+  bodyLanguage  Json?     // Body language assessment
+  eyeContact    Json?     // Eye contact tracking
+  speechPacing  Json?     // Speech rhythm and pacing analysis
   
   // AI Analysis
   feedback    Json?       // Structured feedback JSON
@@ -251,4 +290,18 @@ enum PaymentStatus {
   FAILED
   CANCELLED
   REFUNDED
+}
+
+enum InterviewMode {
+  QUICK_ASSESSMENT    // 3 questions, 5 minutes total
+  STANDARD           // 5 questions, 15 minutes total
+  COMPREHENSIVE      // 8 questions, 25 minutes total
+  TECHNICAL_DEEP     // 10 questions, 35 minutes total, high difficulty
+  BEHAVIORAL_FOCUS   // 6 questions, 20 minutes, behavioral only
+  MIXED_CHALLENGE    // 12 questions, 45 minutes, all difficulties
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }

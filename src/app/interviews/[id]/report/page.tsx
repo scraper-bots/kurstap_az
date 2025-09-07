@@ -1,6 +1,4 @@
-import { UserButton } from '@clerk/nextjs'
-import { currentUser } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
+// import { redirect } from 'next/navigation' // TODO: Add proper auth redirects
 import Link from 'next/link'
 import { 
   TrendingUp, 
@@ -21,7 +19,10 @@ async function getInterviewReport(interviewId: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const response = await fetch(`${baseUrl}/api/interviews/${interviewId}/report`, {
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: {
+        'x-user-id': 'mock-user-id' // TODO: Replace with proper auth
+      }
     })
     
     if (!response.ok) {
@@ -202,11 +203,7 @@ interface ReportProps {
 
 export default async function DetailedReportPage({ params }: ReportProps) {
   const { id } = await params
-  const clerkUser = await currentUser()
-  
-  if (!clerkUser) {
-    redirect('/sign-in')
-  }
+  // TODO: Add proper authentication check
 
   const report = await getInterviewReport(id) || mockDetailedReport[id as keyof typeof mockDetailedReport]
   
@@ -240,7 +237,7 @@ export default async function DetailedReportPage({ params }: ReportProps) {
                 <p className="text-gray-600 mt-1">{report.basicInfo.title} • {report.basicInfo.company}</p>
               </div>
             </div>
-            <UserButton />
+            {/* TODO: Add user menu */}
           </div>
         </div>
       </div>

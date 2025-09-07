@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 export async function GET(
@@ -7,9 +6,9 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const user = await currentUser()
+    const authUserId = request.headers.get('x-user-id')
     const { userId } = await params
-    if (!user || user.id !== userId) {
+    if (!authUserId || authUserId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -18,7 +17,7 @@ export async function GET(
 
     const sessions = await db.session.findMany({
       where: {
-        userId: user.id,
+        userId: userId,
         status: 'IN_PROGRESS',
         startedAt: { gte: yesterday }
       },

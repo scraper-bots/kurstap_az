@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if this payment belongs to the current user
-    if (payment.user.clerkId !== user.id) {
+    if (payment.user.id !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
             select: { interviewCredits: true, clerkId: true }
           })
 
-          console.log(`Successfully added ${creditsToAdd} credits to user ${payment.userId} (Clerk ID: ${updatedUser.clerkId}). New balance: ${updatedUser.interviewCredits}`)
+          console.log(`Successfully added ${creditsToAdd} credits to user ${payment.userId}. New balance: ${updatedUser.interviewCredits}`)
 
           return NextResponse.json({
             success: true,

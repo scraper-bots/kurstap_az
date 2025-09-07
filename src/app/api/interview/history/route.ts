@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { InterviewService } from '@/lib/interview-service'
 
 export interface GetHistoryResponse {
@@ -23,7 +22,7 @@ export interface GetHistoryResponse {
 export async function GET(req: NextRequest): Promise<NextResponse<GetHistoryResponse>> {
   try {
     // Check authentication
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       return NextResponse.json({
         success: false,

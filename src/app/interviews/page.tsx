@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs/server'
+'use client'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, Target } from 'lucide-react'

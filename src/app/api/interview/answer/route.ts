@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { InterviewService } from '@/lib/interview-service'
 import { RetryService, CircuitBreaker } from '@/lib/retry-service'
 import { CompressionService } from '@/lib/compression-middleware'
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
     console.log('🎯 [INTERVIEW API] Starting answer submission', logContext)
 
     // Check authentication
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       console.error('❌ [INTERVIEW API] Authentication failed - no userId', logContext)
       return NextResponse.json({

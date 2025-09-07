@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 import { AudioInterview } from '@/components/audio-interview'
 import { useInterviewCompletion } from '@/hooks/useInterviewCompletion'
 import { LoadingState } from '@/components/ui/loading-spinner'
@@ -35,7 +35,7 @@ interface InterviewState {
 }
 
 function InterviewContent() {
-  const { user } = useUser()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const { completeInterview, isSubmitting, error: completionError } = useInterviewCompletion()
   const { show: showConfirmation, ConfirmationComponent } = useConfirmation()
   const [state, setState] = useState<InterviewState>({
@@ -303,14 +303,32 @@ function InterviewContent() {
     }
   }
 
-  if (!user) {
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
     return (
       <>
         <Navbar />
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="text-center bg-white rounded-xl shadow-sm border p-8">
             <h1 className="text-2xl font-bold mb-4 text-gray-900">Please sign in to start your interview</h1>
-            <p className="text-gray-600">You need to be signed in to access the AI interview platform</p>
+            <p className="text-gray-600 mb-4">You need to be signed in to access the AI interview platform</p>
+            <a href="/auth/login" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Sign In
+            </a>
           </div>
         </div>
         <Footer />

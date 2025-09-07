@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -27,7 +26,7 @@ export async function POST(request: NextRequest) {
       },
       create: {
         id: interviewState.sessionId,
-        userId: user.id,
+        userId: userId,
         type: 'PRACTICE',
         status: 'IN_PROGRESS',
         feedback: interviewState,

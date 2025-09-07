@@ -1,19 +1,18 @@
-import { NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { DetailedInterviewService } from '@/lib/detailed-interview-service'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user's interviews
-    const interviews = await DetailedInterviewService.getUserInterviews(user.id)
+    const interviews = await DetailedInterviewService.getUserInterviews(userId)
     
     // Get user statistics
-    const stats = await DetailedInterviewService.getUserInterviewStats(user.id)
+    const stats = await DetailedInterviewService.getUserInterviewStats(userId)
 
     return NextResponse.json({
       interviews: interviews.map(interview => ({

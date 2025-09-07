@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Check authentication
-    const { userId } = await auth()
+    const userId = request.headers.get('x-user-id')
+    // const userEmail = request.headers.get('x-user-email')
+    // const userRole = request.headers.get('x-user-role')
+    
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },

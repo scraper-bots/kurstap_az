@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
 import { EpointService, EpointPaymentRequest } from '@/lib/epoint-service'
 import { db } from '@/lib/db'
 import { generateId } from '@/lib/utils'
@@ -33,8 +32,8 @@ const CREDIT_PACKAGES = {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -77,22 +76,11 @@ export async function POST(request: NextRequest) {
 
     // Get or create the database user
     let dbUser = await db.user.findUnique({
-      where: { clerkId: user.id }
+      where: { id: userId }
     })
     
     if (!dbUser) {
-      // Create user if doesn't exist
-      dbUser = await db.user.create({
-        data: {
-          clerkId: user.id,
-          email: user.emailAddresses[0]?.emailAddress || '',
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          imageUrl: user.imageUrl || undefined,
-          interviewCredits: 0
-        }
-      })
-      console.log('Auto-created user for credit purchase:', user.id)
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Generate unique order ID

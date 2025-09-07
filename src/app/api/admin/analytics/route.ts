@@ -1,17 +1,19 @@
-import { NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 // Admin endpoint for payment analytics
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    const userEmail = request.headers.get('x-user-email')
+    const userRole = request.headers.get('x-user-role')
+    
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user is admin
-    const isAdmin = user.emailAddresses?.[0]?.emailAddress?.endsWith('@bir.guru') || false
+    const isAdmin = userEmail?.endsWith('@bir.guru') || userRole === 'admin' || false
     
     if (!isAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })

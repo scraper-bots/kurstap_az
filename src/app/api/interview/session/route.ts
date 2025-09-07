@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { InterviewService } from '@/lib/interview-service'
 
 export interface GetSessionResponse {
@@ -32,7 +31,7 @@ export interface GetSessionResponse {
 export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResponse>> {
   try {
     // Check authentication
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       return NextResponse.json({
         success: false,

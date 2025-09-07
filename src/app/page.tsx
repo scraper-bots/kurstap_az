@@ -2,12 +2,12 @@
 
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { SignUpButton, useUser } from '@clerk/nextjs'
 import { CheckCircle, Users, Star, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Home() {
-  const { isSignedIn } = useUser()
+  const { isAuthenticated } = useAuth()
   return (
     <>
       <Navbar />
@@ -28,7 +28,7 @@ export default function Home() {
             
             {/* CTA Button */}
             <div className="flex justify-center mb-12">
-              {isSignedIn ? (
+              {isAuthenticated ? (
                 <Link href="/interview">
                   <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
                     Start Practice
@@ -36,12 +36,12 @@ export default function Home() {
                   </button>
                 </Link>
               ) : (
-                <SignUpButton mode="modal" forceRedirectUrl="/interview">
+                <Link href="/auth/signup">
                   <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg">
                     Start Practice
                     <ArrowRight className="inline-block w-5 h-5 ml-2" />
                   </button>
-                </SignUpButton>
+                </Link>
               )}
             </div>
 

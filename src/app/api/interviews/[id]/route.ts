@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
 import { DetailedInterviewService } from '@/lib/detailed-interview-service'
 
 export async function GET(
@@ -8,13 +7,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const user = await currentUser()
+    const userId = request.headers.get('x-user-id')
     
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const interview = await DetailedInterviewService.getDetailedInterview(id, user.id)
+    const interview = await DetailedInterviewService.getDetailedInterview(id, userId)
     
     if (!interview) {
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 })

@@ -1,15 +1,14 @@
-import { NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { SubscriptionService } from '@/lib/subscription-service'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await SubscriptionService.cancelSubscription(user.id)
+    const result = await SubscriptionService.cancelSubscription(userId)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error cancelling subscription:', error)

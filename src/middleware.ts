@@ -1,38 +1,114 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { authService } from '@/lib/auth'
 
-const isPublicRoute = createRouteMatcher([
+// Define protected routes
+const protectedRoutes = [
+  '/dashboard',
+  '/interview',
+  '/profile',
+  '/settings',
+  '/payment'
+]
+
+// Define auth routes (redirect if already authenticated)
+const authRoutes = [
+  '/auth/login',
+  '/auth/signup',
+  '/auth/forgot-password'
+]
+
+// Define public routes that don't require authentication
+const publicRoutes = [
   '/',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/webhooks(.*)',
-  '/api/users/credits(.*)', // Public user credits API
-  '/api/payments(.*)', // Public payment APIs
-  '/api/health(.*)', // Public health check APIs
-  '/api/debug(.*)', // Debug APIs (development only)
-  '/manifest.json', // PWA manifest
-  '/about(.*)', // Public about page
-  '/terms(.*)', // Public terms page
-  '/privacy(.*)', // Public privacy page
-  '/contact(.*)', // Public contact page
-  '/cookies(.*)', // Public cookie policy page
-  '/careers(.*)', // Public careers page
-  '/blog(.*)' // Public blog page
-])
+  '/about',
+  '/terms',
+  '/privacy',
+  '/contact',
+  '/cookies',
+  '/careers',
+  '/blog',
+  '/api/webhooks',
+  '/api/users/credits',
+  '/api/payments',
+  '/api/health',
+  '/api/debug',
+  '/manifest.json'
+]
 
-export default clerkMiddleware(async (auth, req) => {
-  // Let API routes handle their own authentication
-  if (req.nextUrl.pathname.startsWith('/api/interview/')) {
-    return
+export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const sessionId = request.cookies.get('session')?.value
+
+  // Check if route is public
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+
+  // Check if user is authenticated
+  let isAuthenticated = false
+  let user = null
+
+  if (sessionId) {
+    try {
+      user = await authService.getUserFromSession(sessionId)
+      isAuthenticated = !!user
+    } catch (error) {
+      // Invalid session, clear cookie
+      const response = NextResponse.next()
+      response.cookies.set('session', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 0,
+        path: '/'
+      })
+      return response
+    }
   }
-  
-  if (!isPublicRoute(req)) {
-    await auth.protect()
+
+  // Redirect authenticated users away from auth pages
+  if (isAuthenticated && authRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
-})
+
+  // Protect routes that require authentication
+  if (protectedRoutes.some(route => pathname.startsWith(route))) {
+    if (!isAuthenticated) {
+      // Store the intended destination for redirect after login
+      const loginUrl = new URL('/auth/login', request.url)
+      loginUrl.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
+  // Add user info to request headers for API routes
+  if (isAuthenticated && user) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', user.id)
+    requestHeaders.set('x-user-email', user.email)
+    requestHeaders.set('x-user-role', user.role)
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders
+      }
+    })
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (authentication endpoints)
+     * - api/webhook (webhook endpoints)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api/auth|api/webhook|_next/static|_next/image|favicon.ico).*)',
   ],
 }

@@ -148,13 +148,14 @@ export function AudioInterview({
   const handleSilenceDetected = useCallback(async () => {
     const transcript = pendingTranscriptRef.current.trim()
     const timeSinceAiSpoke = Date.now() - aiSpeechEndTime.current
-    const timeSinceSkip = Date.now() - skipTimestampRef.current
+    // Only calculate timeSinceSkip if skip actually occurred (timestamp > 0)
+    const timeSinceSkip = skipTimestampRef.current > 0 ? Date.now() - skipTimestampRef.current : Infinity
     
     console.log('🔍 [DEBUG] handleSilenceDetected called!', {
       transcript: transcript.substring(0, 100) + '...',
       transcriptLength: transcript.length,
       timeSinceAiSpoke,
-      timeSinceSkip,
+      timeSinceSkip: skipTimestampRef.current > 0 ? timeSinceSkip : 'N/A (no skip occurred)',
       AI_SPEECH_BUFFER,
       isRecording: audioState.isRecording,
       isProcessingAnswer,
@@ -189,22 +190,62 @@ export function AudioInterview({
       return
     }
     
-    // Filter out music notes, repeated words, and audio artifacts
+    // Filter out music notes, repeated words, stale transcripts, and audio artifacts
     const isRepeatedWord = /(\b\w+\b)(\s+\1){3,}/.test(transcript) // Detects repeated words like "difficult difficult difficult"
+    const commonStaleTranscripts = [
+      'Thank you for watching!',
+      'Thanks for watching!', 
+      'Thank you for listening!',
+      'Thanks for listening!',
+      'Thank you.',
+      'Thanks.',
+      'Bye!',
+      'Goodbye!',
+      'See you later!',
+      'the',
+      'a',
+      'an',
+      'and',
+      'or',
+      'but',
+      'um',
+      'uh',
+      'er',
+      'ah'
+    ]
+    const isStaleTranscript = commonStaleTranscripts.some(phrase => 
+      transcript.toLowerCase().includes(phrase.toLowerCase())
+    )
     const isAudioArtifact = transcript === '🎶' || transcript.includes('What? What? What?') || transcript.length < 3
     
-    if (isAudioArtifact || isRepeatedWord) {
-      console.log('Detected audio artifact or feedback:', transcript.substring(0, 50) + '...')
+    if (isAudioArtifact || isRepeatedWord || isStaleTranscript) {
+      console.log('🚫 Filtered out unwanted transcript:', {
+        transcript: transcript.substring(0, 50) + '...',
+        reason: isAudioArtifact ? 'audio artifact' : isRepeatedWord ? 'repeated words' : 'stale transcript'
+      })
       // Don't provide feedback for obvious audio artifacts to avoid more TTS
       return
     }
     
-    if (transcript.length > 5 && !isProcessingAnswer) { // Reduced minimum meaningful response
-      console.log('Silence detected, processing answer:', transcript)
-      await handleAnswerSubmit(transcript)
-    } else if (transcript.length <= 5 && transcript.length > 0) {
-      console.log('Very short response detected:', transcript)
-      await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
+    // Only process meaningful responses (increased threshold to reduce phantom responses)
+    if (transcript.length > 10 && !isProcessingAnswer) {
+      // Additional check: must contain at least one word longer than 2 characters
+      const hasValidWords = /\b\w{3,}\b/.test(transcript)
+      if (hasValidWords) {
+        console.log('Silence detected, processing answer:', transcript)
+        await handleAnswerSubmit(transcript)
+      } else {
+        console.log('🚫 Transcript too short/no meaningful words:', transcript)
+      }
+    } else if (transcript.length > 2 && transcript.length <= 10) {
+      // Be more selective about providing feedback for short responses
+      const hasValidWords = /\b\w{3,}\b/.test(transcript)
+      if (hasValidWords) {
+        console.log('Short response detected:', transcript)
+        await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
+      } else {
+        console.log('🚫 Very short transcript ignored:', transcript)
+      }
     }
   }, [audioState.isRecording, isProcessingAnswer])
 

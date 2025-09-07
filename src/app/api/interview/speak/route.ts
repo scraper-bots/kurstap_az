@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 
 export async function OPTIONS(): Promise<NextResponse> {
   return new NextResponse(null, {
@@ -58,7 +57,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.log('🗣️ [TTS API] Starting speech synthesis request', logContext)
 
     // Check authentication
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       console.error('❌ [TTS API] Authentication failed - no userId', logContext)
       return NextResponse.json({

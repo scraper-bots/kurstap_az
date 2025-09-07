@@ -248,7 +248,7 @@ export class OfflineModeService {
     retryCount: number
   }> = []
 
-  private static isOnline = navigator?.onLine ?? true
+  private static isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true
   private static maxQueueSize = 100
   private static maxRetries = 3
 

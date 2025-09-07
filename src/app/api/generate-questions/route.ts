@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { OpenAIService } from '@/lib/openai'
 import { db } from '@/lib/db'
 
@@ -46,7 +45,7 @@ export interface GenerateQuestionsResponse {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Check authentication
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -108,7 +107,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Log generation activity
     try {
       await db.user.update({
-        where: { clerkId: userId },
+        where: { id: userId },
         data: { updatedAt: new Date() }
       })
     } catch (dbError) {
@@ -149,7 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
-    const { userId } = await auth()
+    const userId = req.headers.get('x-user-id')
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },

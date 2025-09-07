@@ -1,21 +1,20 @@
-import { NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await currentUser()
-    if (!user) {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user from database
     const dbUser = await db.user.findUnique({
-      where: { clerkId: user.id },
+      where: { id: userId },
       select: { id: true, interviewCredits: true }
     })
 
-    console.log(`Credits API: Looking up user with Clerk ID: ${user.id}`)
+    console.log(`Credits API: Looking up user with ID: ${userId}`)
 
     if (!dbUser) {
       // Return 0 credits if user doesn't exist yet
