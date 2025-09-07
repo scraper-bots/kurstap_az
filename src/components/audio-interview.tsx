@@ -55,6 +55,7 @@ export function AudioInterview({
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const skipTimestampRef = useRef(0) // Track when skip happened to ignore subsequent transcripts
+  const [operationState, setOperationState] = useState<'idle' | 'submitting' | 'skipping' | 'completing'>('idle')
 
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
@@ -161,8 +162,13 @@ export function AudioInterview({
       pendingTranscript: audioState.pendingTranscript.substring(0, 50) + '...'
     })
     
-    // Don't process transcripts too soon after a skip
-    if (timeSinceSkip < 2000) { // 2 second buffer after skip
+    // Don't process transcripts during any operation or too soon after a skip
+    if (operationState !== 'idle') {
+      console.log('🚫 Ignoring transcript - operation in progress:', operationState)
+      return
+    }
+    
+    if (timeSinceSkip < 3000) { // Increased to 3 second buffer after skip
       console.log('🚫 Ignoring transcript - too soon after skip', timeSinceSkip + 'ms')
       return
     }
@@ -267,13 +273,19 @@ export function AudioInterview({
     console.log('🎯 [DEBUG] handleAnswerSubmit called!', {
       answer: answer.substring(0, 100) + '...',
       answerLength: answer.length,
+      operationState,
       isProcessingAnswer,
       isCompleting,
       stack: new Error().stack
     })
     
-    if (!answer.trim() || isProcessingAnswer || isCompleting) return
+    // Check if any operation is already in progress
+    if (!answer.trim() || operationState !== 'idle' || isProcessingAnswer || isCompleting) {
+      console.log('🚫 Answer submission blocked - operation in progress:', operationState)
+      return
+    }
 
+    setOperationState('submitting')
     setIsProcessingAnswer(true)
     stopRecording()
 
@@ -346,6 +358,7 @@ export function AudioInterview({
       
       await speakAIResponse("I apologize, there was a technical issue. Please check your connection and try again.")
     } finally {
+      setOperationState('idle')
       setIsProcessingAnswer(false)
       pendingTranscriptRef.current = ''
       setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
@@ -430,6 +443,7 @@ export function AudioInterview({
   const skipToNextQuestion = async () => {
     console.log('🚨 [DEBUG] skipToNextQuestion called!', {
       stack: new Error().stack,
+      operationState,
       isRecording: audioState.isRecording,
       isProcessingAnswer,
       isCompleting
@@ -439,14 +453,25 @@ export function AudioInterview({
       stopRecording()
     }
     
-    // Prevent multiple skip calls
-    if (isProcessingAnswer || isCompleting) return
+    // Prevent multiple skip calls using operation state
+    if (operationState !== 'idle' || isProcessingAnswer || isCompleting) {
+      console.log('🚫 Skip blocked - operation in progress:', operationState)
+      return
+    }
     
+    setOperationState('skipping')
     setIsProcessingAnswer(true)
     
     // Clear any pending transcripts and mark skip timestamp
     pendingTranscriptRef.current = ''
     skipTimestampRef.current = Date.now()
+    
+    // Cancel any pending silence detection
+    if (silenceTimer.current) {
+      clearTimeout(silenceTimer.current)
+      silenceTimer.current = null
+    }
+    
     setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
     
     try {
@@ -509,7 +534,7 @@ export function AudioInterview({
           // Reset skip timestamp after question transition to allow normal transcript processing
           setTimeout(() => {
             skipTimestampRef.current = 0
-          }, 3000)
+          }, 4000) // Extended to ensure buffer period is complete
           
           // Simplified message
           await speakAIResponse(result.data.currentQuestion.question)
@@ -547,17 +572,22 @@ export function AudioInterview({
       
       await speakAIResponse("I apologize, there was an issue skipping the question. Please try again.")
     } finally {
+      setOperationState('idle')
       setIsProcessingAnswer(false)
     }
   }
 
   const finishInterviewEarly = async () => {
-    if (isCompleting) return // Prevent duplicate calls
+    if (operationState !== 'idle' || isCompleting) {
+      console.log('🚫 Early finish blocked - operation in progress:', operationState)
+      return
+    }
     
     if (audioState.isRecording) {
       stopRecording()
     }
     
+    setOperationState('completing')
     setIsCompleting(true)
     await speakAIResponse("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
     
@@ -635,14 +665,14 @@ export function AudioInterview({
           <div className="flex gap-3 justify-center">
             <Button
               onClick={() => {
-                if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
+                if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
                   console.log('👤 User manually clicked Next Question button')
                   skipToNextQuestion()
-                } else if (isProcessingAnswer || isCompleting) {
-                  console.log('⚠️ Skip blocked: operation in progress')
+                } else {
+                  console.log('⚠️ Skip blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
                 }
               }}
-              disabled={audioState.isSpeaking || isProcessingAnswer || audioState.isPaused}
+              disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused}
               variant="outline"
               size="sm"
               className="border-blue-300 text-blue-600 hover:bg-blue-50"

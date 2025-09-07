@@ -173,16 +173,16 @@ function InterviewContent() {
     }
   }
 
-  const [completionInProgress, setCompletionInProgress] = useState(false)
+  const [completionState, setCompletionState] = useState<'idle' | 'fetching' | 'processing' | 'redirecting' | 'completed'>('idle')
 
   const handleComplete = async () => {
-    // Prevent multiple completion calls
-    if (completionInProgress) {
-      console.log('⚠️ Completion already in progress, ignoring duplicate call')
+    // Prevent multiple completion calls using atomic state
+    if (completionState !== 'idle') {
+      console.log('⚠️ Completion already in progress:', completionState)
       return
     }
 
-    setCompletionInProgress(true)
+    setCompletionState('fetching')
     console.log('🏁 Interview completion started', {
       sessionId: state.sessionId,
       position: state.position,
@@ -241,6 +241,7 @@ function InterviewContent() {
               duration
             })
             
+            setCompletionState('processing')
             try {
               await completeInterview({
                 title: `${state.position || 'Interview'}`,
@@ -251,6 +252,7 @@ function InterviewContent() {
                 answers: transformedAnswers
               })
               console.log('✅ Interview completion successful')
+              setCompletionState('completed')
               return
             } catch (completionError) {
               console.error('❌ Interview completion failed:', completionError)
@@ -269,6 +271,7 @@ function InterviewContent() {
       console.log('🔄 Fallback: using local state data')
       const duration = Math.round((Date.now() - state.startTime) / 1000 / 60)
       
+      setCompletionState('processing')
       try {
         await completeInterview({
           title: `${state.position} Interview`,
@@ -279,22 +282,24 @@ function InterviewContent() {
           answers: state.answers
         })
         console.log('✅ Fallback completion successful')
+        setCompletionState('completed')
         return
       } catch (error) {
         console.error('❌ Fallback completion failed:', error)
-        // Show user-friendly message and set completed state
+        setCompletionState('idle') // Reset state to allow retry
+        // Show user-friendly message
         alert('Interview completed! There was a technical issue saving the detailed results, but your responses have been recorded. Please check your interview history.')
       }
     }
 
       // Last resort: show completed state without saving
       console.warn('⚠️ Interview completed but could not save results')
+      setCompletionState('completed')
       setState(prev => ({ ...prev, stage: 'completed' }))
     } catch (globalError) {
       console.error('❌ Global completion error:', globalError)
+      setCompletionState('idle') // Reset to allow retry
       setState(prev => ({ ...prev, stage: 'completed' }))
-    } finally {
-      setCompletionInProgress(false)
     }
   }
 

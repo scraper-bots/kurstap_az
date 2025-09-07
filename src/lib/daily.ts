@@ -12,6 +12,7 @@ export class DailyAudioService {
   private audioChunks: Blob[] = []
   private mediaRecorder: MediaRecorder | null = null
   private meetingToken: string | null = null
+  private audioContext: AudioContext | null = null
   
   /**
    * Initialize Daily.co call object for audio-only interview
@@ -174,8 +175,12 @@ export class DailyAudioService {
   private async processAudioChunk(): Promise<void> {
     if (this.audioChunks.length === 0) return
 
+    // Copy chunks before clearing to prevent accumulation on errors
+    const currentChunks = [...this.audioChunks]
+    this.audioChunks = [] // Clear immediately to prevent memory leaks
+
     try {
-      const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' })
+      const audioBlob = new Blob(currentChunks, { type: 'audio/webm' })
       
       // Send to Whisper STT API
       const transcript = await this.transcribeAudio(audioBlob)
@@ -184,9 +189,6 @@ export class DailyAudioService {
         // Emit transcript event
         this.onTranscriptReceived?.(transcript)
       }
-
-      // Clear chunks for next recording cycle
-      this.audioChunks = []
       
       // Continue recording if still active and not already recording
       if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'inactive') {
@@ -194,6 +196,7 @@ export class DailyAudioService {
       }
     } catch (error) {
       console.error('Error processing audio chunk:', error)
+      // Don't re-add chunks on error to prevent memory accumulation
     }
   }
 
@@ -261,12 +264,15 @@ export class DailyAudioService {
         throw new Error('Received empty audio buffer')
       }
       
-      const audioContext = new AudioContext()
-      const audioBufferSource = audioContext.createBufferSource()
+      // Reuse or create AudioContext to prevent memory leaks
+      if (!this.audioContext) {
+        this.audioContext = new AudioContext()
+      }
+      const audioBufferSource = this.audioContext.createBufferSource()
       
-      const decodedBuffer = await audioContext.decodeAudioData(audioBuffer)
+      const decodedBuffer = await this.audioContext.decodeAudioData(audioBuffer)
       audioBufferSource.buffer = decodedBuffer
-      audioBufferSource.connect(audioContext.destination)
+      audioBufferSource.connect(this.audioContext.destination)
       
       // Return promise that resolves when audio finishes
       return new Promise<void>((resolve, reject) => {
@@ -331,6 +337,22 @@ export class DailyAudioService {
   async leaveRoom(): Promise<void> {
     if (this.callObject) {
       this.stopRecording()
+      
+      // Clean up audio chunks to prevent memory leaks
+      this.audioChunks = []
+      
+      // Clean up MediaRecorder
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop()
+        this.mediaRecorder = null
+      }
+      
+      // Clean up AudioContext
+      if (this.audioContext && this.audioContext.state !== 'closed') {
+        await this.audioContext.close()
+        this.audioContext = null
+      }
+      
       await this.callObject.leave()
       this.callObject.destroy()
       this.callObject = null
