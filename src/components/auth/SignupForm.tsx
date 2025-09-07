@@ -255,16 +255,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ redirectTo = '/dashboard
             )}
           </Button>
 
-          {/* Benefits */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4">
-            <p className="text-blue-800 text-sm font-medium mb-2">🎉 Free Account Benefits:</p>
-            <ul className="text-blue-700 text-xs space-y-1">
-              <li>• 3 free interview credits</li>
-              <li>• Access to all interview modes</li>
-              <li>• AI-powered video analysis</li>
-              <li>• Detailed performance reports</li>
-            </ul>
-          </div>
 
           {/* Sign In Link */}
           <div className="text-center pt-4 border-t border-gray-200">
