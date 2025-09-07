@@ -14,7 +14,7 @@ interface CreateInterviewRequest {
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id')
-    const userEmail = request.headers.get('x-user-email')
+    // const userEmail = request.headers.get('x-user-email') // Available if needed
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
