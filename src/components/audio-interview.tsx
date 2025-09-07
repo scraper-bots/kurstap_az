@@ -64,8 +64,8 @@ export function AudioInterview({
   const pendingTranscriptRef = useRef<string>('')
 
   // Auto-answer when user stops speaking
-  const SILENCE_THRESHOLD = 2000 // 2 seconds of silence
-  const MAX_RECORDING_TIME = 30000 // 30 seconds max per answer
+  const SILENCE_THRESHOLD = 4000 // 4 seconds of silence (increased from 2 to give more thinking time)
+  const MAX_RECORDING_TIME = 45000 // 45 seconds max per answer (increased from 30)
   const AI_SPEECH_BUFFER = 3000 // 3 seconds buffer after AI finishes speaking
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function AudioInterview({
   }, [])
 
   const handleSilenceDetected = useCallback(async () => {
-    const transcript = audioState.pendingTranscript.trim()
+    const transcript = pendingTranscriptRef.current.trim()
     const timeSinceAiSpoke = Date.now() - aiSpeechEndTime.current
     
     console.log('🔍 [DEBUG] handleSilenceDetected called!', {
@@ -154,6 +154,7 @@ export function AudioInterview({
       AI_SPEECH_BUFFER,
       isRecording: audioState.isRecording,
       isProcessingAnswer,
+      pendingTranscriptRef: pendingTranscriptRef.current.substring(0, 50) + '...',
       pendingTranscript: audioState.pendingTranscript.substring(0, 50) + '...'
     })
     
@@ -190,7 +191,7 @@ export function AudioInterview({
       console.log('Very short response detected:', transcript)
       await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
     }
-  }, [audioState.pendingTranscript, audioState.isRecording, isProcessingAnswer])
+  }, [audioState.isRecording, isProcessingAnswer])
 
   const startAudioInterview = async () => {
     try {
@@ -571,7 +572,15 @@ export function AudioInterview({
           {/* Primary Controls */}
           <div className="flex gap-4 justify-center">
             <Button
-              onClick={audioState.isRecording ? stopRecording : startRecording}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (audioState.isRecording) {
+                  stopRecording()
+                } else {
+                  startRecording()
+                }
+              }}
               disabled={audioState.isSpeaking || isProcessingAnswer || audioState.isPaused}
               className={`w-16 h-16 rounded-full ${
                 audioState.isRecording 
