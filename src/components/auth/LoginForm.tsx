@@ -41,6 +41,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ redirectTo = '/dashboard' 
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
 

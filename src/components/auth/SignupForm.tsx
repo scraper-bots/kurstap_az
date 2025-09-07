@@ -75,6 +75,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ redirectTo = '/dashboard
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
