@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
                 increment: creditsToAdd
               }
             },
-            select: { interviewCredits: true, clerkId: true }
+            select: { interviewCredits: true }
           })
 
           console.log(`Successfully added ${creditsToAdd} credits to user ${payment.userId}. New balance: ${updatedUser.interviewCredits}`)

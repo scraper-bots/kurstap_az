@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function PricingPage() {
-  const { user, isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   
   useEffect(() => {

@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
           status: 'SCHEDULED',
           scheduledAt: scheduledAt ? new Date(scheduledAt) : new Date(),
           questions: [], // Will be populated later
+          totalQuestions: 0, // Will be updated when questions are generated
           createdAt: new Date(),
           updatedAt: new Date()
         }

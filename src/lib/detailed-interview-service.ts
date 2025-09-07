@@ -69,7 +69,7 @@ export class DetailedInterviewService {
     try {
       // First, get the database user ID from the Clerk ID
       const dbUser = await db.user.findUnique({
-        where: { clerkId: clerkUserId }
+        where: { id: clerkUserId }
       })
 
       if (!dbUser) {
@@ -93,6 +93,7 @@ export class DetailedInterviewService {
           improvementPlan: interviewData.improvementPlan,
           completedAt: new Date(),
           questions: answers.map(a => a.question),
+          totalQuestions: answers.length,
           answers: {
             create: answers.map(answer => ({
               questionId: answer.questionId,

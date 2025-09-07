@@ -97,10 +97,10 @@ export async function POST(request: NextRequest) {
                 increment: creditsToAdd
               }
             },
-            select: { interviewCredits: true, clerkId: true }
+            select: { interviewCredits: true }
           })
 
-          console.log(`Webhook: Successfully added ${creditsToAdd} credits to user ${payment.userId} (Clerk ID: ${updatedUser.clerkId}). New balance: ${updatedUser.interviewCredits}`)
+          console.log(`Webhook: Successfully added ${creditsToAdd} credits to user ${payment.userId}. New balance: ${updatedUser.interviewCredits}`)
         } else {
           console.warn(`Webhook: Could not determine credits from payment description: "${payment.description}"`)
         }

@@ -48,7 +48,7 @@ const Select = React.forwardRef<
         selectedValue,
         displayValue,
         handleSelect
-      })}
+      } as any)}
     </div>
   )
 })
@@ -107,7 +107,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps & {
             return React.cloneElement(child, {
               selectedValue,
               handleSelect,
-            })
+            } as any)
           }
           return child
         })}

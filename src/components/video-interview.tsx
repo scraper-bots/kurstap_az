@@ -11,8 +11,7 @@ import {
   Square, 
   Video, 
   VideoOff, 
-  Mic, 
-  MicOff,
+  Mic,
   Clock,
   CheckCircle,
   AlertCircle

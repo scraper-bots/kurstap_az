@@ -40,11 +40,6 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const sessionId = request.cookies.get('session')?.value
 
-  // Check if route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  )
-
   // Check if user is authenticated
   let isAuthenticated = false
   let user = null
@@ -53,7 +48,7 @@ export default async function middleware(request: NextRequest) {
     try {
       user = await authService.getUserFromSession(sessionId)
       isAuthenticated = !!user
-    } catch (error) {
+    } catch {
       // Invalid session, clear cookie
       const response = NextResponse.next()
       response.cookies.set('session', '', {

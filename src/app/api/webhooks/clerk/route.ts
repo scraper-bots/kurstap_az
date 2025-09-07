@@ -82,8 +82,9 @@ async function handleUserCreated(userData: { id: string; email_addresses: Array<
   console.log('Creating user:', userData.id)
   
   await UserService.createUser({
-    clerkId: userData.id,
+    id: userData.id,
     email: userData.email_addresses[0]?.email_address || '',
+    password: 'temp-password', // Clerk users don't need passwords in our system
     firstName: userData.first_name,
     lastName: userData.last_name,
     imageUrl: userData.image_url,
@@ -94,8 +95,9 @@ async function handleUserUpdated(userData: { id: string; email_addresses: Array<
   console.log('Updating user:', userData.id)
   
   await UserService.updateUser(userData.id, {
-    clerkId: userData.id,
+    id: userData.id,
     email: userData.email_addresses[0]?.email_address || '',
+    password: 'temp-password',
     firstName: userData.first_name,
     lastName: userData.last_name,
     imageUrl: userData.image_url,

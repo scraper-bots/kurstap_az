@@ -54,7 +54,7 @@ export class VideoRecordingService {
   static isSupported(): boolean {
     return !!(
       navigator.mediaDevices &&
-      navigator.mediaDevices.getUserMedia &&
+      typeof navigator.mediaDevices.getUserMedia === 'function' &&
       window.MediaRecorder &&
       MediaRecorder.isTypeSupported('video/webm')
     )

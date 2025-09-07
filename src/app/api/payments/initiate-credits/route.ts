@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create the database user
-    let dbUser = await db.user.findUnique({
+    const dbUser = await db.user.findUnique({
       where: { id: userId }
     })
     

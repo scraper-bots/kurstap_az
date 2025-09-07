@@ -1,56 +1,74 @@
 'use client'
-import { redirect } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, Target } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { DetailedInterviewService } from '@/lib/detailed-interview-service'
+import { useAuth } from '@/hooks/useAuth'
 
-async function getInterviewsData(userId: string) {
-  try {
-    // Use direct database calls instead of API calls for server-side rendering
-    const interviews = await DetailedInterviewService.getUserInterviews(userId)
-    const stats = await DetailedInterviewService.getUserInterviewStats(userId)
-    
-    return {
-      interviews: interviews.map(interview => ({
-        id: interview.id,
-        title: interview.title,
-        company: interview.company,
-        position: interview.position,
-        date: interview.completedAt,
-        duration: interview.duration,
-        difficulty: interview.difficulty,
-        status: interview.status,
-        overallScore: interview.score,
-        questionsCount: (interview as any)._count?.answers || interview.questions.length,
-        category: 'Technical' // Could be derived from answers
-      })),
-      stats
-    }
-  } catch (error) {
-    console.error('Error fetching interviews:', error)
-    // Return empty state if API fails
-    return {
-      interviews: [],
-      stats: {
-        totalInterviews: 0,
-        averageScore: 0,
-        totalTime: 0,
-        improvement: 0
-      }
-    }
-  }
-}
 
-export default async function InterviewsPage() {
-  const clerkUser = await currentUser()
+export default function InterviewsPage() {
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+  const [interviews, setInterviews] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalInterviews: 0,
+    averageScore: 0,
+    totalTime: 0,
+    improvement: 0
+  })
+  const [loading, setLoading] = useState(true)
   
-  if (!clerkUser) {
-    redirect('/sign-in')
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/auth/login')
+      return
+    }
+    
+    if (user) {
+      loadInterviewData()
+    }
+  }, [user, isLoading, router])
+  
+  const loadInterviewData = async () => {
+    try {
+      const response = await fetch('/api/interviews')
+      if (response.ok) {
+        const data = await response.json()
+        setInterviews(data.interviews || [])
+        setStats(data.stats || {
+          totalInterviews: 0,
+          averageScore: 0,
+          totalTime: 0,
+          improvement: 0
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load interviews:', error)
+    } finally {
+      setLoading(false)
+    }
   }
-
-  const { interviews, stats } = await getInterviewsData(clerkUser.id)
+  
+  if (isLoading || loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading interviews...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+  
+  if (!user) {
+    return null
+  }
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600 bg-green-100'

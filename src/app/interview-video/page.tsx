@@ -270,7 +270,7 @@ function VideoInterviewContent() {
                 <Label htmlFor="mode">Interview Mode</Label>
                 <Select
                   value={setup.mode}
-                  onValueChange={(value: InterviewMode) => setSetup(prev => ({ ...prev, mode: value }))}
+                  onValueChange={(value: string) => setSetup(prev => ({ ...prev, mode: value as InterviewMode }))}
                 >
                   <SelectTrigger>
                     <SelectValue />

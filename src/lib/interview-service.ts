@@ -46,7 +46,7 @@ export class InterviewService {
     try {
       // Ensure user exists in database first - create if doesn't exist
       let existingUser = await db.user.findUnique({
-        where: { clerkId: userId }
+        where: { id: userId }
       })
       
       if (!existingUser) {
@@ -54,8 +54,9 @@ export class InterviewService {
         try {
           existingUser = await db.user.create({
             data: {
-              clerkId: userId,
-              email: '', // Will be updated via webhook later
+              id: userId,
+              email: '', // Will be updated later
+              password: 'temp-password', // Temporary password for auto-created users
               firstName: '',
               lastName: '',
               interviewCredits: 0,
@@ -127,6 +128,7 @@ export class InterviewService {
           difficulty: difficulty === 'mixed' ? 'MEDIUM' : difficulty.toUpperCase() as Difficulty,
           status: 'IN_PROGRESS',
           questions: selectedQuestions.map(q => q.question),
+          totalQuestions: selectedQuestions.length,
           scheduledAt: new Date(),
         }
       })
@@ -183,15 +185,16 @@ export class InterviewService {
     try {
       // Get the user from database - create if doesn't exist
       let user = await db.user.findUnique({
-        where: { clerkId: clerkUserId }
+        where: { id: clerkUserId }
       })
       
       if (!user) {
         try {
           user = await db.user.create({
             data: {
-              clerkId: clerkUserId,
+              id: clerkUserId,
               email: '',
+              password: 'temp-password',
               firstName: '',
               lastName: '',
               interviewCredits: 0,
@@ -355,7 +358,7 @@ export class InterviewService {
 
           // Create the detailed interview (this will create a separate interview record with full analysis)
           const detailedInterview = await DetailedInterviewService.createDetailedInterview(
-            user.clerkId, // Use Clerk ID for consistency with frontend
+            user.id, // Use Clerk ID for consistency with frontend
             detailedInterviewData,
             detailedAnswers
           )
@@ -393,15 +396,16 @@ export class InterviewService {
       try {
         // Get the user from database - create if doesn't exist  
         let user = await db.user.findUnique({
-          where: { clerkId: clerkUserId }
+          where: { id: clerkUserId }
         })
         
         if (!user) {
           try {
             user = await db.user.create({
               data: {
-                clerkId: clerkUserId,
+                id: clerkUserId,
                 email: '',
+                password: 'temp-password',
                 firstName: '',
                 lastName: '',
                 interviewCredits: 0,
@@ -444,15 +448,16 @@ export class InterviewService {
     try {
       // Get the user from database - create if doesn't exist
       let user = await db.user.findUnique({
-        where: { clerkId: clerkUserId }
+        where: { id: clerkUserId }
       })
       
       if (!user) {
         try {
           user = await db.user.create({
             data: {
-              clerkId: clerkUserId,
+              id: clerkUserId,
               email: '',
+              password: 'temp-password',
               firstName: '',
               lastName: '',
               interviewCredits: 0,

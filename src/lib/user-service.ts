@@ -2,8 +2,9 @@ import { db } from './db'
 import { User } from '@prisma/client'
 
 export interface CreateUserData {
-  clerkId: string
+  id: string
   email: string
+  password: string
   firstName?: string | null
   lastName?: string | null
   imageUrl?: string | null
@@ -17,8 +18,9 @@ export class UserService {
     try {
       const user = await db.user.create({
         data: {
-          clerkId: userData.clerkId,
+          id: userData.id,
           email: userData.email,
+          password: userData.password,
           firstName: userData.firstName,
           lastName: userData.lastName,
           imageUrl: userData.imageUrl,
@@ -39,7 +41,7 @@ export class UserService {
   static async getUserByClerkId(clerkId: string): Promise<User | null> {
     try {
       return await db.user.findUnique({
-        where: { clerkId },
+        where: { id: clerkId },
         include: {
           interviews: true,
           sessions: true,
@@ -58,7 +60,7 @@ export class UserService {
   static async updateUser(clerkId: string, updateData: Partial<CreateUserData>): Promise<User | null> {
     try {
       return await db.user.update({
-        where: { clerkId },
+        where: { id: clerkId },
         data: {
           email: updateData.email,
           firstName: updateData.firstName,
@@ -78,7 +80,7 @@ export class UserService {
   static async deleteUser(clerkId: string): Promise<boolean> {
     try {
       await db.user.delete({
-        where: { clerkId },
+        where: { id: clerkId },
       })
       console.log('User deleted successfully:', clerkId)
       return true
@@ -94,7 +96,7 @@ export class UserService {
   static async getOrCreateUser(userData: CreateUserData): Promise<User> {
     try {
       // Try to find existing user
-      let user = await this.getUserByClerkId(userData.clerkId)
+      let user = await this.getUserByClerkId(userData.id)
       
       // If user doesn't exist, create them
       if (!user) {
@@ -114,7 +116,7 @@ export class UserService {
   static async getUserStats(clerkId: string) {
     try {
       const user = await db.user.findUnique({
-        where: { clerkId },
+        where: { id: clerkId },
         include: {
           interviews: true,
           sessions: {

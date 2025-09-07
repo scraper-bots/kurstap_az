@@ -17,6 +17,7 @@ export interface AuthUser {
   imageUrl: string | null
   role: 'USER' | 'ADMIN'
   interviewCredits: number
+  emailVerified: Date | null
 }
 
 export interface LoginCredentials {
@@ -121,7 +122,8 @@ export class AuthService {
         lastName: user.lastName,
         imageUrl: user.imageUrl,
         role: user.role as 'USER' | 'ADMIN',
-        interviewCredits: user.interviewCredits
+        interviewCredits: user.interviewCredits,
+        emailVerified: user.emailVerified
       }
 
       return { user: authUser, token }
@@ -164,7 +166,8 @@ export class AuthService {
         lastName: user.lastName,
         imageUrl: user.imageUrl,
         role: user.role as 'USER' | 'ADMIN',
-        interviewCredits: user.interviewCredits
+        interviewCredits: user.interviewCredits,
+        emailVerified: user.emailVerified
       }
 
       return { user: authUser, token }
@@ -237,7 +240,8 @@ export class AuthService {
         lastName: user.lastName,
         imageUrl: user.imageUrl,
         role: user.role as 'USER' | 'ADMIN',
-        interviewCredits: user.interviewCredits
+        interviewCredits: user.interviewCredits,
+        emailVerified: user.emailVerified
       }
     } catch (error) {
       console.error('Get current user error:', error)
@@ -382,7 +386,7 @@ export const authService = {
   async getUserFromSession(sessionId: string): Promise<AuthUser | null> {
     try {
       return await AuthService.getCurrentUser(sessionId)
-    } catch (error) {
+    } catch {
       return null
     }
   },

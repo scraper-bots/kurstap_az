@@ -151,7 +151,8 @@ Return as a JSON array with this exact structure:
 
     try {
       const response = await OpenAIService.generateQuestions(prompt)
-      const questions = JSON.parse(response)
+      // Response is already a parsed QuestionSet object, not a string
+      const questions = Array.isArray(response) ? response : response.behavioral || response.technical || []
       
       // Add unique IDs to each question
       return questions.map((q: any, index: number) => ({
