@@ -54,6 +54,7 @@ export function AudioInterview({
   const [progress, setProgress] = useState(1)
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
+  const skipTimestampRef = useRef(0) // Track when skip happened to ignore subsequent transcripts
 
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
@@ -146,17 +147,25 @@ export function AudioInterview({
   const handleSilenceDetected = useCallback(async () => {
     const transcript = pendingTranscriptRef.current.trim()
     const timeSinceAiSpoke = Date.now() - aiSpeechEndTime.current
+    const timeSinceSkip = Date.now() - skipTimestampRef.current
     
     console.log('🔍 [DEBUG] handleSilenceDetected called!', {
       transcript: transcript.substring(0, 100) + '...',
       transcriptLength: transcript.length,
       timeSinceAiSpoke,
+      timeSinceSkip,
       AI_SPEECH_BUFFER,
       isRecording: audioState.isRecording,
       isProcessingAnswer,
       pendingTranscriptRef: pendingTranscriptRef.current.substring(0, 50) + '...',
       pendingTranscript: audioState.pendingTranscript.substring(0, 50) + '...'
     })
+    
+    // Don't process transcripts too soon after a skip
+    if (timeSinceSkip < 2000) { // 2 second buffer after skip
+      console.log('🚫 Ignoring transcript - too soon after skip', timeSinceSkip + 'ms')
+      return
+    }
     
     // Don't process silence too soon after AI finishes speaking
     if (timeSinceAiSpoke < AI_SPEECH_BUFFER) {
@@ -435,8 +444,9 @@ export function AudioInterview({
     
     setIsProcessingAnswer(true)
     
-    // Clear any pending transcripts
+    // Clear any pending transcripts and mark skip timestamp
     pendingTranscriptRef.current = ''
+    skipTimestampRef.current = Date.now()
     setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
     
     try {
@@ -495,6 +505,11 @@ export function AudioInterview({
           speechQueue.current = []
           pendingTranscriptRef.current = ''
           setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
+          
+          // Reset skip timestamp after question transition to allow normal transcript processing
+          setTimeout(() => {
+            skipTimestampRef.current = 0
+          }, 3000)
           
           // Simplified message
           await speakAIResponse(result.data.currentQuestion.question)
