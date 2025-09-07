@@ -61,6 +61,7 @@ export function AudioInterview({
   const silenceTimer = useRef<NodeJS.Timeout | null>(null)
   const recordingTimeout = useRef<NodeJS.Timeout | null>(null)
   const aiSpeechEndTime = useRef<number>(0)
+  const pendingTranscriptRef = useRef<string>('')
 
   // Auto-answer when user stops speaking
   const SILENCE_THRESHOLD = 2000 // 2 seconds of silence
@@ -115,11 +116,15 @@ export function AudioInterview({
   const handleTranscriptReceived = useCallback((transcript: string) => {
     console.log('Transcript received:', transcript)
     
-    setAudioState(prev => ({
-      ...prev,
-      pendingTranscript: prev.pendingTranscript + ' ' + transcript,
-      currentTranscript: transcript
-    }))
+    setAudioState(prev => {
+      const newPendingTranscript = prev.pendingTranscript ? prev.pendingTranscript + ' ' + transcript : transcript
+      pendingTranscriptRef.current = newPendingTranscript
+      return {
+        ...prev,
+        pendingTranscript: newPendingTranscript,
+        currentTranscript: transcript
+      }
+    })
 
     // Update voice detection
     setIsVoiceDetected(true)
@@ -221,12 +226,15 @@ export function AudioInterview({
         currentTranscript: ''
       }))
 
-      // Reset AI speech timer when user starts recording - this shows intent to respond
+      // Reset transcript ref and AI speech timer when user starts recording
+      pendingTranscriptRef.current = ''
       aiSpeechEndTime.current = 0
 
       // Set maximum recording time limit
       recordingTimeout.current = setTimeout(() => {
-        handleAnswerSubmit(audioState.pendingTranscript || 'No response recorded')
+        const currentTranscript = pendingTranscriptRef.current || 'No response recorded'
+        console.log('⏰ Recording timeout reached, submitting:', currentTranscript)
+        handleAnswerSubmit(currentTranscript)
       }, MAX_RECORDING_TIME)
 
     } catch (error) {
@@ -286,6 +294,7 @@ export function AudioInterview({
           
           // Clear any queued messages and errors before speaking next question
           speechQueue.current = []
+          pendingTranscriptRef.current = ''
           setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
           
           // Don't prefix with "Next question:" to avoid confusion
@@ -328,6 +337,7 @@ export function AudioInterview({
       await speakAIResponse("I apologize, there was a technical issue. Please check your connection and try again.")
     } finally {
       setIsProcessingAnswer(false)
+      pendingTranscriptRef.current = ''
       setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
     }
   }
@@ -425,6 +435,7 @@ export function AudioInterview({
     setIsProcessingAnswer(true)
     
     // Clear any pending transcripts
+    pendingTranscriptRef.current = ''
     setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
     
     try {
@@ -481,6 +492,7 @@ export function AudioInterview({
           
           // Clear any queued messages and errors before speaking next question
           speechQueue.current = []
+          pendingTranscriptRef.current = ''
           setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
           
           // Simplified message

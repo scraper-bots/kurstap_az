@@ -39,7 +39,8 @@ export class InterviewService {
   static async startInterview(
     userId: string,
     position: string,
-    difficulty: 'easy' | 'medium' | 'hard' | 'mixed' = 'mixed'
+    difficulty: 'easy' | 'medium' | 'hard' | 'mixed' = 'mixed',
+    totalQuestions: number = 5
   ): Promise<InterviewSessionData> {
     try {
       // Ensure user exists in database first - create if doesn't exist
@@ -89,8 +90,9 @@ export class InterviewService {
         }
       }
 
-      // Use all available questions
-      const selectedQuestions = this.shuffleArray(filteredQuestions)
+      // Shuffle and limit to requested number of questions
+      const shuffledQuestions = this.shuffleArray(filteredQuestions)
+      const selectedQuestions = shuffledQuestions.slice(0, Math.min(totalQuestions, shuffledQuestions.length))
       
       if (selectedQuestions.length === 0) {
         throw new Error(`No questions available for ${position}`)
