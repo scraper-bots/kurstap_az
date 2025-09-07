@@ -212,10 +212,18 @@ function InterviewContent() {
               // Find matching question to get category
               const matchingQuestion = sessionData.data.questions?.find((q: any) => q.id === answer.questionId)
               
+              console.log(`🔍 Transforming answer ${index + 1}:`, {
+                originalAnswer: answer,
+                questionId: answer.questionId,
+                userAnswer: answer.userAnswer || answer.answer,
+                question: answer.question,
+                matchingQuestion: !!matchingQuestion
+              })
+              
               return {
                 questionId: index + 1,
                 question: answer.question,
-                userAnswer: answer.answer,
+                userAnswer: answer.userAnswer || answer.answer, // Handle both possible field names
                 category: matchingQuestion?.category || 'General',
                 responseTime: 30 // Default response time
               }

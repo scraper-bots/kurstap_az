@@ -78,6 +78,13 @@ export async function GET(req: NextRequest): Promise<NextResponse<GetSessionResp
       }
     }
 
+    console.log('🔍 Session data debug:', {
+      sessionId: sessionData.id,
+      answersCount: sessionData.answers?.length || 0,
+      answers: sessionData.answers?.slice(0, 2), // Log first 2 answers for debugging
+      questionsCount: sessionData.questions?.length || 0
+    })
+
     return NextResponse.json({
       success: true,
       data: {

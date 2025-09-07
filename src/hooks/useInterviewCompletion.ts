@@ -58,6 +58,7 @@ export function useInterviewCompletion() {
 
         if (!userAnswer.trim()) {
           console.warn(`⚠️ Empty answer for question ${index + 1}:`, question)
+          console.warn(`⚠️ Full answer object:`, answer)
         }
 
         // Simple scoring algorithm - in production, this would be more sophisticated

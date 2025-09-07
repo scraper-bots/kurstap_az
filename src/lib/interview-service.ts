@@ -241,6 +241,13 @@ export class InterviewService {
           category: currentQuestion.category || 'general',
           timestamp: new Date().toISOString()
         }
+        
+        console.log('📝 Recording answer:', {
+          questionId: answerRecord.questionId,
+          question: answerRecord.question.substring(0, 50) + '...',
+          userAnswer: answerRecord.userAnswer.substring(0, 100) + '...',
+          category: answerRecord.category
+        })
         updatedAnswers.push(answerRecord)
       }
 
