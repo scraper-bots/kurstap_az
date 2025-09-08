@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session')?.value
+    const sessionId = request.cookies.get('bir-guru-session')?.value
 
     if (!sessionId) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
       
-      response.cookies.set('session', '', {
+      response.cookies.set('bir-guru-session', '', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

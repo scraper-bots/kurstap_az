@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session')?.value
+    const sessionId = request.cookies.get('bir-guru-session')?.value
 
     if (sessionId) {
       await authService.logout(sessionId)
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true })
     
     // Clear the session cookie
-    response.cookies.set('session', '', {
+    response.cookies.set('bir-guru-session', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
