@@ -5,4 +5,4 @@ node_modules
 .next
 /__tests__
 /src/generated/prisma
-cookies.txt
+/cookies.txt
