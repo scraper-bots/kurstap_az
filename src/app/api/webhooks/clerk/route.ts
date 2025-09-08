@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 import { UserService } from '@/lib/user-service'
+import crypto from 'crypto'
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 
@@ -84,7 +85,7 @@ async function handleUserCreated(userData: { id: string; email_addresses: Array<
   await UserService.createUser({
     id: userData.id,
     email: userData.email_addresses[0]?.email_address || '',
-    password: 'temp-password', // Clerk users don't need passwords in our system
+    password: crypto.randomBytes(32).toString('hex'), // Secure temporary password
     firstName: userData.first_name,
     lastName: userData.last_name,
     imageUrl: userData.image_url,
@@ -97,7 +98,7 @@ async function handleUserUpdated(userData: { id: string; email_addresses: Array<
   await UserService.updateUser(userData.id, {
     id: userData.id,
     email: userData.email_addresses[0]?.email_address || '',
-    password: 'temp-password',
+    password: crypto.randomBytes(32).toString('hex'),
     firstName: userData.first_name,
     lastName: userData.last_name,
     imageUrl: userData.image_url,

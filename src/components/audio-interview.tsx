@@ -88,6 +88,24 @@ export function AudioInterview({
       setAudioState(prev => ({ ...prev, error: error.message }))
     })
 
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // Clear all timers
+      if (silenceTimer.current) {
+        clearTimeout(silenceTimer.current)
+        silenceTimer.current = null
+      }
+      if (recordingTimeout.current) {
+        clearTimeout(recordingTimeout.current)
+        recordingTimeout.current = null
+      }
+      
+      // Leave room if still connected
+      if (audioState.isCallActive === 'connected') {
+        dailyAudioService.leaveRoom().catch(console.error)
+      }
+    }
+
     // Set up event handlers
     dailyAudioService.onCallJoined = () => {
       setAudioState(prev => ({ ...prev, isCallActive: 'connected' }))

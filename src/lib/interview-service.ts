@@ -4,6 +4,7 @@ import { SessionStatus, Difficulty } from '@prisma/client'
 import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } from './detailed-interview-service'
 import { InterviewQuestion, InterviewAnswer } from '@/types/common'
 import { InterviewCacheService } from './cache-service'
+import crypto from 'crypto'
 
 export type { InterviewQuestion } from '@/types/common'
 
@@ -33,6 +34,11 @@ export interface InterviewSessionData {
   detailedInterviewId?: string
 }
 
+// Helper function to generate secure temporary password
+const generateSecurePassword = (): string => {
+  return crypto.randomBytes(32).toString('hex')
+}
+
 export class InterviewService {
   /**
    * Start a new interview session
@@ -56,7 +62,7 @@ export class InterviewService {
             data: {
               id: userId,
               email: '', // Will be updated later
-              password: 'temp-password', // Temporary password for auto-created users
+              password: generateSecurePassword(), // Secure temporary password for auto-created users
               firstName: '',
               lastName: '',
               interviewCredits: 0,
@@ -194,7 +200,7 @@ export class InterviewService {
             data: {
               id: clerkUserId,
               email: '',
-              password: 'temp-password',
+              password: generateSecurePassword(),
               firstName: '',
               lastName: '',
               interviewCredits: 0,
@@ -405,7 +411,7 @@ export class InterviewService {
               data: {
                 id: clerkUserId,
                 email: '',
-                password: 'temp-password',
+                password: generateSecurePassword(),
                 firstName: '',
                 lastName: '',
                 interviewCredits: 0,
@@ -457,7 +463,7 @@ export class InterviewService {
             data: {
               id: clerkUserId,
               email: '',
-              password: 'temp-password',
+              password: generateSecurePassword(),
               firstName: '',
               lastName: '',
               interviewCredits: 0,

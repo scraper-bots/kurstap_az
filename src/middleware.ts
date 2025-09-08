@@ -41,7 +41,7 @@ const publicRoutes = [
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const sessionId = request.cookies.get('session')?.value
+  const sessionId = request.cookies.get('bir-guru-session')?.value
 
 
   // Check if user is authenticated
@@ -55,7 +55,7 @@ export default async function middleware(request: NextRequest) {
     } catch {
       // Invalid session, clear cookie
       const response = NextResponse.next()
-      response.cookies.set('session', '', {
+      response.cookies.set('bir-guru-session', '', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
