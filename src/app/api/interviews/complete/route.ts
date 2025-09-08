@@ -56,8 +56,33 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error completing interview:', error)
+    
+    // Better error categorization
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ 
+        error: 'Invalid JSON in request body' 
+      }, { status: 400 })
+    }
+    
+    if (error instanceof Error) {
+      // Check for database connection errors
+      if (error.message.includes('database') || error.message.includes('connection')) {
+        return NextResponse.json({ 
+          error: 'Database connection error. Please try again.' 
+        }, { status: 503 })
+      }
+      
+      // Check for validation errors
+      if (error.message.includes('validation') || error.message.includes('required')) {
+        return NextResponse.json({ 
+          error: `Validation error: ${error.message}` 
+        }, { status: 400 })
+      }
+    }
+    
+    // Generic server error for unknown issues
     return NextResponse.json({ 
-      error: 'Failed to save interview data' 
+      error: 'Internal server error. Please try again later.' 
     }, { status: 500 })
   }
 }

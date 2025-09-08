@@ -68,6 +68,36 @@ export function AudioInterview({
     }
   }
 
+  const handleTranscriptReceived = useCallback((transcript: string) => {
+    console.log('Transcript received:', transcript)
+    
+    setAudioState(prev => {
+      const newPendingTranscript = prev.pendingTranscript ? prev.pendingTranscript + ' ' + transcript : transcript
+      pendingTranscriptRef.current = newPendingTranscript
+      return {
+        ...prev,
+        pendingTranscript: newPendingTranscript,
+        currentTranscript: transcript
+      }
+    })
+
+    // Update voice detection
+    setIsVoiceDetected(true)
+    setLastSpeechTime(Date.now())
+
+    // Clear existing silence timer
+    if (silenceTimer.current) {
+      clearTimeout(silenceTimer.current)
+      silenceTimer.current = null
+    }
+
+    // Set new silence timer
+    silenceTimer.current = setTimeout(() => {
+      setIsVoiceDetected(false)
+      handleSilenceDetected()
+    }, SILENCE_THRESHOLD)
+  }, [])
+
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
   const [, setLastSpeechTime] = useState(0)
@@ -104,75 +134,33 @@ export function AudioInterview({
       if (audioState.isCallActive === 'connected') {
         dailyAudioService.leaveRoom().catch(console.error)
       }
-    }
-
-    // Set up event handlers
-    dailyAudioService.onCallJoined = () => {
-      setAudioState(prev => ({ ...prev, isCallActive: 'connected' }))
-    }
-
-    dailyAudioService.onCallLeft = () => {
-      setAudioState(prev => ({ 
-        ...prev, 
-        isCallActive: false,
-        isRecording: false 
-      }))
-    }
-
-    dailyAudioService.onCallError = (error) => {
-      console.error('Daily.co call error:', error)
-      setAudioState(prev => ({ 
-        ...prev, 
-        error: `Call error: ${error.message || 'Unknown error'}`,
-        isCallActive: 'error'
-      }))
-    }
-
-    dailyAudioService.onTranscriptReceived = handleTranscriptReceived
-
-    return () => {
-      // Cleanup
-      dailyAudioService.leaveRoom().catch(console.error)
-      if (silenceTimer.current) {
-        clearTimeout(silenceTimer.current)
-        silenceTimer.current = null
+      
+      // Set up event handlers
+      dailyAudioService.onCallJoined = () => {
+        setAudioState(prev => ({ ...prev, isCallActive: 'connected' }))
       }
-      if (recordingTimeout.current) {
-        clearTimeout(recordingTimeout.current)
-        recordingTimeout.current = null
+
+      dailyAudioService.onCallLeft = () => {
+        setAudioState(prev => ({ 
+          ...prev, 
+          isCallActive: false,
+          isRecording: false 
+        }))
       }
-    }
-  }, [])
 
-  const handleTranscriptReceived = useCallback((transcript: string) => {
-    console.log('Transcript received:', transcript)
-    
-    setAudioState(prev => {
-      const newPendingTranscript = prev.pendingTranscript ? prev.pendingTranscript + ' ' + transcript : transcript
-      pendingTranscriptRef.current = newPendingTranscript
-      return {
-        ...prev,
-        pendingTranscript: newPendingTranscript,
-        currentTranscript: transcript
+      dailyAudioService.onCallError = (error) => {
+        console.error('Daily.co call error:', error)
+        setAudioState(prev => ({ 
+          ...prev, 
+          error: `Call error: ${error.message || 'Unknown error'}`,
+          isCallActive: 'error'
+        }))
       }
-    })
 
-    // Update voice detection
-    setIsVoiceDetected(true)
-    setLastSpeechTime(Date.now())
-
-    // Clear existing silence timer
-    if (silenceTimer.current) {
-      clearTimeout(silenceTimer.current)
-      silenceTimer.current = null
+      dailyAudioService.onTranscriptReceived = handleTranscriptReceived
     }
+  }, [handleTranscriptReceived]) // Add handleTranscriptReceived to dependencies
 
-    // Set new silence timer
-    silenceTimer.current = setTimeout(() => {
-      setIsVoiceDetected(false)
-      handleSilenceDetected()
-    }, SILENCE_THRESHOLD)
-  }, [])
 
   const handleSilenceDetected = useCallback(async () => {
     const transcript = pendingTranscriptRef.current.trim()
