@@ -118,6 +118,32 @@ export function AudioInterview({
       setAudioState(prev => ({ ...prev, error: error.message }))
     })
 
+    // Set up event handlers
+    dailyAudioService.onCallJoined = () => {
+      console.log('Daily.co call joined event received')
+      setAudioState(prev => ({ ...prev, isCallActive: 'connected' }))
+    }
+
+    dailyAudioService.onCallLeft = () => {
+      console.log('Daily.co call left event received')
+      setAudioState(prev => ({ 
+        ...prev, 
+        isCallActive: false,
+        isRecording: false 
+      }))
+    }
+
+    dailyAudioService.onCallError = (error) => {
+      console.error('Daily.co call error:', error)
+      setAudioState(prev => ({ 
+        ...prev, 
+        error: `Call error: ${error.message || 'Unknown error'}`,
+        isCallActive: 'error'
+      }))
+    }
+
+    dailyAudioService.onTranscriptReceived = handleTranscriptReceived
+
     // Cleanup function to prevent memory leaks
     return () => {
       // Clear all timers
@@ -134,30 +160,6 @@ export function AudioInterview({
       if (audioState.isCallActive === 'connected') {
         dailyAudioService.leaveRoom().catch(console.error)
       }
-      
-      // Set up event handlers
-      dailyAudioService.onCallJoined = () => {
-        setAudioState(prev => ({ ...prev, isCallActive: 'connected' }))
-      }
-
-      dailyAudioService.onCallLeft = () => {
-        setAudioState(prev => ({ 
-          ...prev, 
-          isCallActive: false,
-          isRecording: false 
-        }))
-      }
-
-      dailyAudioService.onCallError = (error) => {
-        console.error('Daily.co call error:', error)
-        setAudioState(prev => ({ 
-          ...prev, 
-          error: `Call error: ${error.message || 'Unknown error'}`,
-          isCallActive: 'error'
-        }))
-      }
-
-      dailyAudioService.onTranscriptReceived = handleTranscriptReceived
     }
   }, [handleTranscriptReceived]) // Add handleTranscriptReceived to dependencies
 
