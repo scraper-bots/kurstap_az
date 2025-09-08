@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { authService } from '@/lib/auth'
 
+// Force middleware to run in Node.js runtime instead of Edge runtime
+export const runtime = 'nodejs'
+
 // Define protected routes
 const protectedRoutes = [
   '/dashboard',
