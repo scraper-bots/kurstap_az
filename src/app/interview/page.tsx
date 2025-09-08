@@ -125,10 +125,46 @@ function InterviewContent() {
         }))
       } else {
         console.error('Failed to start interview:', data.error)
+        
+        // Handle specific error types
+        if (response.status === 402 || data.errorType === 'INSUFFICIENT_CREDITS') {
+          // Show credit purchase dialog
+          await showConfirmation({
+            type: 'error',
+            title: 'No Interview Credits',
+            message: data.error || 'You need credits to start an interview. Would you like to purchase credits?',
+            confirmText: 'Purchase Credits',
+            cancelText: 'Maybe Later',
+            confirmAction: () => {
+              // Redirect to pricing/purchase page
+              window.location.href = '/pricing'
+            }
+          })
+        } else {
+          // Show generic error
+          await showConfirmation({
+            type: 'error',
+            title: 'Interview Start Failed',
+            message: data.error || 'Failed to start interview session. Please try again.',
+            confirmText: 'Try Again',
+            cancelText: 'Cancel'
+          })
+        }
+        
         setState(prev => ({ ...prev, stage: 'setup' }))
       }
     } catch (error) {
       console.error('Error starting interview:', error)
+      
+      // Show network error
+      await showConfirmation({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Unable to connect to the interview service. Please check your internet connection and try again.',
+        confirmText: 'Try Again',
+        cancelText: 'Cancel'
+      })
+      
       setState(prev => ({ ...prev, stage: 'setup' }))
     }
   }

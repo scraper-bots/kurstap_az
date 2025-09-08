@@ -18,14 +18,45 @@ import Footer from '@/components/Footer'
 async function getInterviewReport(interviewId: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    
+    // Make a server-side request to get user info from cookies
+    const { cookies } = await import('next/headers')
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('bir-guru-session')
+    
+    if (!sessionCookie) {
+      console.log('No session cookie found')
+      return null
+    }
+    
+    // First, get user info from session
+    const userResponse = await fetch(`${baseUrl}/api/auth/me`, {
+      headers: {
+        'Cookie': `bir-guru-session=${sessionCookie.value}`
+      }
+    })
+    
+    if (!userResponse.ok) {
+      console.log('Failed to get user info:', userResponse.status)
+      return null
+    }
+    
+    const userData = await userResponse.json()
+    if (!userData.success || !userData.user) {
+      console.log('Invalid user data:', userData)
+      return null
+    }
+    
+    // Now fetch the interview report with the user ID
     const response = await fetch(`${baseUrl}/api/interviews/${interviewId}/report`, {
       cache: 'no-store',
       headers: {
-        'x-user-id': 'mock-user-id' // TODO: Replace with proper auth
+        'x-user-id': userData.user.id
       }
     })
     
     if (!response.ok) {
+      console.log('Failed to fetch interview report:', response.status)
       return null
     }
     
