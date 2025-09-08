@@ -130,12 +130,12 @@ function InterviewContent() {
         if (response.status === 402 || data.errorType === 'INSUFFICIENT_CREDITS') {
           // Show credit purchase dialog
           await showConfirmation({
-            type: 'error',
+            variant: 'destructive',
             title: 'No Interview Credits',
             message: data.error || 'You need credits to start an interview. Would you like to purchase credits?',
             confirmText: 'Purchase Credits',
             cancelText: 'Maybe Later',
-            confirmAction: () => {
+            onConfirm: () => {
               // Redirect to pricing/purchase page
               window.location.href = '/pricing'
             }
@@ -143,11 +143,14 @@ function InterviewContent() {
         } else {
           // Show generic error
           await showConfirmation({
-            type: 'error',
+            variant: 'destructive',
             title: 'Interview Start Failed',
             message: data.error || 'Failed to start interview session. Please try again.',
             confirmText: 'Try Again',
-            cancelText: 'Cancel'
+            cancelText: 'Cancel',
+            onConfirm: () => {
+              // User can try again
+            }
           })
         }
         
@@ -158,11 +161,14 @@ function InterviewContent() {
       
       // Show network error
       await showConfirmation({
-        type: 'error',
+        variant: 'destructive',
         title: 'Connection Error',
         message: 'Unable to connect to the interview service. Please check your internet connection and try again.',
         confirmText: 'Try Again',
-        cancelText: 'Cancel'
+        cancelText: 'Cancel',
+        onConfirm: () => {
+          // User can try again
+        }
       })
       
       setState(prev => ({ ...prev, stage: 'setup' }))
