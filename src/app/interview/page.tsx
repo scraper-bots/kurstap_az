@@ -256,6 +256,7 @@ function InterviewContent() {
               return
             } catch (completionError) {
               console.error('❌ Interview completion failed:', completionError)
+              setCompletionState('idle') // Reset state on failure to allow fallback
               // Fall through to next completion attempt
             }
           } else {
@@ -266,8 +267,8 @@ function InterviewContent() {
         }
     }
 
-    // Final fallback: try with local state if available
-    if (state.answers && state.answers.length > 0 && state.position && state.startTime) {
+    // Final fallback: try with local state if available (only if not already completed)
+    if (completionState === 'idle' && state.answers && state.answers.length > 0 && state.position && state.startTime) {
       console.log('🔄 Fallback: using local state data')
       const duration = Math.round((Date.now() - state.startTime) / 1000 / 60)
       

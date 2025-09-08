@@ -56,6 +56,17 @@ export function AudioInterview({
   const [isCompleting, setIsCompleting] = useState(false)
   const skipTimestampRef = useRef(0) // Track when skip happened to ignore subsequent transcripts
   const [operationState, setOperationState] = useState<'idle' | 'submitting' | 'skipping' | 'completing'>('idle')
+  const completionSoundPlayed = useRef(false) // Prevent duplicate completion sounds
+
+  // Helper function to ensure completion sound is only played once
+  const playCompletionSound = async (message: string) => {
+    if (!completionSoundPlayed.current) {
+      completionSoundPlayed.current = true
+      await speakAIResponse(message)
+    } else {
+      console.log('⚠️ Completion sound already played, skipping duplicate')
+    }
+  }
 
   // Voice Activity Detection
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
@@ -340,7 +351,7 @@ export function AudioInterview({
           if (!isCompleting) {
             setIsCompleting(true)
             console.log('🏁 Interview completed, calling onComplete()')
-            await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
+            await playCompletionSound("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
             // Add small delay to prevent multiple calls
             setTimeout(() => {
               onComplete()
@@ -372,7 +383,7 @@ export function AudioInterview({
           console.error('🚨 Interview session lost, restarting completion flow')
           if (!isCompleting) {
             setIsCompleting(true)
-            await speakAIResponse("Your interview session has been completed. Redirecting you to results...")
+            await playCompletionSound("Your interview session has been completed. Redirecting you to results...")
             setTimeout(() => {
               onComplete()
             }, 2000)
@@ -387,7 +398,7 @@ export function AudioInterview({
       console.error('Error submitting answer:', error)
       // Check if it's a network or session error
       if (error instanceof Error && (error.message.includes('fetch') || error.message.includes('Failed to'))) {
-        await speakAIResponse("There seems to be a connection issue. Let me try to complete your interview.")
+        await playCompletionSound("There seems to be a connection issue. Let me try to complete your interview.")
         if (!isCompleting) {
           setIsCompleting(true)
           setTimeout(() => {
@@ -553,7 +564,7 @@ export function AudioInterview({
           if (!isCompleting) {
             setIsCompleting(true)
             console.log('🏁 Interview completed via skip, calling onComplete()')
-            await speakAIResponse("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
+            await playCompletionSound("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
             // Add delay to prevent multiple calls
             setTimeout(() => {
               onComplete()
@@ -586,7 +597,7 @@ export function AudioInterview({
           console.error('🚨 Interview session lost during skip')
           if (!isCompleting) {
             setIsCompleting(true)
-            await speakAIResponse("Your interview session has been completed. Redirecting you to results...")
+            await playCompletionSound("Your interview session has been completed. Redirecting you to results...")
             setTimeout(() => {
               onComplete()
             }, 2000)
@@ -603,7 +614,7 @@ export function AudioInterview({
       if (error instanceof Error && error.message.includes('fetch')) {
         if (!isCompleting) {
           setIsCompleting(true)
-          await speakAIResponse("There seems to be a connection issue. Let me complete your interview.")
+          await playCompletionSound("There seems to be a connection issue. Let me complete your interview.")
           setTimeout(() => {
             onComplete()
           }, 2000)
@@ -630,7 +641,7 @@ export function AudioInterview({
     
     setOperationState('completing')
     setIsCompleting(true)
-    await speakAIResponse("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
+    await playCompletionSound("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
     
     setTimeout(() => {
       onComplete()
@@ -704,24 +715,26 @@ export function AudioInterview({
 
           {/* Secondary Controls */}
           <div className="flex gap-3 justify-center">
-            <Button
-              onClick={() => {
-                if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
-                  console.log('👤 User manually clicked Next Question button')
-                  skipToNextQuestion()
-                } else {
-                  console.log('⚠️ Skip blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
-                }
-              }}
-              disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused}
-              variant="outline"
-              size="sm"
-              className="border-blue-300 text-blue-600 hover:bg-blue-50"
-              title="Skip to Next Question"
-            >
-              <SkipForward size={16} className="mr-1" />
-              Next Question
-            </Button>
+            {progress < totalQuestions && (
+              <Button
+                onClick={() => {
+                  if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
+                    console.log('👤 User manually clicked Next Question button')
+                    skipToNextQuestion()
+                  } else {
+                    console.log('⚠️ Skip blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
+                  }
+                }}
+                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused}
+                variant="outline"
+                size="sm"
+                className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                title="Skip to Next Question"
+              >
+                <SkipForward size={16} className="mr-1" />
+                Next Question
+              </Button>
+            )}
             
             <Button
               onClick={() => {
