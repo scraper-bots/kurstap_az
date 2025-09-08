@@ -519,6 +519,13 @@ export function AudioInterview({
       return
     }
     
+    // Prevent skipping while transcription is in progress to avoid session collision
+    if (pendingTranscriptRef.current && pendingTranscriptRef.current.length > 0) {
+      console.log('🚫 Skip blocked - transcription in progress:', pendingTranscriptRef.current.substring(0, 50) + '...')
+      await speakAIResponse("Please wait for your response to be transcribed before moving to the next question.")
+      return
+    }
+    
     setOperationState('skipping')
     setIsProcessingAnswer(true)
     
@@ -680,6 +687,13 @@ export function AudioInterview({
       return
     }
     
+    // Prevent finishing while transcription is in progress to avoid session collision
+    if (pendingTranscriptRef.current && pendingTranscriptRef.current.length > 0) {
+      console.log('🚫 Finish blocked - transcription in progress:', pendingTranscriptRef.current.substring(0, 50) + '...')
+      await speakAIResponse("Please wait for your response to be transcribed before finishing the interview.")
+      return
+    }
+    
     if (audioState.isRecording) {
       stopRecording()
     }
@@ -760,7 +774,7 @@ export function AudioInterview({
 
           {/* Secondary Controls */}
           <div className="flex gap-3 justify-center">
-            {progress < totalQuestions && (
+            {progress < totalQuestions ? (
               <Button
                 onClick={() => {
                   if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
@@ -770,14 +784,33 @@ export function AudioInterview({
                     console.log('⚠️ Skip blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
                   }
                 }}
-                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused}
+                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused || pendingTranscriptRef.current.length > 0}
                 variant="outline"
                 size="sm"
                 className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                title="Skip to Next Question"
+                title={pendingTranscriptRef.current.length > 0 ? "Please wait for transcription to complete" : "Skip to Next Question"}
               >
                 <SkipForward size={16} className="mr-1" />
                 Next Question
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
+                    console.log('👤 User clicked Finish Interview button at last question')
+                    finishInterviewEarly()
+                  } else {
+                    console.log('⚠️ Finish blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
+                  }
+                }}
+                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused || pendingTranscriptRef.current.length > 0}
+                variant="default"
+                size="sm" 
+                className="bg-green-600 text-white hover:bg-green-700"
+                title={pendingTranscriptRef.current.length > 0 ? "Please wait for transcription to complete" : "Complete Interview"}
+              >
+                <Square size={16} className="mr-1" />
+                Finish Interview
               </Button>
             )}
             
