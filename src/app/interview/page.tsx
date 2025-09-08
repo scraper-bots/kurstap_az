@@ -111,6 +111,14 @@ function InterviewContent() {
       
       const data = await response.json()
       
+      // Enhanced logging for debugging
+      console.log('Interview start API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        data: data
+      })
+      
       if (data.success) {
         setState(prev => ({
           ...prev,
@@ -141,11 +149,14 @@ function InterviewContent() {
             }
           })
         } else {
-          // Show generic error
+          // Show specific error message
+          const errorMessage = data.error || 'Failed to start interview session. Please try again.'
+          console.log('Showing specific error:', errorMessage)
+          
           await showConfirmation({
             variant: 'destructive',
-            title: 'Interview Start Failed',
-            message: data.error || 'Failed to start interview session. Please try again.',
+            title: 'Cannot Start Interview',
+            message: errorMessage,
             confirmText: 'Try Again',
             cancelText: 'Cancel',
             onConfirm: () => {
@@ -159,11 +170,19 @@ function InterviewContent() {
     } catch (error) {
       console.error('Error starting interview:', error)
       
-      // Show network error
+      // Determine if it's a network error or parsing error
+      const isNetworkError = error instanceof TypeError && error.message.includes('fetch')
+      const errorMessage = isNetworkError 
+        ? 'Unable to connect to the interview service. Please check your internet connection and try again.'
+        : error instanceof Error 
+          ? `Network error: ${error.message}` 
+          : 'Unexpected error occurred while starting interview'
+      
+      // Show specific error
       await showConfirmation({
         variant: 'destructive',
-        title: 'Connection Error',
-        message: 'Unable to connect to the interview service. Please check your internet connection and try again.',
+        title: isNetworkError ? 'Connection Error' : 'Request Failed',
+        message: errorMessage,
         confirmText: 'Try Again',
         cancelText: 'Cancel',
         onConfirm: () => {
