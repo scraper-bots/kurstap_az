@@ -90,6 +90,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<StartIntervie
     })
   } catch (error) {
     console.error('Error starting interview:', error)
+    
+    // Handle credit-related errors with appropriate status codes
+    if (error instanceof Error && error.message.includes('No interview credits available')) {
+      return NextResponse.json({
+        success: false,
+        error: error.message,
+        errorType: 'INSUFFICIENT_CREDITS'
+      }, { status: 402 }) // Payment Required
+    }
+    
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to start interview'
