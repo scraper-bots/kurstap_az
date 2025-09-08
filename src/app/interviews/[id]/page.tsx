@@ -1,16 +1,18 @@
-// import { redirect } from 'next/navigation' // TODO: Add proper auth redirects
+'use client'
 import Link from 'next/link'
 import { Target, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState } from 'react'
 
-async function getInterviewDetail(interviewId: string) {
+async function getInterviewDetail(interviewId: string, userToken?: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/interviews/${interviewId}`, {
+    const response = await fetch(`/api/interviews/${interviewId}`, {
       cache: 'no-store',
+      credentials: 'include',
       headers: {
-        'x-user-id': 'mock-user-id' // TODO: Replace with proper auth
+        'Content-Type': 'application/json'
       }
     })
     
@@ -104,12 +106,54 @@ interface InterviewDetailProps {
   params: Promise<{ id: string }>
 }
 
-export default async function InterviewDetailPage({ params }: InterviewDetailProps) {
-  const { id } = await params
-  // TODO: Add proper authentication check
+export default function InterviewDetailPage({ params }: InterviewDetailProps) {
+  const { user, isLoading } = useAuth()
+  const [interview, setInterview] = useState<any>(null)
+  const [isLoadingInterview, setIsLoadingInterview] = useState(true)
+  const [interviewId, setInterviewId] = useState<string>('')
 
-  const interview = await getInterviewDetail(id) || mockInterviewDetails[id as keyof typeof mockInterviewDetails]
-  
+  // Extract ID from params
+  useEffect(() => {
+    params.then(({ id }) => setInterviewId(id))
+  }, [params])
+
+  // Fetch interview data when user is authenticated and we have the ID
+  useEffect(() => {
+    if (user && interviewId) {
+      fetchInterview()
+    }
+  }, [user, interviewId])
+
+  const fetchInterview = async () => {
+    try {
+      setIsLoadingInterview(true)
+      const data = await getInterviewDetail(interviewId)
+      if (data) {
+        setInterview(data)
+      } else {
+        setInterview(null)
+      }
+    } catch (error) {
+      console.error('Error fetching interview:', error)
+      setInterview(null)
+    } finally {
+      setIsLoadingInterview(false)
+    }
+  }
+
+  // Show loading state
+  if (isLoading || isLoadingInterview) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading interview details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show not found state
   if (!interview) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
