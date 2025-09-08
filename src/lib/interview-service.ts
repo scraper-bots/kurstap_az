@@ -169,7 +169,8 @@ export class InterviewService {
       }
     } catch (error) {
       console.error('Error starting interview:', error)
-      throw new Error('Failed to start interview session')
+      // Re-throw the original error to preserve specific error messages (like credit errors)
+      throw error
     }
   }
 
