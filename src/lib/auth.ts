@@ -212,7 +212,7 @@ export class AuthService {
       }
 
       if (!token) {
-        return null
+          return null
       }
 
       // Verify token
@@ -385,7 +385,8 @@ export const authService = {
 
   async getUserFromSession(sessionId: string): Promise<AuthUser | null> {
     try {
-      return await AuthService.getCurrentUser(sessionId)
+      const user = await AuthService.getCurrentUser(sessionId)
+      return user
     } catch {
       return null
     }

@@ -4,6 +4,7 @@ import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } 
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id')
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

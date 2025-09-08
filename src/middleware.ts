@@ -43,6 +43,7 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const sessionId = request.cookies.get('session')?.value
 
+
   // Check if user is authenticated
   let isAuthenticated = false
   let user = null
