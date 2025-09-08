@@ -536,14 +536,37 @@ export function AudioInterview({
     
     try {
       // Call the API to get the next question
-      const response = await fetch('/api/interview/answer', {
+      console.log('🚀 [DEBUG] About to make fetch request to /api/interview/answer', {
+        sessionId,
+        requestTime: new Date().toISOString(),
+        url: '/api/interview/answer',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          answer: 'SKIPPED',
+          skipQuestion: true
+        })
+      })
+
+      const response = await fetch('/api/interview/answer', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           sessionId: sessionId,
           answer: 'SKIPPED', // Special marker to indicate question was skipped
           skipQuestion: true
         })
+      })
+      
+      console.log('🎯 [DEBUG] Fetch request completed', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries()),
+        responseTime: new Date().toISOString()
       })
       
       console.log('🔄 [SKIP] Response status:', response.status, response.statusText)
@@ -616,10 +639,24 @@ export function AudioInterview({
         await speakAIResponse(result.error || "There was an issue skipping the question. Please try again.")
       }
     } catch (error) {
-      console.error('Error skipping question:', error)
+      console.error('❌ [DEBUG] Error in skipToNextQuestion:', {
+        error: error instanceof Error ? error.message : String(error),
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        stack: error instanceof Error ? error.stack : undefined,
+        sessionId,
+        operationState,
+        timestamp: new Date().toISOString()
+      })
       
       // Handle network errors during skip
-      if (error instanceof Error && error.message.includes('fetch')) {
+      if (error instanceof Error && (
+        error.message.includes('fetch') || 
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('ERR_NETWORK')
+      )) {
+        console.error('🌐 [DEBUG] Network error detected:', error.message)
         if (!isCompleting) {
           setIsCompleting(true)
           await playCompletionSound("There seems to be a connection issue. Let me complete your interview.")
