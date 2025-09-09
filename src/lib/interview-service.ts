@@ -125,6 +125,20 @@ export class InterviewService {
         }
       })
 
+      // Create the session data that will be stored in feedback field
+      const sessionData: InterviewSessionData = {
+        id: '', // Will be set to interview.id after creation
+        interviewId: '', // Will be set to interview.id after creation
+        userId,
+        position,
+        currentQuestionIndex: 0,
+        currentStage: 'question',
+        questions: selectedQuestions,
+        answers: [],
+        status: 'IN_PROGRESS',
+        startedAt: new Date().toISOString()
+      }
+
       // Create interview record
       const interview = await db.interview.create({
         data: {
@@ -136,21 +150,23 @@ export class InterviewService {
           questions: selectedQuestions.map(q => q.question),
           totalQuestions: selectedQuestions.length,
           scheduledAt: new Date(),
+          feedback: null // Will be updated with session data below
         }
       })
 
-      return {
-        id: interview.id,
-        interviewId: interview.id,
-        userId,
-        position,
-        currentQuestionIndex: 0,
-        currentStage: 'question',
-        questions: selectedQuestions,
-        answers: [],
-        status: 'IN_PROGRESS',
-        startedAt: interview.createdAt.toISOString()
-      }
+      // Update session data with the actual interview ID
+      sessionData.id = interview.id
+      sessionData.interviewId = interview.id
+
+      // Update the interview with the session data in feedback field
+      await db.interview.update({
+        where: { id: interview.id },
+        data: {
+          feedback: sessionData as any
+        }
+      })
+
+      return sessionData
     } catch (error) {
       console.error('Error starting interview:', error)
       // Re-throw the original error to preserve specific error messages (like credit errors)
@@ -208,6 +224,11 @@ export class InterviewService {
       }
 
       const sessionData = interview.feedback as unknown as InterviewSessionData
+      
+      if (!sessionData || !sessionData.questions) {
+        throw new Error('Interview session data is corrupted or missing. Please start a new interview.')
+      }
+      
       const currentQuestion = sessionData.questions[sessionData.currentQuestionIndex]
       
       if (!currentQuestion) {
