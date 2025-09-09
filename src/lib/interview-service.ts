@@ -69,7 +69,7 @@ export class InterviewService {
               createdAt: new Date(),
             }
           })
-          console.log('Auto-created user for interview:', userId)
+          // User auto-created for interview
         } catch (createError) {
           console.error('Failed to auto-create user:', createError)
           throw new Error('User not found. Please sign in again.')
@@ -208,7 +208,7 @@ export class InterviewService {
               createdAt: new Date(),
             }
           })
-          console.log('Auto-created user for submit answer:', clerkUserId)
+          // User auto-created for submit answer
         } catch (createError) {
           console.error('Failed to auto-create user:', createError)
           throw new Error('User not found')
@@ -257,12 +257,7 @@ export class InterviewService {
           timestamp: new Date().toISOString()
         }
         
-        console.log('📝 Recording answer:', {
-          questionId: answerRecord.questionId,
-          question: answerRecord.question.substring(0, 50) + '...',
-          userAnswer: answerRecord.userAnswer.substring(0, 100) + '...',
-          category: answerRecord.category
-        })
+        // Recording answer
         updatedAnswers.push(answerRecord)
       }
 
@@ -300,7 +295,7 @@ export class InterviewService {
       // This will be done later during completion
       const finalEvaluation = undefined
       if (nextAction === 'completed') {
-        console.log('⏳ Skipping expensive evaluation during answer submission to prevent timeout')
+        // Skipping expensive evaluation during answer submission to prevent timeout
         // Set a default overall score instead of calling OpenAI
         updatedSessionData.overallScore = 75 // Default score, will be updated later
       }
@@ -344,7 +339,7 @@ export class InterviewService {
           })
 
           if (existingDetailedInterview) {
-            console.log('🔍 Detailed interview already exists, skipping creation:', existingDetailedInterview.id)
+            // Detailed interview already exists, skipping creation
             updatedSessionData.detailedInterviewId = existingDetailedInterview.id
           } else {
             // Transform answers to DetailedInterviewService format
@@ -436,7 +431,7 @@ export class InterviewService {
                 createdAt: new Date(),
               }
             })
-            console.log('Auto-created user for get session:', clerkUserId)
+            // User auto-created for get session
           } catch (createError) {
             console.error('Failed to auto-create user:', createError)
             return null
@@ -488,7 +483,7 @@ export class InterviewService {
               createdAt: new Date(),
             }
           })
-          console.log('Auto-created user for get interviews:', clerkUserId)
+          // User auto-created for get interviews
         } catch (createError) {
           console.error('Failed to auto-create user:', createError)
           return []

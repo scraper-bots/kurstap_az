@@ -39,8 +39,6 @@ model User {
   
   // Relations
   interviews    Interview[]
-  sessions      Session[]
-  subscriptions Subscription[]
   payments      Payment[]
   userSessions  UserSession[]
   
@@ -101,106 +99,15 @@ model Interview {
   
   // Relations
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessions  Session[]
-  answers   InterviewAnswer[]
   
   @@map("interviews")
 }
 
-model InterviewAnswer {
-  id          String    @id @default(cuid())
-  interviewId String
-  questionId  Int       // Question number/index
-  question    String    // The actual question
-  userAnswer  String    // User's response
-  idealAnswer String?   // Ideal answer for comparison
-  score       Float?    // Individual question score (0-100)
-  strengths   String[]  // Array of strengths identified
-  weaknesses  String[]  // Array of areas for improvement
-  category    String    // Question category (Behavioral, Technical, etc.)
-  responseTime Int?     // Time taken to respond in seconds
-  confidence  Float?    // AI-assessed confidence level
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  
-  @@map("interview_answers")
-}
+// InterviewAnswer data moved to Interview.questions JSON field
 
-model Session {
-  id          String      @id @default(cuid())
-  userId      String
-  interviewId String?
-  
-  // Session data
-  type        SessionType @default(PRACTICE)
-  status      SessionStatus @default(IN_PROGRESS)
-  duration    Int?        // Duration in seconds
-  
-  // Video/Audio data
-  videoUrl    String?     // Video recording URL
-  audioUrl    String?     // Audio-only URL (fallback)
-  transcript  String?     // Speech-to-text transcript
-  
-  // Video analysis data
-  videoAnalysis Json?     // Frame-by-frame analysis results
-  facialMetrics Json?     // Facial expression analysis
-  bodyLanguage  Json?     // Body language assessment
-  eyeContact    Json?     // Eye contact tracking
-  speechPacing  Json?     // Speech rhythm and pacing analysis
-  
-  // AI Analysis
-  feedback    Json?       // Structured feedback JSON
-  score       Float?      // Session score (0-100)
-  
-  // Timestamps
-  startedAt   DateTime    @default(now())
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  // Relations
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  interview Interview? @relation(fields: [interviewId], references: [id], onDelete: SetNull)
-  
-  @@map("sessions")
-}
+// Session functionality merged into Interview model
 
-model Subscription {
-  id        String           @id @default(cuid())
-  userId    String
-  
-  // Subscription details - DEPRECATED: Moving to credit-only system
-  type      String              @default("CREDIT_BASED") 
-  status    SubscriptionStatus @default(ACTIVE)
-  
-  // Payment provider data
-  stripeCustomerId       String?
-  stripeSubscriptionId   String? @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
-  
-  // Subscription periods
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  
-  // Associated payment
-  paymentId String?
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payment Payment? @relation(fields: [paymentId], references: [id])
-  
-  @@map("subscriptions")
-}
+// Subscription model removed - moved to credit-only system
 
 model Payment {
   id        String        @id @default(cuid())
@@ -241,21 +148,11 @@ model Payment {
   
   // Relations
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscriptions Subscription[]
   
   @@map("payments")
 }
 
 // Enums
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  PAST_DUE
-  INCOMPLETE
-  INCOMPLETE_EXPIRED
-  TRIALING
-  UNPAID
-}
 
 enum Difficulty {
   EASY
@@ -270,18 +167,7 @@ enum InterviewStatus {
   CANCELLED
 }
 
-enum SessionType {
-  PRACTICE
-  MOCK_INTERVIEW
-  SKILL_ASSESSMENT
-}
-
-enum SessionStatus {
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-  FAILED
-}
+// Session enums removed
 
 enum PaymentStatus {
   PENDING
