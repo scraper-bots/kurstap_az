@@ -150,6 +150,28 @@ export class DetailedInterviewService {
    */
   static async getDetailedInterview(interviewId: string, userId: string) {
     try {
+      console.log('📊 Fetching interview:', { interviewId, userId })
+      
+      // First, try to find the interview regardless of user to see if it exists
+      const interviewExists = await db.interview.findUnique({
+        where: { id: interviewId },
+        select: { id: true, userId: true, title: true }
+      })
+      
+      if (!interviewExists) {
+        console.log('❌ Interview not found:', interviewId)
+        return null
+      }
+      
+      console.log('🔍 Interview found:', { 
+        id: interviewExists.id, 
+        interviewUserId: interviewExists.userId, 
+        requestUserId: userId,
+        title: interviewExists.title,
+        userIdMatch: interviewExists.userId === userId
+      })
+      
+      // Now get the full interview with user check
       const interview = await db.interview.findFirst({
         where: { 
           id: interviewId,
@@ -162,9 +184,20 @@ export class DetailedInterviewService {
         }
       })
 
+      if (!interview) {
+        console.log('❌ Interview not found or access denied for user:', { interviewId, userId })
+        return null
+      }
+
+      console.log('✅ Interview fetched successfully:', { 
+        id: interview.id, 
+        title: interview.title,
+        answersCount: interview.answers?.length || 0
+      })
+
       return interview
     } catch (error) {
-      console.error('Error fetching detailed interview:', error)
+      console.error('❌ Error fetching detailed interview:', error)
       return null
     }
   }

@@ -330,9 +330,25 @@ export class InterviewService {
 
         // Create detailed interview analysis
         try {
-          
-          // Transform answers to DetailedInterviewService format
-          const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
+          // Check if detailed interview already exists for this session
+          const existingDetailedInterview = await db.interview.findFirst({
+            where: {
+              userId: user.id,
+              title: `${session.interview?.position || 'General'} Interview`,
+              company: 'Practice Session',
+              createdAt: {
+                // Look for interviews created in the last hour to avoid duplicates
+                gte: new Date(Date.now() - 60 * 60 * 1000)
+              }
+            }
+          })
+
+          if (existingDetailedInterview) {
+            console.log('🔍 Detailed interview already exists, skipping creation:', existingDetailedInterview.id)
+            updatedSessionData.detailedInterviewId = existingDetailedInterview.id
+          } else {
+            // Transform answers to DetailedInterviewService format
+            const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
             const matchingQuestion = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
             
             return {
@@ -372,6 +388,7 @@ export class InterviewService {
           
           // Store the detailed interview ID in the session for reference
           updatedSessionData.detailedInterviewId = detailedInterview.id
+          }
           
         } catch (detailedError) {
           console.error('❌ Failed to create detailed interview analysis:', detailedError)

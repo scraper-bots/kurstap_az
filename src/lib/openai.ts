@@ -33,13 +33,32 @@ const FALLBACK_QUESTIONS: Record<string, QuestionSet> = {
     jobTitle: 'General',
     behavioral: [
       { question: 'Tell me about a time when you had to work under pressure.', difficulty: 'easy', category: 'behavioral', expectedDuration: 3 },
+      { question: 'Describe a time when you had to learn something new quickly.', difficulty: 'easy', category: 'behavioral', expectedDuration: 3 },
+      { question: 'Tell me about a successful project you completed.', difficulty: 'easy', category: 'behavioral', expectedDuration: 3 },
       { question: 'Describe a challenging project you worked on recently.', difficulty: 'medium', category: 'behavioral', expectedDuration: 4 },
-      { question: 'How do you handle conflict with team members?', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 }
+      { question: 'Tell me about a time when you had to work with a difficult team member.', difficulty: 'medium', category: 'behavioral', expectedDuration: 4 },
+      { question: 'Describe a situation where you had to make a difficult decision.', difficulty: 'medium', category: 'behavioral', expectedDuration: 4 },
+      { question: 'Tell me about a time when you had to adapt to a major change at work.', difficulty: 'medium', category: 'behavioral', expectedDuration: 4 },
+      { question: 'How do you handle conflict with team members?', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 },
+      { question: 'Describe a time when you had to lead a team through a crisis.', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 },
+      { question: 'Tell me about a time when you failed and how you recovered.', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 },
+      { question: 'Describe your most challenging professional accomplishment.', difficulty: 'hard', category: 'behavioral', expectedDuration: 6 },
+      { question: 'How do you handle competing priorities and tight deadlines?', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 },
+      { question: 'Tell me about a time when you had to influence others without authority.', difficulty: 'hard', category: 'behavioral', expectedDuration: 5 }
     ],
     technical: [
       { question: 'Explain your approach to problem-solving.', difficulty: 'easy', category: 'technical', expectedDuration: 4 },
+      { question: 'What programming languages or tools are you most comfortable with?', difficulty: 'easy', category: 'technical', expectedDuration: 4 },
       { question: 'What tools and technologies do you use in your work?', difficulty: 'medium', category: 'technical', expectedDuration: 5 },
-      { question: 'How do you stay current with industry trends?', difficulty: 'hard', category: 'technical', expectedDuration: 6 }
+      { question: 'How do you approach debugging a complex issue?', difficulty: 'medium', category: 'technical', expectedDuration: 5 },
+      { question: 'Describe your experience with version control systems.', difficulty: 'medium', category: 'technical', expectedDuration: 4 },
+      { question: 'How do you ensure code quality in your projects?', difficulty: 'medium', category: 'technical', expectedDuration: 5 },
+      { question: 'How do you stay current with industry trends?', difficulty: 'hard', category: 'technical', expectedDuration: 6 },
+      { question: 'Describe a time when you had to optimize performance in an application.', difficulty: 'hard', category: 'technical', expectedDuration: 6 },
+      { question: 'How would you design a scalable system for high traffic?', difficulty: 'hard', category: 'technical', expectedDuration: 7 },
+      { question: 'Explain your approach to database design and optimization.', difficulty: 'hard', category: 'technical', expectedDuration: 6 },
+      { question: 'How do you handle technical debt in legacy systems?', difficulty: 'hard', category: 'technical', expectedDuration: 6 },
+      { question: 'Describe your experience with cloud platforms and deployment strategies.', difficulty: 'hard', category: 'technical', expectedDuration: 6 }
     ],
     situational: []
   }

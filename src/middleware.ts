@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { authService } from '@/lib/auth'
-
-// Force middleware to run in Node.js runtime instead of Edge runtime
-export const runtime = 'nodejs'
+// Note: Can't import authService directly in Edge runtime, need to use JWT directly
 
 // Define protected routes
 const protectedRoutes = [
   '/dashboard',
   '/interview',
+  '/interviews', // Interview history and reports
   '/profile',
   '/settings',
   '/payment'
@@ -50,8 +48,22 @@ export default async function middleware(request: NextRequest) {
 
   if (sessionId) {
     try {
-      user = await authService.getUserFromSession(sessionId)
-      isAuthenticated = !!user
+      // Decode JWT directly (for Edge runtime compatibility)
+      const jwt = sessionId
+      const parts = jwt.split('.')
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]))
+        // Check if token is expired
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+          throw new Error('Token expired')
+        }
+        user = {
+          id: payload.userId,
+          email: payload.email,
+          role: payload.role || 'user'
+        }
+        isAuthenticated = !!user
+      }
     } catch {
       // Invalid session, clear cookie
       const response = NextResponse.next()
