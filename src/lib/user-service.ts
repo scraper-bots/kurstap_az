@@ -117,13 +117,9 @@ export class UserService {
         where: { id: clerkId },
         include: {
           interviews: true,
-          sessions: {
-            where: { status: 'COMPLETED' }
-          },
           _count: {
             select: {
               interviews: true,
-              sessions: true,
             }
           }
         },
@@ -132,14 +128,15 @@ export class UserService {
       if (!user) return null
 
       const completedInterviews = user.interviews.filter(i => i.status === 'COMPLETED').length
-      const averageScore = user.sessions.length > 0 
-        ? user.sessions.reduce((sum, session) => sum + (session.score || 0), 0) / user.sessions.length
+      const completedInterviewsWithScore = user.interviews.filter(i => i.status === 'COMPLETED' && i.score)
+      const averageScore = completedInterviewsWithScore.length > 0 
+        ? completedInterviewsWithScore.reduce((sum, interview) => sum + (interview.score || 0), 0) / completedInterviewsWithScore.length
         : 0
 
       return {
         totalInterviews: user._count.interviews,
         completedInterviews,
-        totalSessions: user._count.sessions,
+        totalSessions: completedInterviews,
         averageScore: Math.round(averageScore),
         interviewCredits: user.interviewCredits,
       }
