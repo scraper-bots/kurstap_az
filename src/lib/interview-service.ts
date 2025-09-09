@@ -159,10 +159,11 @@ export class InterviewService {
       sessionData.interviewId = interview.id
 
       // Update the interview with the session data in feedback field
+      // Store as JSON string since feedback field is String? in schema
       await db.interview.update({
         where: { id: interview.id },
         data: {
-          feedback: sessionData as any
+          feedback: JSON.stringify(sessionData)
         }
       })
 
@@ -223,7 +224,12 @@ export class InterviewService {
         throw new Error('Interview not found')
       }
 
-      const sessionData = interview.feedback as unknown as InterviewSessionData
+      let sessionData: InterviewSessionData
+      try {
+        sessionData = JSON.parse(interview.feedback || '{}') as InterviewSessionData
+      } catch (parseError) {
+        throw new Error('Interview session data is corrupted. Please start a new interview.')
+      }
       
       if (!sessionData || !sessionData.questions) {
         throw new Error('Interview session data is corrupted or missing. Please start a new interview.')
@@ -308,7 +314,7 @@ export class InterviewService {
       await db.interview.update({
         where: { id: sessionId },
         data: {
-          feedback: updatedSessionData as any,
+          feedback: JSON.stringify(updatedSessionData),
           status: updatedSessionData.status,
           score: updatedSessionData.overallScore,
           completedAt: nextAction === 'completed' ? new Date() : null
@@ -446,7 +452,12 @@ export class InterviewService {
           return null
         }
 
-        return interview.feedback as unknown as InterviewSessionData
+        try {
+          return JSON.parse(interview.feedback) as InterviewSessionData
+        } catch (parseError) {
+          console.error('Error parsing session data:', parseError)
+          return null
+        }
       } catch (error) {
         console.error('Error getting session:', error)
         const queryTime = Date.now() - start
