@@ -211,29 +211,25 @@ export function AudioInterview({
     
     // Filter out music notes, repeated words, stale transcripts, and audio artifacts
     const isRepeatedWord = /(\b\w+\b)(\s+\1){3,}/.test(transcript) // Detects repeated words like "difficult difficult difficult"
-    const commonStaleTranscripts = [
-      'Thank you for watching!',
-      'Thanks for watching!', 
-      'Thank you for listening!',
-      'Thanks for listening!',
-      'Thank you.',
-      'Thanks.',
-      'Bye!',
-      'Goodbye!',
-      'See you later!',
-      'the',
-      'a',
-      'an',
-      'and',
-      'or',
-      'but',
-      'um',
-      'uh',
-      'er',
-      'ah'
+    
+    // Only filter out EXACT matches of problematic phrases, not partial matches
+    const staleTranscriptPatterns = [
+      /^Thank you for watching!?$/i,
+      /^Thanks for watching!?$/i, 
+      /^Thank you for listening!?$/i,
+      /^Thanks for listening!?$/i,
+      /^Thank you\.?$/i,
+      /^Thanks\.?$/i,
+      /^Bye!?$/i,
+      /^Goodbye!?$/i,
+      /^See you later!?$/i,
+      /^(um|uh|er|ah)\.?$/i,
+      /^(the|a|an|and|or|but)\.?$/i, // Only single words, not in context
+      /^I'm going to go to the bathroom\.?( I'm going to go to the bathroom\.?)+$/i // Specific bathroom repetition
     ]
-    const isStaleTranscript = commonStaleTranscripts.some(phrase => 
-      transcript.toLowerCase().includes(phrase.toLowerCase())
+    
+    const isStaleTranscript = staleTranscriptPatterns.some(pattern => 
+      pattern.test(transcript.trim())
     )
     const isAudioArtifact = transcript === '🎶' || transcript.includes('What? What? What?') || transcript.length < 3
     
