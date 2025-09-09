@@ -19,6 +19,24 @@ export async function GET(
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 })
     }
 
+    // Parse answers from the feedback JSON or use fallback data
+    let answers: any[] = []
+    let questionsCount = 0
+    
+    if (interview.feedback) {
+      try {
+        const sessionData = typeof interview.feedback === 'string' 
+          ? JSON.parse(interview.feedback) 
+          : interview.feedback
+        answers = sessionData.answers || []
+        questionsCount = sessionData.questions?.length || answers.length
+      } catch (error) {
+        console.error('Error parsing interview feedback:', error)
+        answers = []
+        questionsCount = 0
+      }
+    }
+
     // Format the response to match the frontend expectations
     const formattedInterview = {
       id: interview.id,
@@ -30,17 +48,17 @@ export async function GET(
       difficulty: interview.difficulty,
       status: interview.status,
       overallScore: interview.score,
-      questionsCount: interview.answers.length,
+      questionsCount: questionsCount,
       category: 'Technical',
-      questions: interview.answers.map((answer) => ({
-        id: answer.questionId,
-        question: answer.question,
-        userAnswer: answer.userAnswer,
+      questions: answers.map((answer, index) => ({
+        id: answer.questionId || index,
+        question: answer.question || `Question ${index + 1}`,
+        userAnswer: answer.userAnswer || answer.answer || 'No answer provided',
         idealAnswer: answer.idealAnswer || 'A strong answer should demonstrate relevant experience and technical knowledge.',
-        score: answer.score || 0,
-        strengths: answer.strengths,
-        weaknesses: answer.weaknesses,
-        category: answer.category
+        score: answer.score?.overallScore || answer.score || 75,
+        strengths: answer.score?.strengths || answer.strengths || ['Clear communication'],
+        weaknesses: answer.score?.weaknesses || answer.weaknesses || ['Could provide more detail'],
+        category: answer.category || 'General'
       })),
       overallAnalysis: interview.overallAnalysis || {
         strengths: ['Technical knowledge', 'Problem-solving approach'],

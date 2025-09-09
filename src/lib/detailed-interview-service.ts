@@ -94,8 +94,8 @@ export class DetailedInterviewService {
           completedAt: new Date(),
           questions: answers.map(a => a.question),
           totalQuestions: answers.length,
-          answers: {
-            create: answers.map(answer => ({
+          feedback: JSON.stringify({
+            answers: answers.map(answer => ({
               questionId: answer.questionId,
               question: answer.question,
               userAnswer: answer.userAnswer,
@@ -107,10 +107,7 @@ export class DetailedInterviewService {
               responseTime: answer.responseTime,
               confidence: answer.confidence
             }))
-          }
-        },
-        include: {
-          answers: true
+          })
         }
       })
 
@@ -132,12 +129,7 @@ export class DetailedInterviewService {
           userId,
           status: 'COMPLETED'
         },
-        orderBy: { completedAt: 'desc' },
-        include: {
-          _count: {
-            select: { answers: true }
-          }
-        }
+        orderBy: { completedAt: 'desc' }
       })
     } catch (error) {
       console.error('Error fetching user interviews:', error)
@@ -176,11 +168,6 @@ export class DetailedInterviewService {
         where: { 
           id: interviewId,
           userId // Ensure user owns this interview
-        },
-        include: {
-          answers: {
-            orderBy: { questionId: 'asc' }
-          }
         }
       })
 
@@ -192,7 +179,7 @@ export class DetailedInterviewService {
       console.log('✅ Interview fetched successfully:', { 
         id: interview.id, 
         title: interview.title,
-        answersCount: interview.answers?.length || 0
+        hasData: !!interview.feedback
       })
 
       return interview

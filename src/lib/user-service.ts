@@ -44,8 +44,6 @@ export class UserService {
         where: { id: clerkId },
         include: {
           interviews: true,
-          sessions: true,
-          subscriptions: true,
         },
       })
     } catch (error) {

@@ -1,6 +1,6 @@
 import { db, DatabaseMetrics } from './db'
 import { OpenAIService } from './openai'
-import { SessionStatus, Difficulty } from '@prisma/client'
+import { InterviewStatus, Difficulty } from '@prisma/client'
 import { DetailedInterviewService, DetailedInterviewData, InterviewAnswerData } from './detailed-interview-service'
 import { InterviewQuestion, InterviewAnswer } from '@/types/common'
 import { InterviewCacheService } from './cache-service'
@@ -28,7 +28,7 @@ export interface InterviewSessionData {
   questions: InterviewQuestion[]
   answers: InterviewAnswerWithScore[]
   overallScore?: number
-  status: SessionStatus
+  status: InterviewStatus
   startedAt: string
   completedAt?: string
   detailedInterviewId?: string
@@ -284,7 +284,7 @@ export class InterviewService {
       }
 
       // Update database
-      await db.session.update({
+      await db.interview.update({
         where: { id: sessionId },
         data: {
           feedback: updatedSessionData as any,
@@ -294,17 +294,10 @@ export class InterviewService {
         }
       })
 
-      // Update interview if completed
+      // Additional completion updates if needed
       if (nextAction === 'completed') {
-        await db.interview.update({
-          where: { id: session.interviewId! },
-          data: {
-            status: 'COMPLETED',
-            score: updatedSessionData.overallScore,
-            completedAt: new Date(),
-            feedback: `Interview completed with ${updatedAnswers.length} questions answered.`
-          }
-        })
+        // Interview status already updated above
+        // Additional completion logic can be added here if needed
 
         // Create detailed interview analysis
         try {
@@ -312,7 +305,7 @@ export class InterviewService {
           const existingDetailedInterview = await db.interview.findFirst({
             where: {
               userId: user.id,
-              title: `${session.interview?.position || 'General'} Interview`,
+              title: `${interview.position || 'General'} Interview`,
               company: 'Practice Session',
               createdAt: {
                 // Look for interviews created in the last hour to avoid duplicates
@@ -348,11 +341,11 @@ export class InterviewService {
           
           // Create detailed interview data
           const detailedInterviewData: DetailedInterviewData = {
-            title: `${session.interview?.position || 'General'} Interview`,
+            title: `${interview.position || 'General'} Interview`,
             company: 'Practice Session',
-            position: session.interview?.position || 'General',
-            difficulty: session.interview?.difficulty || 'MEDIUM',
-            duration: Math.round(((new Date()).getTime() - session.startedAt.getTime()) / 1000 / 60),
+            position: interview.position || 'General',
+            difficulty: interview.difficulty || 'MEDIUM',
+            duration: Math.round(((new Date()).getTime() - interview.createdAt.getTime()) / 1000 / 60),
             score: updatedSessionData.overallScore || 75,
             ...analysis
           }
@@ -421,19 +414,18 @@ export class InterviewService {
           }
         }
 
-        const session = await db.session.findUnique({
-          where: { id: sessionId, userId: user.id },
-          include: { interview: true }
+        const interview = await db.interview.findUnique({
+          where: { id: sessionId }
         })
 
         const queryTime = Date.now() - start
         DatabaseMetrics.recordQueryTime(queryTime)
 
-        if (!session || !session.feedback) {
+        if (!interview || interview.userId !== user.id || !interview.feedback) {
           return null
         }
 
-        return session.feedback as unknown as InterviewSessionData
+        return interview.feedback as unknown as InterviewSessionData
       } catch (error) {
         console.error('Error getting session:', error)
         const queryTime = Date.now() - start
@@ -476,13 +468,7 @@ export class InterviewService {
       const interviews = await db.interview.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: 'desc' },
-        take: limit,
-        include: {
-          sessions: {
-            take: 1,
-            orderBy: { createdAt: 'desc' }
-          }
-        }
+        take: limit
       })
 
       return interviews.map(interview => ({
@@ -491,7 +477,7 @@ export class InterviewService {
         position: interview.position,
         status: interview.status,
         score: interview.score,
-        duration: interview.sessions[0]?.duration,
+        duration: interview.duration,
         completedAt: interview.completedAt,
         createdAt: interview.createdAt
       }))
