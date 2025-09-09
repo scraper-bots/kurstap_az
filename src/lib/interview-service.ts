@@ -139,24 +139,8 @@ export class InterviewService {
         }
       })
 
-      // Create session record
-      const session = await db.session.create({
-        data: {
-          userId: existingUser.id, // Use the actual user ID from database
-          interviewId: interview.id,
-          type: 'PRACTICE',
-          status: 'IN_PROGRESS',
-          feedback: {
-            questions: selectedQuestions,
-            answers: [],
-            currentQuestionIndex: 0,
-            currentStage: 'question'
-          } as any
-        }
-      })
-
       return {
-        id: session.id,
+        id: interview.id,
         interviewId: interview.id,
         userId,
         position,
@@ -165,7 +149,7 @@ export class InterviewService {
         questions: selectedQuestions,
         answers: [],
         status: 'IN_PROGRESS',
-        startedAt: session.startedAt.toISOString()
+        startedAt: interview.createdAt.toISOString()
       }
     } catch (error) {
       console.error('Error starting interview:', error)
@@ -215,16 +199,15 @@ export class InterviewService {
         }
       }
 
-      const session = await db.session.findUnique({
-        where: { id: sessionId, userId: user.id },
-        include: { interview: true }
+      const interview = await db.interview.findUnique({
+        where: { id: sessionId }
       })
 
-      if (!session) {
-        throw new Error('Session not found')
+      if (!interview || interview.userId !== user.id) {
+        throw new Error('Interview not found')
       }
 
-      const sessionData = session.feedback as unknown as InterviewSessionData
+      const sessionData = interview.feedback as unknown as InterviewSessionData
       const currentQuestion = sessionData.questions[sessionData.currentQuestionIndex]
       
       if (!currentQuestion) {
@@ -279,15 +262,15 @@ export class InterviewService {
 
       const updatedSessionData: InterviewSessionData = {
         id: sessionId,
-        interviewId: session.interviewId!,
+        interviewId: interview.id,
         userId: clerkUserId,
-        position: session.interview?.position || 'General',
+        position: interview.position || 'General',
         currentQuestionIndex: newQuestionIndex,
         currentStage: newStage,
         questions: sessionData.questions,
         answers: updatedAnswers,
         status: nextAction === 'completed' ? 'COMPLETED' : 'IN_PROGRESS',
-        startedAt: session.startedAt.toISOString(),
+        startedAt: interview.createdAt.toISOString(),
         completedAt: nextAction === 'completed' ? new Date().toISOString() : undefined
       }
 

@@ -15,26 +15,38 @@ export async function GET(
     // Find interrupted sessions from the last 24 hours
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
-    const sessions = await db.session.findMany({
+    // Since Session model was removed, use Interview model
+    const interviews = await db.interview.findMany({
       where: {
         userId: userId,
         status: 'IN_PROGRESS',
-        startedAt: { gte: yesterday }
+        createdAt: { gte: yesterday }
       },
-      orderBy: { startedAt: 'desc' }
+      orderBy: { createdAt: 'desc' }
     })
 
-    const recoverableSessions = sessions
-      .filter(session => session.feedback && typeof session.feedback === 'object')
-      .map(session => {
-        const state = session.feedback as any
+    const recoverableSessions = interviews
+      .filter(interview => interview.feedback && typeof interview.feedback === 'string')
+      .map(interview => {
+        let state: any = {}
+        try {
+          state = JSON.parse(interview.feedback as string)
+        } catch {
+          // If feedback is not valid JSON, use interview data
+          state = {
+            position: interview.position,
+            totalQuestions: interview.totalQuestions,
+            answers: [],
+            startTime: interview.createdAt.getTime()
+          }
+        }
         return {
-          sessionId: session.id,
-          position: state.position || 'Unknown Position',
+          sessionId: interview.id,
+          position: interview.position || 'Unknown Position',
           questionsAnswered: state.answers?.length || 0,
-          totalQuestions: state.totalQuestions || 0,
-          timeElapsed: Date.now() - (state.startTime || session.startedAt.getTime()),
-          lastActive: new Date(state.lastActivityTime || session.startedAt)
+          totalQuestions: interview.totalQuestions || 0,
+          timeElapsed: Date.now() - (state.startTime || interview.createdAt.getTime()),
+          lastActive: new Date(state.lastActivityTime || interview.createdAt)
         }
       })
 

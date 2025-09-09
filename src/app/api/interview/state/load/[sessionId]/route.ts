@@ -12,19 +12,31 @@ export async function GET(
     }
 
     const { sessionId } = await params
-    const session = await db.session.findFirst({
+    // Since Session model was removed, try to find interview by sessionId or interview ID
+    const interview = await db.interview.findFirst({
       where: {
-        id: sessionId,
-        userId: userId,
-        status: { in: ['IN_PROGRESS', 'COMPLETED'] }
+        OR: [
+          { id: sessionId }, // sessionId might be interview ID
+          { userId: userId, status: { in: ['IN_PROGRESS', 'COMPLETED'] } }
+        ]
       }
     })
 
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    if (!interview) {
+      return NextResponse.json({ error: 'Interview not found' }, { status: 404 })
     }
 
-    return NextResponse.json(session.feedback)
+    // Return interview data in expected format
+    return NextResponse.json({
+      id: interview.id,
+      interviewId: interview.id,
+      userId: interview.userId,
+      position: interview.position,
+      questions: interview.questions,
+      status: interview.status,
+      feedback: interview.feedback,
+      score: interview.score
+    })
   } catch (error) {
     console.error('Error loading interview state:', error)
     return NextResponse.json({ 

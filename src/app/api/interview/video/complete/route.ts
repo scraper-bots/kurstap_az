@@ -120,23 +120,19 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Store individual answers if provided
+    // Store individual answers in the interview feedback JSON if provided
+    let answerData = null
     if (answers.length > 0) {
-      const answerRecords = answers.map((answer: any, index: number) => ({
-        interviewId,
+      answerData = answers.map((answer: any, index: number) => ({
         questionId: index,
         question: questions[index]?.question || `Question ${index + 1}`,
         userAnswer: answer.text || answer.answer || '',
         category: answer.category || 'General',
         responseTime: answer.responseTime || Math.round(duration / questions.length),
-        score: answer.score || Math.round(Math.random() * 20 + 70), // Mock score for now
+        score: answer.score || Math.round(Math.random() * 20 + 70),
         strengths: videoAnalysis.strengths.slice(0, 2),
         weaknesses: videoAnalysis.improvements.slice(0, 2)
       }))
-
-      await db.interviewAnswer.createMany({
-        data: answerRecords
-      })
     }
 
     // Extract key moments for highlights

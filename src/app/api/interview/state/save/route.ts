@@ -15,22 +15,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid state data' }, { status: 400 })
     }
 
-    // Save state to database
-    await db.session.upsert({
+    // Save state to Interview model (Session model was removed)
+    await db.interview.upsert({
       where: { id: interviewState.sessionId },
       update: {
-        status: interviewState.stage === 'completed' ? 'COMPLETED' : 
-               interviewState.stage === 'paused' ? 'IN_PROGRESS' : 'IN_PROGRESS',
-        feedback: interviewState,
+        status: interviewState.stage === 'completed' ? 'COMPLETED' : 'IN_PROGRESS',
+        feedback: JSON.stringify(interviewState),
         completedAt: interviewState.stage === 'completed' ? new Date() : null
       },
       create: {
         id: interviewState.sessionId,
         userId: userId,
-        type: 'PRACTICE',
+        title: `${interviewState.position || 'General'} Interview`,
+        position: interviewState.position || 'General',
+        questions: interviewState.questions || [],
+        totalQuestions: interviewState.totalQuestions || 0,
         status: 'IN_PROGRESS',
-        feedback: interviewState,
-        startedAt: new Date(interviewState.startTime)
+        feedback: JSON.stringify(interviewState),
+        scheduledAt: new Date(interviewState.startTime)
       }
     })
 
