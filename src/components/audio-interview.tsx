@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
-import { Mic, MicOff, Phone, PhoneOff, Pause, Play, SkipForward, Square } from 'lucide-react'
+import { Mic, MicOff, Phone, PhoneOff, Pause, Play } from 'lucide-react'
 import { dailyAudioService } from '@/lib/daily'
 
 interface AudioInterviewProps {
@@ -204,7 +204,7 @@ export function AudioInterview({
       // Only prompt if user was actively recording (not just after AI speech)
       if (audioState.isRecording) {
         console.log('No speech detected during active recording period')
-        await speakAIResponse("I didn't hear any response. Would you like me to repeat the question, or would you prefer to skip to the next question?")
+        await speakAIResponse("I didn't hear any response. Could you please provide your answer to the question?")
       }
       return
     }
@@ -257,7 +257,7 @@ export function AudioInterview({
       const hasValidWords = /\b\w{3,}\b/.test(transcript)
       if (hasValidWords) {
         console.log('Short response detected:', transcript)
-        await speakAIResponse("Your response seems quite brief. Would you like to elaborate further, or shall we move to the next question?")
+        await speakAIResponse("Your response seems quite brief. Would you like to elaborate further?")
       } else {
         console.log('🚫 Very short transcript ignored:', transcript)
       }
@@ -496,212 +496,7 @@ export function AudioInterview({
     setAudioState(prev => ({ ...prev, isPaused: false }))
   }
 
-  const skipToNextQuestion = async () => {
-    console.log('🚨 [DEBUG] skipToNextQuestion called!', {
-      stack: new Error().stack,
-      operationState,
-      isRecording: audioState.isRecording,
-      isProcessingAnswer,
-      isCompleting
-    })
-    
-    if (audioState.isRecording) {
-      stopRecording()
-    }
-    
-    // Prevent multiple skip calls using operation state
-    if (operationState !== 'idle' || isProcessingAnswer || isCompleting) {
-      console.log('🚫 Skip blocked - operation in progress:', operationState)
-      return
-    }
-    
-    // Prevent skipping while transcription is in progress to avoid session collision
-    if (pendingTranscriptRef.current && pendingTranscriptRef.current.length > 0) {
-      console.log('🚫 Skip blocked - transcription in progress:', pendingTranscriptRef.current.substring(0, 50) + '...')
-      await speakAIResponse("Please wait for your response to be transcribed before moving to the next question.")
-      return
-    }
-    
-    setOperationState('skipping')
-    setIsProcessingAnswer(true)
-    
-    // Clear any pending transcripts and mark skip timestamp
-    pendingTranscriptRef.current = ''
-    skipTimestampRef.current = Date.now()
-    
-    // Cancel any pending silence detection
-    if (silenceTimer.current) {
-      clearTimeout(silenceTimer.current)
-      silenceTimer.current = null
-    }
-    
-    setAudioState(prev => ({ ...prev, pendingTranscript: '', currentTranscript: '' }))
-    
-    try {
-      // Call the API to get the next question
-      console.log('🚀 [DEBUG] About to make fetch request to /api/interview/answer', {
-        sessionId,
-        requestTime: new Date().toISOString(),
-        url: '/api/interview/answer',
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          answer: 'SKIPPED',
-          skipQuestion: true
-        })
-      })
 
-      const response = await fetch('/api/interview/answer', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          answer: 'SKIPPED', // Special marker to indicate question was skipped
-          skipQuestion: true
-        })
-      })
-      
-      console.log('🎯 [DEBUG] Fetch request completed', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries()),
-        responseTime: new Date().toISOString()
-      })
-      
-      console.log('🔄 [SKIP] Response status:', response.status, response.statusText)
-      
-      // Enhanced JSON parsing with error handling
-      let result
-      try {
-        const responseText = await response.text()
-        console.log('🔄 [SKIP] Raw response:', responseText.substring(0, 500))
-        
-        if (!responseText.trim()) {
-          throw new Error('Empty response from server')
-        }
-        
-        result = JSON.parse(responseText)
-        console.log('✅ [SKIP] Successfully parsed JSON:', result)
-      } catch (parseError) {
-        console.error('❌ [SKIP] Failed to parse JSON response:', parseError)
-        console.error('❌ [SKIP] Response status:', response.status, response.statusText)
-        await speakAIResponse("There was a technical issue skipping the question. Please try again or continue with your answer.")
-        return
-      }
-      
-      if (result.success) {
-        if (result.data?.nextAction === 'completed') {
-          if (!isCompleting) {
-            setIsCompleting(true)
-            console.log('🏁 Interview completed via skip, calling onComplete()')
-            await playCompletionSound("Thank you for completing the interview. Your responses have been recorded and evaluated. Good luck!")
-            // Add delay to prevent multiple calls
-            setTimeout(() => {
-              onComplete()
-            }, 1000)
-          }
-          return
-        }
-
-        if (result.data?.currentQuestion) {
-          console.log('⏭️ Skip successful, moving to question:', result.data.currentQuestion.id)
-          setCurrentQuestion(result.data.currentQuestion)
-          setProgress(result.data.progress?.current || progress + 1)
-          
-          // Clear any queued messages and errors before speaking next question
-          speechQueue.current = []
-          pendingTranscriptRef.current = ''
-          setAudioState(prev => ({ ...prev, error: null, pendingTranscript: '', currentTranscript: '' }))
-          
-          // Reset skip timestamp after question transition to allow normal transcript processing
-          setTimeout(() => {
-            skipTimestampRef.current = 0
-          }, 4000) // Extended to ensure buffer period is complete
-          
-          // Simplified message
-          await speakAIResponse(result.data.currentQuestion.question)
-        }
-      } else {
-        // Handle skip errors (like interview not found)
-        if (result.error && result.error.includes('Interview not found')) {
-          console.error('🚨 Interview session lost during skip')
-          if (!isCompleting) {
-            setIsCompleting(true)
-            await playCompletionSound("Your interview session has been completed. Redirecting you to results...")
-            setTimeout(() => {
-              onComplete()
-            }, 2000)
-          }
-          return
-        }
-        
-        await speakAIResponse(result.error || "There was an issue skipping the question. Please try again.")
-      }
-    } catch (error) {
-      console.error('❌ [DEBUG] Error in skipToNextQuestion:', {
-        error: error instanceof Error ? error.message : String(error),
-        errorType: typeof error,
-        errorConstructor: error?.constructor?.name,
-        stack: error instanceof Error ? error.stack : undefined,
-        sessionId,
-        operationState,
-        timestamp: new Date().toISOString()
-      })
-      
-      // Handle network errors during skip
-      if (error instanceof Error && (
-        error.message.includes('fetch') || 
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('NetworkError') ||
-        error.message.includes('ERR_NETWORK')
-      )) {
-        console.error('🌐 [DEBUG] Network error detected:', error.message)
-        if (!isCompleting) {
-          setIsCompleting(true)
-          await playCompletionSound("There seems to be a connection issue. Let me complete your interview.")
-          setTimeout(() => {
-            onComplete()
-          }, 2000)
-        }
-        return
-      }
-      
-      await speakAIResponse("I apologize, there was an issue skipping the question. Please try again.")
-    } finally {
-      setOperationState('idle')
-      setIsProcessingAnswer(false)
-    }
-  }
-
-  const finishInterviewEarly = async () => {
-    if (operationState !== 'idle' || isCompleting) {
-      console.log('🚫 Early finish blocked - operation in progress:', operationState)
-      return
-    }
-    
-    // Prevent finishing while transcription is in progress to avoid session collision
-    if (pendingTranscriptRef.current && pendingTranscriptRef.current.length > 0) {
-      console.log('🚫 Finish blocked - transcription in progress:', pendingTranscriptRef.current.substring(0, 50) + '...')
-      await speakAIResponse("Please wait for your response to be transcribed before finishing the interview.")
-      return
-    }
-    
-    if (audioState.isRecording) {
-      stopRecording()
-    }
-    
-    setOperationState('completing')
-    setIsCompleting(true)
-    await playCompletionSound("Thank you for your time. Your interview responses have been recorded and you'll receive detailed feedback shortly.")
-    
-    setTimeout(() => {
-      onComplete()
-    }, 1500)
-  }
 
   // Add rate limiting for button clicks
   const [lastActionTime, setLastActionTime] = useState(0)
@@ -768,64 +563,6 @@ export function AudioInterview({
             </Button>
           </div>
 
-          {/* Secondary Controls */}
-          <div className="flex gap-3 justify-center">
-            {progress < totalQuestions ? (
-              <Button
-                onClick={() => {
-                  if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
-                    console.log('👤 User manually clicked Next Question button')
-                    skipToNextQuestion()
-                  } else {
-                    console.log('⚠️ Skip blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
-                  }
-                }}
-                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused || pendingTranscriptRef.current.length > 0}
-                variant="outline"
-                size="sm"
-                className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                title={pendingTranscriptRef.current.length > 0 ? "Please wait for transcription to complete" : "Skip to Next Question"}
-              >
-                <SkipForward size={16} className="mr-1" />
-                Next Question
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  if (canPerformAction() && operationState === 'idle' && !isProcessingAnswer && !isCompleting) {
-                    console.log('👤 User clicked Finish Interview button at last question')
-                    finishInterviewEarly()
-                  } else {
-                    console.log('⚠️ Finish blocked: operation in progress', { operationState, isProcessingAnswer, isCompleting })
-                  }
-                }}
-                disabled={audioState.isSpeaking || operationState !== 'idle' || isProcessingAnswer || audioState.isPaused || pendingTranscriptRef.current.length > 0}
-                variant="default"
-                size="sm" 
-                className="bg-green-600 text-white hover:bg-green-700"
-                title={pendingTranscriptRef.current.length > 0 ? "Please wait for transcription to complete" : "Complete Interview"}
-              >
-                <Square size={16} className="mr-1" />
-                Finish Interview
-              </Button>
-            )}
-            
-            <Button
-              onClick={() => {
-                if (canPerformAction() && !isProcessingAnswer && !isCompleting) {
-                  finishInterviewEarly()
-                }
-              }}
-              disabled={audioState.isSpeaking || isProcessingAnswer}
-              variant="outline"
-              size="sm"
-              className="border-gray-400 text-gray-600 hover:bg-gray-50"
-              title="Finish Interview Early"
-            >
-              <Square size={16} className="mr-1" />
-              Finish Early
-            </Button>
-          </div>
 
           {/* Pause Status */}
           {audioState.isPaused && (
@@ -939,8 +676,6 @@ export function AudioInterview({
           <li>• Speak naturally - the system will automatically detect when you&apos;re done</li>
           <li>• <strong>Wait for the system to process your answer</strong> - don&apos;t click buttons immediately</li>
           <li>• Use &quot;Pause&quot; to take a break and &quot;Resume&quot; to continue</li>
-          <li>• Only click &quot;Next Question&quot; if you want to skip without answering</li>
-          <li>• Use &quot;Finish Early&quot; to end the interview before completing all questions</li>
           <li>• Your responses are transcribed and evaluated in real-time</li>
         </ul>
       </Card>
