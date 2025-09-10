@@ -146,6 +146,22 @@ export function AudioInterview({
           mediaRecorderRef.current.onstop = async () => {
             console.log('🛑 Recording stopped. Chunks collected:', recordedChunks.current.length)
             
+            // Check if audio data was actually recorded
+            if (recordedChunks.current.length === 0) {
+              alert('No audio data was recorded. Please check your microphone permissions and try again.')
+              resolve()
+              return
+            }
+            
+            const totalSize = recordedChunks.current.reduce((total, chunk) => total + chunk.size, 0)
+            console.log('📊 Total audio data size:', totalSize + ' bytes')
+            
+            if (totalSize < 1000) { // Less than 1KB suggests no meaningful audio
+              alert('Very little audio data was recorded. Please check your microphone and speak louder.')
+              resolve()
+              return
+            }
+            
             // Log chunk details for debugging
             const totalBytes = recordedChunks.current.reduce((sum, chunk) => sum + chunk.size, 0)
             console.log('📊 Total bytes in chunks:', totalBytes)

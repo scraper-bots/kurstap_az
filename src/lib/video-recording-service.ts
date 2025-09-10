@@ -103,7 +103,9 @@ export class VideoRecordingService {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100
+          sampleRate: 44100,
+          channelCount: 1,
+          volume: 1.0
         }
       })
 

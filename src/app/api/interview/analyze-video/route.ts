@@ -55,7 +55,9 @@ export async function POST(request: NextRequest) {
         file: audioFile,
         model: 'whisper-1',
         language: 'en',
-        response_format: 'text'
+        response_format: 'text',
+        temperature: 0.3, // Lower temperature for more accurate transcription
+        prompt: 'This is an interview response. The speaker is answering technical questions.' // Context for better transcription
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Transcription timeout')), 90000)
@@ -64,9 +66,12 @@ export async function POST(request: NextRequest) {
 
     const transcript = transcriptionResponse || 'No speech detected in the recording.'
     console.log('✅ Transcription completed:', transcript.length + ' characters')
+    console.log('📝 Transcript content:', transcript.substring(0, 200) + '...')
     
-    if (transcript.length < 10) {
-      throw new Error('No meaningful speech detected in the recording. Please speak clearly and try again.')
+    // More lenient threshold for speech detection
+    if (transcript.length < 5 || transcript.toLowerCase().includes('no speech detected')) {
+      console.error('❌ Insufficient speech detected. Transcript:', transcript)
+      throw new Error('No meaningful speech detected in the recording. Please ensure your microphone is working and speak clearly into it.')
     }
 
     console.log('🧠 Analyzing emotions and communication patterns with AI')
