@@ -310,43 +310,28 @@ export class InterviewService {
         updatedSessionData.overallScore = 75 // Default score, will be updated later
       }
 
-      // Update database
-      await db.interview.update({
-        where: { id: sessionId },
-        data: {
-          feedback: JSON.stringify(updatedSessionData),
-          status: updatedSessionData.status,
-          score: updatedSessionData.overallScore,
-          completedAt: nextAction === 'completed' ? new Date() : null
-        }
-      })
+      // Update database for non-completed interviews
+      if (nextAction !== 'completed') {
+        await db.interview.update({
+          where: { id: sessionId },
+          data: {
+            feedback: JSON.stringify(updatedSessionData),
+            status: updatedSessionData.status,
+            score: updatedSessionData.overallScore,
+            completedAt: null
+          }
+        })
+      }
 
       // Additional completion updates if needed
       if (nextAction === 'completed') {
         // Interview status already updated above
         // Additional completion logic can be added here if needed
 
-        // Create detailed interview analysis
+        // Update the existing interview with detailed analysis
         try {
-          // Check if detailed interview already exists for this session
-          const existingDetailedInterview = await db.interview.findFirst({
-            where: {
-              userId: user.id,
-              title: `${interview.position || 'General'} Interview`,
-              company: 'Practice Session',
-              createdAt: {
-                // Look for interviews created in the last hour to avoid duplicates
-                gte: new Date(Date.now() - 60 * 60 * 1000)
-              }
-            }
-          })
-
-          if (existingDetailedInterview) {
-            // Detailed interview already exists, skipping creation
-            updatedSessionData.detailedInterviewId = existingDetailedInterview.id
-          } else {
-            // Transform answers to DetailedInterviewService format
-            const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
+          // Transform answers to DetailedInterviewService format
+          const detailedAnswers: InterviewAnswerData[] = updatedAnswers.map((answer, index) => {
             const matchingQuestion = sessionData.questions.find((q: InterviewQuestion) => q.id === answer.questionId)
             
             return {
@@ -366,30 +351,29 @@ export class InterviewService {
           // Generate detailed analysis
           const analysis = await DetailedInterviewService.generateDetailedAnalysis(detailedAnswers)
           
-          // Create detailed interview data
-          const detailedInterviewData: DetailedInterviewData = {
-            title: `${interview.position || 'General'} Interview`,
-            company: 'Practice Session',
-            position: interview.position || 'General',
-            difficulty: interview.difficulty || 'MEDIUM',
-            duration: Math.round(((new Date()).getTime() - interview.createdAt.getTime()) / 1000 / 60),
-            score: updatedSessionData.overallScore || 75,
-            ...analysis
-          }
-
-          // Create the detailed interview (this will create a separate interview record with full analysis)
-          const detailedInterview = await DetailedInterviewService.createDetailedInterview(
-            user.id, // Use Clerk ID for consistency with frontend
-            detailedInterviewData,
-            detailedAnswers
-          )
-          
-          // Store the detailed interview ID in the session for reference
-          updatedSessionData.detailedInterviewId = detailedInterview.id
-          }
+          // Update the existing interview with detailed analysis data
+          await db.interview.update({
+            where: { id: sessionId },
+            data: {
+              company: 'Practice Session',
+              status: updatedSessionData.status,
+              score: updatedSessionData.overallScore,
+              completedAt: new Date(),
+              categoryScores: analysis.categoryScores,
+              overallAnalysis: analysis.overallAnalysis,
+              responseMetrics: analysis.responseMetrics,
+              benchmarkData: analysis.benchmarkData,
+              improvementPlan: analysis.improvementPlan,
+              // Update feedback to include detailed answers analysis
+              feedback: JSON.stringify({
+                ...updatedSessionData,
+                detailedAnswers: detailedAnswers
+              })
+            }
+          })
           
         } catch (detailedError) {
-          console.error('❌ Failed to create detailed interview analysis:', detailedError)
+          console.error('❌ Failed to update interview with detailed analysis:', detailedError)
           // Continue without failing the whole process
         }
       }
