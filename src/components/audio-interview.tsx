@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
+import { Video, Square } from 'lucide-react'
 
 interface AudioInterviewProps {
   sessionId: string
@@ -26,57 +27,144 @@ export function AudioInterview({
   onComplete
 }: AudioInterviewProps) {
   const [isAnswering, setIsAnswering] = useState(false)
-  const [currentAnswer, setCurrentAnswer] = useState('')
+  const [isRecording, setIsRecording] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(initialQuestion)
   const [progress, setProgress] = useState(1)
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false)
+  
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunks = useRef<Blob[]>([])
+  const streamRef = useRef<MediaStream | null>(null)
 
-  // Handle Answer button click
-  const handleAnswerClick = () => {
-    setIsAnswering(true)
+  // Handle Answer button click - Start video recording
+  const handleAnswerClick = async () => {
+    try {
+      setIsAnswering(true)
+      
+      // Get user media (camera + microphone)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: true
+      })
+      
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      
+      // Setup MediaRecorder
+      recordedChunks.current = []
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.current.push(event.data)
+        }
+      }
+      
+      // Start recording
+      mediaRecorder.start()
+      setIsRecording(true)
+      
+    } catch (error) {
+      console.error('Error starting video recording:', error)
+      alert('Failed to access camera/microphone. Please ensure permissions are granted.')
+      setIsAnswering(false)
+    }
   }
 
-  // Handle Finish button click  
+  // Handle Finish button click - Stop recording and analyze video
   const handleFinishClick = async () => {
-    if (!currentAnswer.trim()) {
-      alert('Please enter an answer before finishing.')
+    if (!isRecording || !mediaRecorderRef.current) {
+      alert('Please record your answer first.')
       return
     }
 
     setIsProcessingAnswer(true)
+    setIsRecording(false)
     
     try {
-      // Submit answer to API
-      const response = await fetch('/api/interview/answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          answer: currentAnswer.trim(),
-          skipQuestion: false
-        })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        if (result.data?.nextAction === 'completed') {
-          setTimeout(() => {
-            onComplete()
-          }, 1000)
-        } else if (result.data?.currentQuestion) {
-          // Move to next question
-          setCurrentQuestion(result.data.currentQuestion)
-          setProgress(result.data.progress?.current || progress + 1)
-          setCurrentAnswer('')
-          setIsAnswering(false)
-        }
-      } else {
-        alert(result.error || 'Failed to submit answer')
+      // Stop recording
+      mediaRecorderRef.current.stop()
+      
+      // Stop video stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+        streamRef.current = null
       }
+      
+      // Wait for recording to complete and get video blob
+      await new Promise<void>((resolve) => {
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.onstop = async () => {
+            const videoBlob = new Blob(recordedChunks.current, { type: 'video/webm' })
+            
+            // Send video for analysis (cost-effective: analyze then discard)
+            const formData = new FormData()
+            formData.append('video', videoBlob)
+            formData.append('sessionId', sessionId)
+            
+            try {
+              const response = await fetch('/api/interview/analyze-video', {
+                method: 'POST',
+                body: formData
+              })
+
+              const result = await response.json()
+
+              if (result.success) {
+                // Submit analyzed results (text + emotions) to answer API
+                const answerResponse = await fetch('/api/interview/answer', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    sessionId: sessionId,
+                    answer: result.transcript, // Extracted text from video
+                    emotions: result.emotions, // Extracted emotions from video
+                    videoAnalysis: result.analysis, // Additional analysis
+                    skipQuestion: false
+                  })
+                })
+
+                const answerResult = await answerResponse.json()
+
+                if (answerResult.success) {
+                  if (answerResult.data?.nextAction === 'completed') {
+                    setTimeout(() => {
+                      onComplete()
+                    }, 1000)
+                  } else if (answerResult.data?.currentQuestion) {
+                    // Move to next question
+                    setCurrentQuestion(answerResult.data.currentQuestion)
+                    setProgress(answerResult.data.progress?.current || progress + 1)
+                    setIsAnswering(false)
+                    
+                    // Clear video element
+                    if (videoRef.current) {
+                      videoRef.current.srcObject = null
+                    }
+                  }
+                } else {
+                  alert(answerResult.error || 'Failed to submit answer')
+                }
+              } else {
+                alert(result.error || 'Failed to analyze video')
+              }
+            } catch (analysisError) {
+              console.error('Error analyzing video:', analysisError)
+              alert('Failed to analyze video. Please try again.')
+            }
+            
+            resolve()
+          }
+        }
+      })
+      
     } catch (error) {
-      console.error('Error submitting answer:', error)
-      alert('Failed to submit answer. Please try again.')
+      console.error('Error finishing video answer:', error)
+      alert('Failed to process video answer. Please try again.')
     } finally {
       setIsProcessingAnswer(false)
     }
@@ -106,26 +194,42 @@ export function AudioInterview({
             </span>
           </div>
 
-          {/* Answer Input */}
+          {/* Video Recording Interface */}
           {isAnswering && (
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                Your Answer:
+                Record Your Answer:
               </label>
-              <textarea
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                placeholder="Type your answer here..."
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isProcessingAnswer}
-              />
+              <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  className="w-full h-64 object-cover bg-black"
+                  style={{ transform: 'scaleX(-1)' }} // Mirror effect
+                />
+                {isRecording && (
+                  <div className="absolute top-4 left-4 flex items-center">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
+                    <span className="text-white font-medium bg-black/50 px-2 py-1 rounded">
+                      Recording...
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                {isRecording 
+                  ? 'Click "Finish" when you\'re done answering'
+                  : 'Camera is ready. Speak your answer clearly.'
+                }
+              </p>
             </div>
           )}
 
           {/* Processing State */}
           {isProcessingAnswer && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-yellow-800">Processing your answer...</p>
+              <p className="text-yellow-800">Analyzing your video response...</p>
             </div>
           )}
 
@@ -137,14 +241,16 @@ export function AudioInterview({
                 disabled={isProcessingAnswer}
                 className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-3"
               >
+                <Video size={20} className="mr-2" />
                 Answer
               </Button>
             ) : (
               <Button
                 onClick={handleFinishClick}
-                disabled={isProcessingAnswer || !currentAnswer.trim()}
+                disabled={isProcessingAnswer || !isRecording}
                 className="bg-green-600 text-white hover:bg-green-700 px-8 py-3"
               >
+                <Square size={20} className="mr-2" />
                 Finish
               </Button>
             )}

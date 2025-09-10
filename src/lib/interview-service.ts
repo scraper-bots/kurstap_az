@@ -16,6 +16,8 @@ export interface InterviewAnswerWithScore extends Omit<InterviewAnswer, 'score'>
     overallScore: number
     feedback: string
   }
+  emotions?: any
+  videoAnalysis?: string
 }
 
 export interface InterviewSessionData {
@@ -182,7 +184,9 @@ export class InterviewService {
     sessionId: string,
     clerkUserId: string,
     answer: string,
-    skipQuestion: boolean = false
+    skipQuestion: boolean = false,
+    emotions?: any,
+    videoAnalysis?: string
   ): Promise<{
     success: boolean
     sessionData: InterviewSessionData
@@ -264,7 +268,9 @@ export class InterviewService {
           question: currentQuestion.question,
           userAnswer: answer,
           category: currentQuestion.category || 'general',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          emotions: emotions || undefined,
+          videoAnalysis: videoAnalysis || undefined
         }
         
         // Recording answer

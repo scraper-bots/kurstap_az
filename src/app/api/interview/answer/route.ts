@@ -7,6 +7,8 @@ export interface SubmitAnswerRequest {
   sessionId: string
   answer: string
   skipQuestion?: boolean
+  emotions?: any
+  videoAnalysis?: string
 }
 
 export interface SubmitAnswerResponse {
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
       }, { status: 400 })
     }
 
-    const { sessionId, answer, skipQuestion } = body
+    const { sessionId, answer, skipQuestion, emotions, videoAnalysis } = body
 
     // Enhanced validation with detailed logging
     if (!sessionId) {
@@ -120,7 +122,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubmitAnswerR
             sessionId,
             userId,
             skipQuestion ? 'SKIPPED' : answer.trim(),
-            skipQuestion
+            skipQuestion,
+            emotions,
+            videoAnalysis
           )
         ),
         {
