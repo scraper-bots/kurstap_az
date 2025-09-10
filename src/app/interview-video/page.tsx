@@ -164,8 +164,8 @@ function VideoInterviewContent() {
         throw new Error(data.error || 'Failed to complete interview')
       }
 
-      // Redirect to results page
-      router.push(`/interviews/${interviewData.id}/report`)
+      // Redirect to interview details page
+      router.push(`/interviews/${interviewData.id}`)
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to complete interview'

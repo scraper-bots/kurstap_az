@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         recommendations: videoAnalysis.recommendations,
         keyMoments: keyMoments
       },
-      reportUrl: `/interviews/${interviewId}/report`,
+      detailsUrl: `/interviews/${interviewId}`,
       message: 'Video interview analysis completed successfully'
     })
 
