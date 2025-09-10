@@ -207,10 +207,17 @@ export function AudioInterview({
             formData.append('sessionId', sessionId)
             
             try {
+              // Create AbortController for timeout handling
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 150000) // 150 second timeout
+              
               const response = await fetch('/api/interview/analyze-video', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                signal: controller.signal
               })
+              
+              clearTimeout(timeoutId)
 
               if (!response.ok) {
                 const errorText = await response.text()
@@ -221,17 +228,26 @@ export function AudioInterview({
 
               if (result.success) {
                 // Submit analyzed results (text + emotions) to answer API
+                const answerController = new AbortController()
+                const answerTimeoutId = setTimeout(() => answerController.abort(), 60000) // 60 second timeout
+                
                 const answerResponse = await fetch('/api/interview/answer', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': localStorage.getItem('userId') || 'anonymous'
+                  },
                   body: JSON.stringify({
                     sessionId: sessionId,
                     answer: result.transcript, // Extracted text from video
                     emotions: result.emotions, // Extracted emotions from video
                     videoAnalysis: result.analysis, // Additional analysis
                     skipQuestion: false
-                  })
+                  }),
+                  signal: answerController.signal
                 })
+                
+                clearTimeout(answerTimeoutId)
 
                 const answerResult = await answerResponse.json()
 
@@ -259,7 +275,18 @@ export function AudioInterview({
               }
             } catch (analysisError) {
               console.error('Error analyzing video:', analysisError)
-              alert('Failed to analyze video. Please try again.')
+              
+              if (analysisError instanceof Error) {
+                if (analysisError.name === 'AbortError') {
+                  alert('Video analysis timed out. Please try with a shorter video or check your internet connection.')
+                } else if (analysisError.message.includes('Failed to fetch')) {
+                  alert('Network error during video analysis. Please check your connection and try again.')
+                } else {
+                  alert(`Video analysis failed: ${analysisError.message}`)
+                }
+              } else {
+                alert('Failed to analyze video. Please try again.')
+              }
             }
             
             resolve()

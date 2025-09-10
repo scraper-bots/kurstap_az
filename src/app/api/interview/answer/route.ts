@@ -3,6 +3,9 @@ import { InterviewService } from '@/lib/interview-service'
 import { RetryService, CircuitBreaker } from '@/lib/retry-service'
 import { CompressionService } from '@/lib/compression-middleware'
 
+// Increase timeout for video analysis processing
+export const maxDuration = 120 // 120 seconds to handle video analysis results
+
 export interface SubmitAnswerRequest {
   sessionId: string
   answer: string
