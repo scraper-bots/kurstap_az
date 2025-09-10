@@ -63,35 +63,50 @@ export function AudioInterview({
       
       // Setup MediaRecorder with compression options
       recordedChunks.current = []
-      const options = {
-        mimeType: 'video/webm;codecs=vp9,opus',
-        videoBitsPerSecond: 500000, // 500kbps for smaller files
-        audioBitsPerSecond: 128000  // 128kbps audio
+      
+      // Find the best supported MIME type
+      const supportedTypes = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus', 
+        'video/webm',
+        'video/mp4'
+      ]
+      
+      let selectedType = 'video/webm'
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          selectedType = type
+          break
+        }
       }
       
-      // Fallback options if VP9 not supported
-      let mimeType = 'video/webm;codecs=vp9,opus'
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm;codecs=vp8,opus'
-        options.mimeType = mimeType
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm'
-        options.mimeType = mimeType
+      console.log('🎥 Using MIME type:', selectedType)
+      
+      const options: MediaRecorderOptions = {
+        mimeType: selectedType,
+        videoBitsPerSecond: 500000, // 500kbps for smaller files
+        audioBitsPerSecond: 128000  // 128kbps audio
       }
       
       const mediaRecorder = new MediaRecorder(stream, options)
       mediaRecorderRef.current = mediaRecorder
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log('📹 Data available:', event.data.size, 'bytes')
         if (event.data.size > 0) {
           recordedChunks.current.push(event.data)
         }
       }
       
-      // Start recording
-      mediaRecorder.start()
+      mediaRecorder.onerror = (event) => {
+        console.error('❌ MediaRecorder error:', event)
+        alert('Recording error occurred. Please try again.')
+      }
+      
+      // Start recording with time slice to ensure data collection
+      mediaRecorder.start(1000) // Collect data every 1 second
       setIsRecording(true)
+      console.log('🎬 Recording started with codec:', options.mimeType)
       
     } catch (error) {
       console.error('Error starting video recording:', error)
@@ -124,7 +139,26 @@ export function AudioInterview({
       await new Promise<void>((resolve) => {
         if (mediaRecorderRef.current) {
           mediaRecorderRef.current.onstop = async () => {
-            const videoBlob = new Blob(recordedChunks.current, { type: 'video/webm' })
+            console.log('🛑 Recording stopped. Chunks collected:', recordedChunks.current.length)
+            
+            if (recordedChunks.current.length === 0) {
+              alert('No video data was recorded. Please try again and speak into your microphone.')
+              resolve()
+              return
+            }
+            
+            // Determine the best MIME type for the blob
+            const mimeType = recordedChunks.current[0]?.type || 'video/webm'
+            const videoBlob = new Blob(recordedChunks.current, { type: mimeType })
+            
+            console.log(`📊 Video created: ${Math.round(videoBlob.size / 1024 / 1024)}MB, type: ${mimeType}`)
+            
+            // Check if we have actual data
+            if (videoBlob.size === 0) {
+              alert('No video data was captured. Please check your camera and microphone permissions and try again.')
+              resolve()
+              return
+            }
             
             // Check file size (limit to 25MB)
             const maxSize = 25 * 1024 * 1024 // 25MB
@@ -133,8 +167,6 @@ export function AudioInterview({
               resolve()
               return
             }
-            
-            console.log(`Video size: ${Math.round(videoBlob.size / 1024 / 1024)}MB`)
             
             // Send video for analysis (cost-effective: analyze then discard)
             const formData = new FormData()
