@@ -42,10 +42,18 @@ export function AudioInterview({
     try {
       setIsAnswering(true)
       
-      // Get user media (camera + microphone)
+      // Get user media (camera + microphone) with optimized settings
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-        audio: true
+        video: { 
+          width: { ideal: 480 }, 
+          height: { ideal: 360 },
+          frameRate: { ideal: 15, max: 24 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
       })
       
       streamRef.current = stream
@@ -53,9 +61,26 @@ export function AudioInterview({
         videoRef.current.srcObject = stream
       }
       
-      // Setup MediaRecorder
+      // Setup MediaRecorder with compression options
       recordedChunks.current = []
-      const mediaRecorder = new MediaRecorder(stream)
+      const options = {
+        mimeType: 'video/webm;codecs=vp9,opus',
+        videoBitsPerSecond: 500000, // 500kbps for smaller files
+        audioBitsPerSecond: 128000  // 128kbps audio
+      }
+      
+      // Fallback options if VP9 not supported
+      let mimeType = 'video/webm;codecs=vp9,opus'
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm;codecs=vp8,opus'
+        options.mimeType = mimeType
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm'
+        options.mimeType = mimeType
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options)
       mediaRecorderRef.current = mediaRecorder
       
       mediaRecorder.ondataavailable = (event) => {
@@ -101,6 +126,16 @@ export function AudioInterview({
           mediaRecorderRef.current.onstop = async () => {
             const videoBlob = new Blob(recordedChunks.current, { type: 'video/webm' })
             
+            // Check file size (limit to 25MB)
+            const maxSize = 25 * 1024 * 1024 // 25MB
+            if (videoBlob.size > maxSize) {
+              alert(`Video file is too large (${Math.round(videoBlob.size / 1024 / 1024)}MB). Please record a shorter response.`)
+              resolve()
+              return
+            }
+            
+            console.log(`Video size: ${Math.round(videoBlob.size / 1024 / 1024)}MB`)
+            
             // Send video for analysis (cost-effective: analyze then discard)
             const formData = new FormData()
             formData.append('video', videoBlob)
@@ -111,6 +146,11 @@ export function AudioInterview({
                 method: 'POST',
                 body: formData
               })
+
+              if (!response.ok) {
+                const errorText = await response.text()
+                throw new Error(`Video analysis failed: ${response.status} ${response.statusText} - ${errorText}`)
+              }
 
               const result = await response.json()
 

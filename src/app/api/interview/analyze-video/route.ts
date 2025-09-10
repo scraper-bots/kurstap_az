@@ -5,16 +5,39 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+// For App Router, use runtime config
+export const runtime = 'nodejs'
+export const maxDuration = 60 // 60 seconds for video processing
+
 export async function POST(request: NextRequest) {
   try {
+    console.log('🎥 Video analysis request received')
+    
     const formData = await request.formData()
     const videoFile = formData.get('video') as File
     const sessionId = formData.get('sessionId') as string
 
+    console.log('📁 Form data parsed:', {
+      hasVideoFile: !!videoFile,
+      videoSize: videoFile?.size ? `${Math.round(videoFile.size / 1024 / 1024)}MB` : 'unknown',
+      sessionId: sessionId || 'missing'
+    })
+
     if (!videoFile || !sessionId) {
+      console.error('❌ Missing required fields')
       return NextResponse.json(
         { success: false, error: 'Video file and session ID are required' },
         { status: 400 }
+      )
+    }
+
+    // Check file size limit (25MB)
+    const maxSize = 25 * 1024 * 1024
+    if (videoFile.size > maxSize) {
+      console.error('❌ File too large:', `${Math.round(videoFile.size / 1024 / 1024)}MB`)
+      return NextResponse.json(
+        { success: false, error: `Video file too large. Maximum size is 25MB.` },
+        { status: 413 }
       )
     }
 
