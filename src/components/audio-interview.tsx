@@ -126,14 +126,19 @@ export function AudioInterview({
     setIsRecording(false)
     
     try {
-      // Stop recording
-      mediaRecorderRef.current.stop()
-      
-      // Stop video stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
-        streamRef.current = null
+      // Stop recording and request final data
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.requestData() // Request any remaining data
+        mediaRecorderRef.current.stop()
       }
+      
+      // Stop video stream after a short delay to ensure data is collected
+      setTimeout(() => {
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop())
+          streamRef.current = null
+        }
+      }, 200)
       
       // Wait for recording to complete and get video blob
       await new Promise<void>((resolve) => {
@@ -141,21 +146,35 @@ export function AudioInterview({
           mediaRecorderRef.current.onstop = async () => {
             console.log('🛑 Recording stopped. Chunks collected:', recordedChunks.current.length)
             
+            // Log chunk details for debugging
+            const totalBytes = recordedChunks.current.reduce((sum, chunk) => sum + chunk.size, 0)
+            console.log('📊 Total bytes in chunks:', totalBytes)
+            
             if (recordedChunks.current.length === 0) {
               alert('No video data was recorded. Please try again and speak into your microphone.')
               resolve()
               return
             }
             
-            // Determine the best MIME type for the blob
-            const mimeType = recordedChunks.current[0]?.type || 'video/webm'
+            // Wait a bit for all chunks to be ready
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+            // Use the MIME type from MediaRecorder options
+            const mimeType = mediaRecorderRef.current?.mimeType || 'video/webm'
+            console.log('🎬 Creating blob with MIME type:', mimeType)
+            
             const videoBlob = new Blob(recordedChunks.current, { type: mimeType })
             
-            console.log(`📊 Video created: ${Math.round(videoBlob.size / 1024 / 1024)}MB, type: ${mimeType}`)
+            console.log(`📊 Video blob created: ${videoBlob.size} bytes (${Math.round(videoBlob.size / 1024 / 1024 * 100) / 100}MB)`)
             
             // Check if we have actual data
             if (videoBlob.size === 0) {
-              alert('No video data was captured. Please check your camera and microphone permissions and try again.')
+              console.error('❌ Blob size is 0 despite having chunks:', {
+                chunksCount: recordedChunks.current.length,
+                totalChunkBytes: totalBytes,
+                mimeType
+              })
+              alert('Video data could not be processed. Please try again.')
               resolve()
               return
             }
@@ -170,7 +189,21 @@ export function AudioInterview({
             
             // Send video for analysis (cost-effective: analyze then discard)
             const formData = new FormData()
-            formData.append('video', videoBlob)
+            
+            // Create a new file with proper name for better handling
+            const videoFile = new File([videoBlob], 'interview-recording.webm', { 
+              type: mimeType,
+              lastModified: Date.now()
+            })
+            
+            console.log('📁 Created video file:', {
+              originalBlobSize: videoBlob.size,
+              fileSize: videoFile.size,
+              fileName: videoFile.name,
+              fileType: videoFile.type
+            })
+            
+            formData.append('video', videoFile)
             formData.append('sessionId', sessionId)
             
             try {
