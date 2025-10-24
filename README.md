@@ -1,23 +1,28 @@
 # Kurstap.az Course Scraper
 
-A Python web scraper to extract course information from kurstap.az, including phone numbers, course details, pricing, and contact information.
+A high-performance Python web scraper to extract course information from kurstap.az, including phone numbers, course details, pricing, and contact information.
 
 ## Features
 
-- Scrapes all course listings from kurstap.az
+- **Fast async scraping** using aiohttp and asyncio (20 concurrent requests)
+- Scrapes all 1382+ course listings from kurstap.az
 - Handles pagination automatically
+- **Smart phone number extraction**: Creates separate rows for each phone number
+  - Automatically detects and splits concatenated phone numbers
+  - Each row contains one clean phone number
+  - Handles both formats: `+994 XX XXX XX XX` and `+994XXXXXXXXX`
 - Extracts comprehensive course data:
   - Institution name
   - Course title
   - Duration
   - Price
   - Location (city and district)
-  - Phone numbers
+  - Phone numbers (one per row)
   - Email addresses
   - Physical address
   - Website/social media links
-- Exports data to both CSV and JSON formats
-- Rate limiting to be respectful to the server
+- Exports data to **CSV, JSON, and XLSX** formats
+- Built-in rate limiting and error handling
 
 ## Installation
 
@@ -29,19 +34,23 @@ pip install -r requirements.txt
 
 ## Usage
 
-Run the scraper:
+Run the high-performance async scraper:
 
 ```bash
-python scraper.py
+python scraper_async.py
 ```
 
-The scraper will:
-1. Automatically discover all course listing pages
-2. Extract course URLs from each page
-3. Visit each course page and extract detailed information
-4. Save the data to two files:
+This scraper uses asyncio and aiohttp for concurrent scraping (20 requests at once) for maximum performance.
+
+### What the scraper does:
+
+1. Automatically discovers all course listing pages (pagination)
+2. Extracts all unique course URLs
+3. Visits each course page and extracts detailed information
+4. Saves the data to three files:
    - `kurstap_courses.csv` - CSV format for spreadsheet applications
    - `kurstap_courses.json` - JSON format for further processing
+   - `kurstap_courses.xlsx` - Excel format with formatting
 
 ## Output Format
 
@@ -77,9 +86,32 @@ The scraper extracts the following fields for each course:
 }
 ```
 
+## Performance
+
+The async scraper can complete scraping of all 1382+ courses in approximately **10-15 minutes**.
+
+## Output Data
+
+Since the scraper creates a separate row for each phone number:
+- **Original courses**: ~1382
+- **Output rows**: ~1870+ (each course with multiple phone numbers gets multiple rows)
+- Each row has one clean, individual phone number
+
 ## Notes
 
-- The scraper includes 1-second delays between requests to avoid overloading the server
-- Progress is displayed during scraping
-- Error handling is included for network issues and missing data
+- The async scraper uses connection pooling and semaphores to limit concurrent requests (20 max)
+- Progress is displayed in real-time during scraping
+- Comprehensive error handling for network issues and missing data
+- The XLSX export includes:
+  - Formatted headers with color
+  - Auto-adjusted column widths
+  - Frozen header row for easy scrolling
 - Please use this tool responsibly and in accordance with the website's terms of service
+
+## Sample Data
+
+After running the scraper, you'll have access to comprehensive data for 1382+ courses including:
+- Full contact information (phone numbers, emails)
+- Course details (duration, pricing)
+- Institution information
+- Location data
