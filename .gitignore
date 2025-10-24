@@ -45,3 +45,16 @@ yarn-error.log*
 *.p12
 *.crt
 *.cert
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+ENV/
+
+# Scraped data
+kurstap_courses.csv
+kurstap_courses.json
